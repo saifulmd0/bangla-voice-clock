@@ -72,6 +72,11 @@ jobs:
           $app = "Bangla Voice Clock"
           New-Item -ItemType Directory -Path $app | Out-Null
           Copy-Item -Recurse build/windows/x64/runner/Release/* $app
+          # The Visual C++ runtime Flutter needs, for PCs that lack it
+          # (Microsoft allows redistributing these files).
+          foreach ($dll in "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll") {
+            Copy-Item "$env:SystemRoot\System32\$dll" $app
+          }
           Compress-Archive -Path $app -DestinationPath BanglaVoiceClock-windows.zip
       - uses: actions/upload-artifact@v7
         with:

@@ -9,20 +9,29 @@ and by [Schedule Voice Clock](https://github.com/HridoyVaraby/schedule-voice-clo
 
 > **Status:** early development. See [docs/PLAN.md](docs/PLAN.md) for the full plan.
 
-## Download (development builds)
+## Download
 
-Every push to `main` builds the macOS app on GitHub Actions.
+Get the latest version from [Releases](../../releases): one zip for **macOS** (12 or later) and one
+for **Windows** (10 or later, 64-bit). The builds are not signed yet:
 
-1. Open the [Actions tab](../../actions), pick the latest successful **CI** run.
-2. Download **BanglaVoiceClock-macos** from the Artifacts section and unzip it.
-3. These builds are not signed yet. The first time, right-click **Bangla Voice Clock** and
-   choose **Open**.
+- **macOS:** unzip, move **Bangla Voice Clock** to Applications, then right-click it and choose
+  **Open** the first time.
+- **Windows:** unzip and run **BanglaVoiceClock.exe**. If SmartScreen warns, choose
+  **More info → Run anyway**.
 
-The clock lives in the menu bar (there's no Dock icon), showing the time in Bangla or the logo.
-Click it to hear the time now, mute it, change how often it speaks, or open the settings: voice,
-traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording, volume, chime, quiet hours, launch at login,
-and the interface language (বাংলা by default, or English). The settings window draws today's
-schedule as a dial of dots; see [DESIGN.md](DESIGN.md) for the brand.
+The clock lives in the macOS menu bar (time, icon or both) or the Windows system tray, with no
+Dock or taskbar window. From its menu you can hear the time now, mute it, change how often it
+speaks, or open the window, which has two tabs:
+
+- **ঘড়ি (Clock):** voice, traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording (বেজে optional),
+  volume, chime, quiet hours, launch at login, light or dark look, and the interface language
+  (বাংলা by default, or English). Today's schedule is drawn as a dial of dots; see
+  [DESIGN.md](DESIGN.md) for the brand.
+- **টাইমার (Timer):** up to three hours; it says the time left every minute ("আর দশ মিনিট বাকি")
+  and "সময় শেষ" at the end.
+
+Every push to `main` also builds both apps on GitHub Actions (the **CI** run's artifacts), and
+pushing a `v*` tag publishes a release.
 
 Developed by [Saiful Islam](https://github.com/saifulmd0).
 
@@ -36,8 +45,8 @@ flutter test      # runs without Xcode
 flutter analyze
 ```
 
-Building and running the macOS app locally (`flutter run -d macos`) also needs Xcode.
-Without Xcode, push to GitHub and let CI build it.
+Building and running the apps locally needs Xcode (macOS) or Visual Studio (Windows).
+Without them, push to GitHub and let CI build both.
 
 ### Hearing the announcement engine
 
