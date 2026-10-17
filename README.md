@@ -13,7 +13,12 @@ Every push to `main` builds the macOS app on GitHub Actions.
 
 1. Open the [Actions tab](../../actions), pick the latest successful **CI** run.
 2. Download **BanglaVoiceClock-macos** from the Artifacts section and unzip it.
-3. These builds are not signed yet. The first time, right-click the app and choose **Open**.
+3. These builds are not signed yet. The first time, right-click **Bangla Voice Clock** and
+   choose **Open**.
+
+The clock lives in the menu bar (there's no Dock icon). Click the time there to hear it now,
+mute it, change how often it speaks, or open the settings: voice, traditional (সোয়া/সাড়ে/পৌনে)
+or exact-minute wording, volume, chime, quiet hours and launch at login.
 
 ## Development
 

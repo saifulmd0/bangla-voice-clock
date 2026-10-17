@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
 import 'app/app_controller.dart';
+import 'app/error_log.dart';
 import 'app/platform.dart';
 import 'core/settings/settings_store.dart';
 import 'ui/settings_page.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final controller = await AppController.create(
-    platform: MacosPlatform(),
-    store: SettingsStore.standard(),
-  );
-  runApp(BanglaVoiceClockApp(controller: controller));
-  await controller.start();
+void main() {
+  final log = ErrorLog.standard();
+  log.guard(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    log.write('Starting');
+    final controller = await AppController.create(
+      platform: MacosPlatform(),
+      store: SettingsStore.standard(),
+    );
+    runApp(BanglaVoiceClockApp(controller: controller));
+    await controller.start();
+    log.write('Ready');
+  });
 }
 
 class BanglaVoiceClockApp extends StatelessWidget {
