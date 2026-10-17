@@ -171,7 +171,7 @@ It says "বেজে পনেরো মিনিট" rather than "সোয়
 ### 3.1 Voice-pack format
 
 ```
-assets/voices/bn_ai_girl/
+assets/voices/bn_ai/
   manifest.json
   clips/starter.wav  clips/hour_10.wav  clips/zone_sokal.wav  clips/qtr_sowa.wav …
   phrases/starter__zone_sokal__qtr_sowa__hour_10.wav …
@@ -179,8 +179,8 @@ assets/voices/bn_ai_girl/
 ```json
 {
   "format": 1,
-  "id": "bn_ai_girl",
-  "name": "শিশু কণ্ঠ (AI)",
+  "id": "bn_ai",
+  "name": "মিষ্টি কণ্ঠ (AI)",
   "language": "bn",
   "credits": "…",
   "clips": {
@@ -278,7 +278,7 @@ The "compose to one WAV" decision in §3 makes this possible without new audio c
 | **C. Original "Mahita" clips** | Nostalgic but 8-bit / 11 kHz, and only 15/30/45 | Free | **Requires permission from the original author** to redistribute. Could ship as a "Classic 1998" pack if granted |
 
 Decided (2026-10-17): **C** ships as the "Classic (1998)" pack, used with permission. **B** is
-an ElevenLabs-designed voice of a young Bangladeshi girl, made with `tool/elevenlabs.dart`. **A**
+an ElevenLabs-designed soft, cute young woman's voice with a Bangladeshi accent (`eleven_v4`; see VOICES.md). **A**
 stays optional for later.
 
 ---
@@ -307,7 +307,7 @@ bangla_voice_clock/
 │  └─ l10n/               # app_bn.arb, app_en.arb
 ├─ assets/
 │  ├─ voices/bn_classic/   # 1998 voice: manifest.json + clips/
-│  ├─ voices/bn_ai_girl/   # ElevenLabs voice: manifest.json + clips/ + phrases/
+│  ├─ voices/bn_ai/        # ElevenLabs voice: manifest.json + clips/ + phrases/
 │  ├─ sounds/              # chimes, alarm tones, aazan
 │  └─ fonts/               # Noto Sans Bengali, Hind Siliguri
 ├─ tool/
@@ -327,7 +327,7 @@ bangla_voice_clock/
 |---|---|---|---|
 | **M0** | Setup | Install Xcode + Flutter. Create project, lints, folder skeleton, GitHub Actions macOS build | 0.5 day |
 | **M1** | Core engine | `PhraseBuilder` (bn traditional + exact), voice-pack loader, `AudioComposer`, legacy `.def` importer. **Tests cover all 1,440 minutes of a day** | 2 days |
-| **M2** | AI voice | ElevenLabs-generated `bn_ai_girl` pack (264 clips incl. whole phrases), voice script, bundled classic pack | 1 day |
+| **M2** | AI voice | ElevenLabs-generated `bn_ai` pack (264 clips incl. whole phrases), voice script, bundled classic pack | 1 day |
 | **M3** | macOS MVP | Menu-bar app: live Bangla clock, interval 15/30/60/off, Speak now, Mute, voice picker, volume, quiet hours, chime, announcement notification, launch at login, App Nap and wake handling | 3 days |
 | **M4** | Alarms | Unlimited alarms, repeat days, custom sound, snooze, notification | 2 days |
 | **M5** | Prayer times | City search / manual lat-long, calculation method, Hanafi/Shafi, aazan playback (separate Fajr aazan), Jumma, per-prayer on/off and offset | 2–3 days |

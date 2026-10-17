@@ -6,15 +6,20 @@
 //       Keeps one preview in your ElevenLabs voice library.
 //   dart run tool/elevenlabs.dart sample --voice VOICE_ID [--text TEXT]
 //       Speaks one line, to try a voice before generating a whole pack.
+//   dart run tool/elevenlabs.dart check --pack DIR [--only KEY_OR_PATH,...]
+//       Transcribes every clip and lists the ones that don't say their line.
 //   dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR
-//       [--model eleven_v3] [--pack-id ID] [--pack-name NAME] [--force]
-//       [--dry-run]
+//       [--model eleven_v4] [--pack-id ID] [--pack-name NAME]
+//       [--redo KEY_OR_PATH,...] [--seed N] [--force] [--dry-run]
 //       Records every line of the voice script into a voice pack.
 //
 // The API key comes from ELEVENLABS_API_KEY, or from a line
 // `ELEVENLABS_API_KEY=...` in a `.env` file here (git ignores it).
-// `generate` skips clips that already exist, so an interrupted run can be
-// resumed without paying for the same clips twice.
+//
+// `generate` keeps each untrimmed take in voices_local/raw/<pack-id>/ and
+// reuses it, so a rerun only pays for lines without a take yet (or listed
+// in --redo), and re-trimming every clip is free. To replace a bad take,
+// pass it to --redo with a new --seed; the same seed gives the same take.
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -25,10 +30,11 @@ import 'package:bangla_voice_clock/core/speech/voice_pack.dart';
 import 'package:bangla_voice_clock/core/speech/voice_script.dart';
 
 const _defaultDescription =
-    'A cheerful young Bangladeshi girl, around 9 to 11 years old, speaking '
-    'clear standard Bangla with a Bangladeshi (Dhaka) accent, not a Kolkata '
-    'accent. Bright, sweet and friendly, with a calm, steady pace and clear '
-    'pronunciation. Clean studio recording with no background noise.';
+    'A soft, cute and gentle young Bangladeshi woman in her early twenties, '
+    'with a sweet, light, high and airy voice, speaking clear standard Bangla '
+    'with a Bangladeshi (Dhaka) accent, not a Kolkata accent. Tender, warm and '
+    'calm, with a slow, steady pace. Clean studio recording with no '
+    'background noise.';
 
 const _defaultPreviewText =
     'এখন সময় সকাল সোয়া দশটা। এখন সময় দুপুর সাড়ে বারোটা। '
@@ -71,28 +77,37 @@ Future<void> _run(
       final id = option('--id') ?? _usage();
       await _save(
         generatedVoiceId: id,
-        name: option('--name') ?? 'Bangla Voice Clock girl',
+        name: option('--name') ?? 'Bangla Voice Clock',
         description: option('--description') ?? _defaultDescription,
       );
     case 'sample':
       final voiceId = option('--voice') ?? _usage();
       final out = option('--out') ?? 'voices_local/samples/$voiceId.wav';
-      final audio = await _speak(
-        voiceId,
-        option('--model') ?? 'eleven_v3',
-        option('--text') ?? 'এখন সময় রাত নয়টা বেজে সাতাশ মিনিট।',
+      final audio = _clean(
+        await _speak(
+          voiceId,
+          option('--model') ?? 'eleven_v4',
+          option('--text') ?? 'এখন সময় রাত নয়টা বেজে সাতাশ মিনিট।',
+        ),
       );
       await File(out).parent.create(recursive: true);
       await File(out).writeAsBytes(encodeWav(audio));
       stdout.writeln('Saved $out');
+    case 'check':
+      await _check(
+        option('--pack') ?? _usage(),
+        only: {...?option('--only')?.split(',').map((s) => s.trim())},
+      );
     case 'generate':
       await _generate(
         voiceId:
             option('--voice') ?? (args.contains('--dry-run') ? '' : _usage()),
         outDir: option('--out') ?? _usage(),
-        model: option('--model') ?? 'eleven_v3',
-        packId: option('--pack-id') ?? 'bn_ai_girl',
-        packName: option('--pack-name') ?? 'শিশু কণ্ঠ (AI)',
+        model: option('--model') ?? 'eleven_v4',
+        packId: option('--pack-id') ?? 'bn_ai',
+        packName: option('--pack-name') ?? 'মিষ্টি কণ্ঠ (AI)',
+        redo: {...?option('--redo')?.split(',').map((s) => s.trim())},
+        seed: int.parse(option('--seed') ?? '1'),
         force: args.contains('--force'),
         dryRun: args.contains('--dry-run'),
       );
@@ -107,8 +122,10 @@ Never _usage() {
     '  dart run tool/elevenlabs.dart design [--description TEXT] [--text TEXT] [--out DIR]\n'
     '  dart run tool/elevenlabs.dart save --id GENERATED_VOICE_ID [--name NAME]\n'
     '  dart run tool/elevenlabs.dart sample --voice VOICE_ID [--text TEXT] [--out FILE]\n'
+    '  dart run tool/elevenlabs.dart check --pack DIR [--only KEY_OR_PATH,...]\n'
     '  dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR\n'
-    '      [--model eleven_v3] [--pack-id ID] [--pack-name NAME] [--force] [--dry-run]',
+    '      [--model eleven_v4] [--pack-id ID] [--pack-name NAME]\n'
+    '      [--redo KEY_OR_PATH,...] [--seed N] [--force] [--dry-run]',
   );
   exit(64);
 }
@@ -160,6 +177,8 @@ Future<void> _generate({
   required String model,
   required String packId,
   required String packName,
+  required Set<String> redo,
+  required int seed,
   required bool force,
   required bool dryRun,
 }) async {
@@ -173,23 +192,37 @@ Future<void> _generate({
     return;
   }
 
+  final unknown = redo.where(
+    (r) => !script.any((l) => l.key == r || _clipPath(l.key) == r),
+  );
+  if (unknown.isNotEmpty) {
+    stderr.writeln('Not in the voice script: ${unknown.join(', ')}');
+    exit(64);
+  }
+
+  final rawDir = 'voices_local/raw/$packId';
   final clips = <String, String>{};
   final failed = <String>[];
   for (final (i, line) in script.indexed) {
     final path = _clipPath(line.key);
-    final file = File('$outDir/$path');
+    final raw = File('$rawDir/$path');
+    final again = force || redo.contains(line.key) || redo.contains(path);
     stdout.write('[${i + 1}/${script.length}] ${line.text} ');
-    if (!force && file.existsSync()) {
-      stdout.writeln('(exists)');
-      clips[line.key] = path;
-      continue;
-    }
     try {
-      final audio = await _speak(voiceId, model, line.text);
-      await file.parent.create(recursive: true);
-      await file.writeAsBytes(encodeWav(audio));
+      final PcmAudio take;
+      if (!again && raw.existsSync()) {
+        take = decodeWav(await raw.readAsBytes());
+        stdout.writeln('(kept)');
+      } else {
+        take = await _speak(voiceId, model, line.text, seed: seed);
+        await raw.parent.create(recursive: true);
+        await raw.writeAsBytes(encodeWav(take));
+        stdout.writeln('ok');
+      }
+      final clip = File('$outDir/$path');
+      await clip.parent.create(recursive: true);
+      await clip.writeAsBytes(encodeWav(_clean(take)));
       clips[line.key] = path;
-      stdout.writeln('ok');
     } on _ApiException catch (e) {
       stdout.writeln('FAILED');
       stderr.writeln('  $e');
@@ -218,15 +251,60 @@ Future<void> _generate({
   }
 }
 
-/// Speaks [text], trimmed and level-normalised.
-Future<PcmAudio> _speak(String voiceId, String model, String text) async {
+/// Transcribes each clip of the pack at [packDir] and reports any whose
+/// words differ from its script line. Speech-to-text isn't perfect, so a
+/// mismatch means "listen to this one", not "this one is wrong".
+///
+/// With [only], checks just those keys or clip paths.
+Future<void> _check(String packDir, {Set<String> only = const {}}) async {
+  final pack = await VoicePack.loadDirectory(packDir);
+  // Compare letters only: speech-to-text may write য় as য + ় and split
+  // compound numbers into two words.
+  String words(String text) => text
+      .replaceAll('\u09AF\u09BC', '\u09DF')
+      .replaceAll('\u09A1\u09BC', '\u09DC')
+      .replaceAll('\u09A2\u09BC', '\u09DD')
+      .replaceAll(RegExp(r'[\s।,.!?]'), '');
+  final suspects = <String>[];
+  final script = banglaVoiceScript()
+      .where((l) => pack.has(l.key))
+      .where(
+        (l) =>
+            only.isEmpty ||
+            only.contains(l.key) ||
+            only.contains(_clipPath(l.key)),
+      )
+      .toList();
+  for (final (i, line) in script.indexed) {
+    final path = pack.manifest.clips[line.key]!;
+    final heard = await _api.transcribe(
+      await File('$packDir/$path').readAsBytes(),
+    );
+    final ok = words(heard) == words(line.text);
+    stdout.writeln(
+      '[${i + 1}/${script.length}] ${ok ? 'ok  ' : 'DIFF'} ${line.text}'
+      '${ok ? '' : '  (heard: $heard)'}',
+    );
+    if (!ok) suspects.add('$path  expected "${line.text}", heard "$heard"');
+  }
+  stdout.writeln('\n${suspects.length} of ${script.length} to listen to:');
+  suspects.forEach(stdout.writeln);
+}
+
+/// Speaks [text], untrimmed.
+Future<PcmAudio> _speak(
+  String voiceId,
+  String model,
+  String text, {
+  int seed = 1,
+}) async {
   final pcm = await _api.post(
     '/v1/text-to-speech/$voiceId',
     {
       'text': text,
       'model_id': model,
       // Same seed and settings for every line keeps the takes alike.
-      'seed': 1,
+      'seed': seed,
       'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8},
     },
     query: {'output_format': 'pcm_$_sampleRate'},
@@ -234,8 +312,14 @@ Future<PcmAudio> _speak(String voiceId, String model, String text) async {
   return PcmAudio(
     pcm.buffer.asInt16List(pcm.offsetInBytes, pcm.lengthInBytes ~/ 2),
     _sampleRate,
-  ).trimSilence().normalized();
+  );
 }
+
+/// Trims and levels a take. AI audio has no hiss, so a low threshold keeps
+/// soft word endings that the default (tuned for old recordings) would cut.
+PcmAudio _clean(PcmAudio take) => take
+    .trimSilence(threshold: 0.02, padding: const Duration(milliseconds: 60))
+    .normalized();
 
 /// Words go in `clips/`, phrases in `phrases/`, named after their keys.
 String _clipPath(String key) {
@@ -285,6 +369,35 @@ class _ElevenLabs {
   ) async =>
       jsonDecode(utf8.decode(await post(path, body))) as Map<String, dynamic>;
 
+  /// Bangla speech-to-text with Scribe.
+  Future<String> transcribe(Uint8List wav) async {
+    const boundary = 'bangla-voice-clock-boundary';
+    final body = BytesBuilder()
+      ..add(utf8.encode(_field(boundary, 'model_id', 'scribe_v1')))
+      ..add(utf8.encode(_field(boundary, 'language_code', 'ben')))
+      ..add(
+        utf8.encode(
+          '--$boundary\r\n'
+          'Content-Disposition: form-data; name="file"; filename="clip.wav"\r\n'
+          'Content-Type: audio/wav\r\n\r\n',
+        ),
+      )
+      ..add(wav)
+      ..add(utf8.encode('\r\n--$boundary--\r\n'));
+    final data = await _send(
+      Uri.https('api.elevenlabs.io', '/v1/speech-to-text'),
+      body.toBytes(),
+      ContentType('multipart', 'form-data', parameters: {'boundary': boundary}),
+    );
+    return (jsonDecode(utf8.decode(data)) as Map<String, dynamic>)['text']
+        as String;
+  }
+
+  static String _field(String boundary, String name, String value) =>
+      '--$boundary\r\n'
+      'Content-Disposition: form-data; name="$name"\r\n\r\n'
+      '$value\r\n';
+
   Future<Uint8List> post(
     String path,
     Map<String, Object?> body, {
@@ -295,11 +408,19 @@ class _ElevenLabs {
       path,
       query.isEmpty ? null : query,
     );
+    return _send(uri, utf8.encode(jsonEncode(body)), ContentType.json);
+  }
+
+  Future<Uint8List> _send(
+    Uri uri,
+    List<int> body,
+    ContentType contentType,
+  ) async {
     final request = await _client.postUrl(uri);
     request.headers
       ..set('xi-api-key', _key)
-      ..contentType = ContentType.json;
-    request.add(utf8.encode(jsonEncode(body)));
+      ..contentType = contentType;
+    request.add(body);
     final response = await request.close();
     final bytes = BytesBuilder(copy: false);
     await response.forEach(bytes.add);
