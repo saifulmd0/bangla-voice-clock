@@ -2,7 +2,7 @@
 
 How each bundled voice pack was made, so it can be extended or remade the same way.
 
-## `bn_ai`: Areeba AI (ElevenLabs), by Saiful Islam
+## `bn_ai`: Areeba AI (ElevenLabs), by Saiful
 
 A soft, cute young woman's voice with a Bangladeshi accent, designed and generated with
 ElevenLabs on 2026-10-17.

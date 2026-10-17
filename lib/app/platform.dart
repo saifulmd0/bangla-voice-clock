@@ -50,6 +50,7 @@ abstract interface class AppPlatform {
   Future<void> setMenu(List<MenuEntry> entries);
   Future<void> showWindow();
   Future<void> notify(String title, String body);
+  Future<void> openUrl(String url);
 
   /// Null where launching at login isn't supported (before macOS 13).
   Future<bool?> launchAtLogin();
@@ -100,6 +101,9 @@ class MacosPlatform implements AppPlatform {
   @override
   Future<void> notify(String title, String body) =>
       _channel.invokeMethod('notify', {'title': title, 'body': body});
+
+  @override
+  Future<void> openUrl(String url) => _channel.invokeMethod('openUrl', url);
 
   @override
   Future<bool?> launchAtLogin() => _channel.invokeMethod<bool>('launchAtLogin');

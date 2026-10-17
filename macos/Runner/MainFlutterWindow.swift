@@ -51,8 +51,13 @@ class NativeBridge: NSObject {
     self.window = window
     channel = FlutterMethodChannel(name: "bangla_voice_clock/macos", binaryMessenger: messenger)
     super.init()
-    statusItem.button?.image = NSImage(
-      systemSymbolName: "clock", accessibilityDescription: "বাংলা ভয়েস ক্লক")
+    // The app's logo as a template image, so it follows the menu bar's colour.
+    let logo =
+      NSImage(named: "StatusIcon")
+      ?? NSImage(systemSymbolName: "clock", accessibilityDescription: nil)
+    logo?.isTemplate = true
+    logo?.accessibilityDescription = "Bangla Voice Clock"
+    statusItem.button?.image = logo
     statusItem.button?.imagePosition = .imageLeft
     channel.setMethodCallHandler { [weak self] call, result in
       self?.handle(call, result: result)
@@ -103,6 +108,12 @@ class NativeBridge: NSObject {
         return result(badArguments(call))
       }
       notify(title: args["title"] ?? "", body: args["body"] ?? "")
+      result(nil)
+    case "openUrl":
+      guard let link = call.arguments as? String, let url = URL(string: link) else {
+        return result(badArguments(call))
+      }
+      NSWorkspace.shared.open(url)
       result(nil)
     case "launchAtLogin":
       if #available(macOS 13.0, *) {

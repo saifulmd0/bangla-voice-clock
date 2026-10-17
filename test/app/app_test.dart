@@ -10,12 +10,14 @@ import 'package:bangla_voice_clock/core/settings/settings_store.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
 import 'package:bangla_voice_clock/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakePlatform implements AppPlatform {
   final menu = StreamController<String>.broadcast();
   final played = <Uint8List>[];
   final notifications = <String>[];
+  final opened = <String>[];
   String title = '';
   List<MenuEntry> entries = [];
   var windowShown = 0;
@@ -36,6 +38,8 @@ class FakePlatform implements AppPlatform {
   @override
   Future<void> notify(String title, String body) async =>
       notifications.add('$title|$body');
+  @override
+  Future<void> openUrl(String url) async => opened.add(url);
   @override
   Future<bool?> launchAtLogin() async => false;
   @override
@@ -119,6 +123,50 @@ void main() {
     final reloaded = await controller();
     expect(reloaded.settings.intervalMinutes, 60);
     c.dispose();
+  });
+
+  test('English interface and logo in the menu bar', () async {
+    final c = await controller();
+    await c.start();
+    await c.update(
+      c.settings.copyWith(
+        language: AppLanguage.en,
+        menuBarShows: MenuBarShows.logo,
+      ),
+    );
+    expect(platform.title, isEmpty, reason: 'empty title shows the logo');
+    expect(platform.entries.first.title, '10:15 AM');
+    expect(platform.entries[1].title, 'Speak the time now');
+    expect(platform.entries.last.title, 'Quit');
+    await c.speakNow();
+    // The announcement itself stays in Bangla.
+    expect(platform.notifications.single, '10:15 AM|এখন সময় সকাল সোয়া দশটা');
+    c.dispose();
+  });
+
+  testWidgets('voice labels, footer and credits', (tester) async {
+    final c = await tester.runAsync(controller);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+    await tester.scrollUntilVisible(find.text('কৃতজ্ঞতা'), 300);
+    expect(find.text('Areeba AI (ElevenLabs) - by Saiful'), findsOneWidget);
+    expect(
+      find.text('Classic (1998) - by Moshfekah Ferdaus Mahita'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('ডেভেলপ করেছেন সাইফুল ইসলাম'));
+    expect(platform.opened, ['https://github.com/saifulmd0']);
+    await tester.tap(find.text('কৃতজ্ঞতা'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Schedule Voice Clock'),
+      100,
+      scrollable: find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.tap(find.text('Schedule Voice Clock'));
+    expect(platform.opened.last, contains('schedule-voice-clock'));
   });
 
   testWidgets('settings window', (tester) async {

@@ -180,7 +180,7 @@ assets/voices/bn_ai/
 {
   "format": 1,
   "id": "bn_ai",
-  "name": "মিষ্টি কণ্ঠ (AI)",
+  "name": "Areeba AI (ElevenLabs)",
   "language": "bn",
   "credits": "…",
   "clips": {

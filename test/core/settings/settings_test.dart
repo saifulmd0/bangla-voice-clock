@@ -18,7 +18,8 @@ void main() {
       quietHoursEnabled: true,
       quietStartHour: 22,
       quietEndHour: 6,
-      showClockInMenuBar: false,
+      menuBarShows: MenuBarShows.logo,
+      language: AppLanguage.en,
       welcomed: true,
     );
     expect(AppSettings.fromJson(s.toJson()).toJson(), s.toJson());
@@ -36,6 +37,14 @@ void main() {
     expect(s.style, d.style);
     expect(s.volume, 1.0);
     expect(s.muted, d.muted);
+  });
+
+  test('reads the old menu-bar switch', () {
+    expect(
+      AppSettings.fromJson({'showClockInMenuBar': false}).menuBarShows,
+      MenuBarShows.logo,
+    );
+    expect(AppSettings.fromJson({}).language, AppLanguage.bn);
   });
 
   test('quiet hours only apply when enabled', () {

@@ -9,7 +9,7 @@
 //   dart run tool/elevenlabs.dart check --pack DIR [--only KEY_OR_PATH,...]
 //       Transcribes every clip and lists the ones that don't say their line.
 //   dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR
-//       [--model eleven_v4] [--pack-id ID] [--pack-name NAME]
+//       [--model eleven_v4] [--pack-id ID] [--pack-name NAME] [--pack-author NAME]
 //       [--redo KEY_OR_PATH,...] [--seed N] [--force] [--dry-run]
 //       Records every line of the voice script into a voice pack.
 //
@@ -105,7 +105,8 @@ Future<void> _run(
         outDir: option('--out') ?? _usage(),
         model: option('--model') ?? 'eleven_v4',
         packId: option('--pack-id') ?? 'bn_ai',
-        packName: option('--pack-name') ?? 'মিষ্টি কণ্ঠ (AI)',
+        packName: option('--pack-name') ?? 'Areeba AI (ElevenLabs)',
+        packAuthor: option('--pack-author') ?? 'Saiful',
         redo: {...?option('--redo')?.split(',').map((s) => s.trim())},
         seed: int.parse(option('--seed') ?? '1'),
         force: args.contains('--force'),
@@ -124,7 +125,7 @@ Never _usage() {
     '  dart run tool/elevenlabs.dart sample --voice VOICE_ID [--text TEXT] [--out FILE]\n'
     '  dart run tool/elevenlabs.dart check --pack DIR [--only KEY_OR_PATH,...]\n'
     '  dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR\n'
-    '      [--model eleven_v4] [--pack-id ID] [--pack-name NAME]\n'
+    '      [--model eleven_v4] [--pack-id ID] [--pack-name NAME] [--pack-author NAME]\n'
     '      [--redo KEY_OR_PATH,...] [--seed N] [--force] [--dry-run]',
   );
   exit(64);
@@ -177,6 +178,7 @@ Future<void> _generate({
   required String model,
   required String packId,
   required String packName,
+  required String packAuthor,
   required Set<String> redo,
   required int seed,
   required bool force,
@@ -233,6 +235,7 @@ Future<void> _generate({
   final manifest = VoicePackManifest(
     id: packId,
     name: packName,
+    author: packAuthor,
     language: 'bn',
     credits:
         'AI voice designed and generated with ElevenLabs ($model, '

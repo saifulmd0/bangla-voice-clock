@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
-import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
+import 'strings.dart';
 
 /// The settings window, opened from the menu bar.
 class SettingsPage extends StatelessWidget {
@@ -17,28 +17,29 @@ class SettingsPage extends StatelessWidget {
     listenable: controller,
     builder: (context, _) {
       final s = controller.settings;
+      final t = controller.strings;
       void set(AppSettings next) => controller.update(next);
       return Scaffold(
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
           children: [
             _ClockHeader(controller: controller),
             const SizedBox(height: 16),
             _Section(
-              title: 'ঘোষণা',
+              title: t.announcements,
               children: [
                 SwitchListTile(
-                  title: const Text('সময় ঘোষণা চালু'),
+                  title: Text(t.announceOn),
                   value: !s.muted,
                   onChanged: (on) => set(s.copyWith(muted: !on)),
                 ),
                 ListTile(
-                  title: const Text('কতক্ষণ পরপর'),
+                  title: Text(t.every),
                   trailing: SegmentedButton<int>(
                     showSelectedIcon: false,
                     segments: [
                       for (final m in AppSettings.intervals)
-                        ButtonSegment(value: m, label: Text(intervalLabel(m))),
+                        ButtonSegment(value: m, label: Text(t.interval(m))),
                     ],
                     selected: {s.intervalMinutes},
                     onSelectionChanged: (v) =>
@@ -50,97 +51,135 @@ class SettingsPage extends StatelessWidget {
                   onChanged: (v) => set(s.copyWith(style: v)),
                   child: Column(
                     children: [
-                      _styleTile(AnnouncementStyle.traditional, 'প্রচলিত'),
-                      _styleTile(AnnouncementStyle.exact, 'মিনিট ধরে'),
+                      _styleTile(AnnouncementStyle.traditional, t.traditional),
+                      _styleTile(AnnouncementStyle.exact, t.exact),
                     ],
                   ),
                 ),
               ],
             ),
             _Section(
-              title: 'কণ্ঠ',
+              title: t.voice,
               children: [
-                for (final MapEntry(key: id, value: pack)
-                    in controller.voices.entries)
-                  ListTile(
-                    leading: Icon(
-                      id == controller.voice.id
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                    ),
-                    title: Text(pack.manifest.name),
-                    onTap: () => set(s.copyWith(voiceId: id)),
+                RadioGroup<String>(
+                  groupValue: controller.voice.id,
+                  onChanged: (id) => set(s.copyWith(voiceId: id)),
+                  child: Column(
+                    children: [
+                      for (final MapEntry(key: id, value: pack)
+                          in controller.voices.entries)
+                        RadioListTile(
+                          value: id,
+                          title: Text(
+                            t.voiceLabel(
+                              pack.manifest.name,
+                              pack.manifest.author,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
                 ListTile(
-                  leading: const Icon(Icons.volume_up_outlined),
+                  leading: Tooltip(
+                    message: t.volume,
+                    child: const Icon(Icons.volume_up_outlined),
+                  ),
                   title: Slider(
                     value: s.volume,
+                    semanticFormatterCallback: (v) =>
+                        '${t.volume} ${(v * 100).round()}%',
                     onChanged: (v) => set(s.copyWith(volume: v)),
                   ),
                 ),
                 SwitchListTile(
-                  title: const Text('ঘোষণার আগে ঘণ্টাধ্বনি'),
+                  title: Text(t.chime),
                   value: s.chime,
                   onChanged: (v) => set(s.copyWith(chime: v)),
                 ),
               ],
             ),
             _Section(
-              title: 'নীরব সময়',
+              title: t.quietHours,
               children: [
                 SwitchListTile(
-                  title: const Text('এই সময়ে ঘোষণা হবে না'),
+                  title: Text(t.quietHoursOn),
                   value: s.quietHoursEnabled,
                   onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
                 ),
                 if (s.quietHoursEnabled)
                   ListTile(
-                    title: Row(
+                    title: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
                       children: [
                         _HourPicker(
+                          strings: t,
                           hour: s.quietStartHour,
                           onChanged: (h) => set(s.copyWith(quietStartHour: h)),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Text('থেকে'),
-                        ),
+                        Text(t.from),
                         _HourPicker(
+                          strings: t,
                           hour: s.quietEndHour,
                           onChanged: (h) => set(s.copyWith(quietEndHour: h)),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 12),
-                          child: Text('পর্যন্ত'),
-                        ),
+                        if (t.until.isNotEmpty) Text(t.until),
                       ],
                     ),
                   ),
               ],
             ),
             _Section(
-              title: 'অন্যান্য',
+              title: t.other,
               children: [
-                SwitchListTile(
-                  title: const Text('মেনু বারে ঘড়ি দেখান'),
-                  value: s.showClockInMenuBar,
-                  onChanged: (v) => set(s.copyWith(showClockInMenuBar: v)),
+                ListTile(
+                  title: Text(t.languageLabel),
+                  trailing: SegmentedButton<AppLanguage>(
+                    showSelectedIcon: false,
+                    segments: [
+                      for (final l in AppLanguage.values)
+                        ButtonSegment(value: l, label: Text(l.label)),
+                    ],
+                    selected: {s.language},
+                    onSelectionChanged: (v) =>
+                        set(s.copyWith(language: v.single)),
+                  ),
+                ),
+                ListTile(
+                  title: Text(t.menuBarShows),
+                  trailing: SegmentedButton<MenuBarShows>(
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(
+                        value: MenuBarShows.time,
+                        label: Text(t.menuBarTime),
+                      ),
+                      ButtonSegment(
+                        value: MenuBarShows.logo,
+                        label: Text(t.menuBarLogo),
+                      ),
+                    ],
+                    selected: {s.menuBarShows},
+                    onSelectionChanged: (v) =>
+                        set(s.copyWith(menuBarShows: v.single)),
+                  ),
                 ),
                 SwitchListTile(
-                  title: const Text('ঘোষণার সাথে নোটিফিকেশন'),
+                  title: Text(t.notify),
                   value: s.notify,
                   onChanged: (v) => set(s.copyWith(notify: v)),
                 ),
                 if (controller.launchAtLogin case final enabled?)
                   SwitchListTile(
-                    title: const Text('ম্যাক চালু হলে নিজে থেকে চালু হবে'),
+                    title: Text(t.launchAtLogin),
                     value: enabled,
                     onChanged: controller.setLaunchAtLogin,
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            _Credits(controller: controller),
+            const SizedBox(height: 12),
+            _Footer(controller: controller),
           ],
         ),
       );
@@ -168,18 +207,13 @@ class _ClockHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final next = controller.nextAnnouncement;
+    final t = controller.strings;
     return Column(
       children: [
-        Text(
-          banglaClockWithZone(controller.now),
-          style: theme.textTheme.displaySmall,
-        ),
+        Text(t.clock(controller.now), style: theme.textTheme.displaySmall),
         const SizedBox(height: 4),
         Text(
-          next == null
-              ? 'ঘোষণা বন্ধ আছে'
-              : 'পরের ঘোষণা ${banglaClockWithZone(next)}',
+          t.nextAnnouncement(controller.nextAnnouncement),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -188,7 +222,7 @@ class _ClockHeader extends StatelessWidget {
         FilledButton.icon(
           onPressed: controller.speakNow,
           icon: const Icon(Icons.record_voice_over_outlined),
-          label: const Text('এখনই সময় শুনুন'),
+          label: Text(t.speakNow),
         ),
       ],
     );
@@ -221,8 +255,13 @@ class _Section extends StatelessWidget {
 }
 
 class _HourPicker extends StatelessWidget {
-  const _HourPicker({required this.hour, required this.onChanged});
+  const _HourPicker({
+    required this.strings,
+    required this.hour,
+    required this.onChanged,
+  });
 
+  final Strings strings;
   final int hour;
   final ValueChanged<int> onChanged;
 
@@ -232,33 +271,76 @@ class _HourPicker extends StatelessWidget {
     onChanged: (h) => onChanged(h!),
     items: [
       for (var h = 0; h < 24; h++)
-        DropdownMenuItem(
-          value: h,
-          child: Text(banglaClockWithZone(DateTime(2000, 1, 1, h))),
-        ),
+        DropdownMenuItem(value: h, child: Text(strings.hour(h))),
     ],
   );
 }
 
-class _Credits extends StatelessWidget {
-  const _Credits({required this.controller});
+class _Footer extends StatelessWidget {
+  const _Footer({required this.controller});
 
   final AppController controller;
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
-    return Column(
+    final t = controller.strings;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
       children: [
-        if (controller.voice.manifest.credits case final credits
-            when credits.isNotEmpty)
-          Text(credits, style: style, textAlign: TextAlign.center),
-        const SizedBox(height: 4),
-        Text(
-          'Inspired by Bangla Voice Clock (1998–2002) by Q A M Khaled Ferdaus.',
-          style: style,
-          textAlign: TextAlign.center,
+        TextButton(
+          onPressed: () => controller.openLink(developerUrl),
+          child: Text(t.developedBy),
+        ),
+        const Text('·'),
+        TextButton(
+          onPressed: () => showDialog<void>(
+            context: context,
+            builder: (_) => CreditsDialog(controller: controller),
+          ),
+          child: Text(t.credits),
+        ),
+      ],
+    );
+  }
+}
+
+/// Everyone the app owes, opened from the footer.
+class CreditsDialog extends StatelessWidget {
+  const CreditsDialog({super.key, required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = controller.strings;
+    return AlertDialog(
+      title: Text(t.credits),
+      content: SizedBox(
+        width: 380,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final credit in creditsFor(t))
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(credit.title),
+                subtitle: Text(credit.detail),
+                trailing: credit.url == null
+                    ? null
+                    : const Icon(Icons.open_in_new, size: 18),
+                onTap: credit.url == null
+                    ? null
+                    : () => controller.openLink(credit.url!),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(t.close),
         ),
       ],
     );

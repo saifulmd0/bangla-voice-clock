@@ -1,6 +1,20 @@
 import '../clock/announcement_schedule.dart';
 import '../speech/bangla_phrase_builder.dart';
 
+/// The interface language. Announcements are always spoken in Bangla.
+enum AppLanguage {
+  bn('বাংলা'),
+  en('English');
+
+  const AppLanguage(this.label);
+
+  /// The language's name, written in itself.
+  final String label;
+}
+
+/// What the menu-bar item shows.
+enum MenuBarShows { time, logo }
+
 /// Everything the user can change, saved between launches.
 class AppSettings {
   const AppSettings({
@@ -14,7 +28,8 @@ class AppSettings {
     this.quietHoursEnabled = false,
     this.quietStartHour = 23,
     this.quietEndHour = 7,
-    this.showClockInMenuBar = true,
+    this.menuBarShows = MenuBarShows.time,
+    this.language = AppLanguage.bn,
     this.welcomed = false,
   });
 
@@ -39,7 +54,13 @@ class AppSettings {
       quietHoursEnabled: read('quietHoursEnabled', d.quietHoursEnabled),
       quietStartHour: read('quietStartHour', d.quietStartHour) % 24,
       quietEndHour: read('quietEndHour', d.quietEndHour) % 24,
-      showClockInMenuBar: read('showClockInMenuBar', d.showClockInMenuBar),
+      menuBarShows:
+          MenuBarShows.values.asNameMap()[json['menuBarShows']] ??
+          // Before 1.1 this was a switch, off meaning the icon.
+          (json['showClockInMenuBar'] == false
+              ? MenuBarShows.logo
+              : d.menuBarShows),
+      language: AppLanguage.values.asNameMap()[json['language']] ?? d.language,
       welcomed: read('welcomed', d.welcomed),
     );
   }
@@ -59,7 +80,8 @@ class AppSettings {
   final bool quietHoursEnabled;
   final int quietStartHour;
   final int quietEndHour;
-  final bool showClockInMenuBar;
+  final MenuBarShows menuBarShows;
+  final AppLanguage language;
 
   /// Whether the settings window has been shown once, on first launch.
   final bool welcomed;
@@ -82,7 +104,8 @@ class AppSettings {
     bool? quietHoursEnabled,
     int? quietStartHour,
     int? quietEndHour,
-    bool? showClockInMenuBar,
+    MenuBarShows? menuBarShows,
+    AppLanguage? language,
     bool? welcomed,
   }) => AppSettings(
     muted: muted ?? this.muted,
@@ -95,7 +118,8 @@ class AppSettings {
     quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
     quietStartHour: quietStartHour ?? this.quietStartHour,
     quietEndHour: quietEndHour ?? this.quietEndHour,
-    showClockInMenuBar: showClockInMenuBar ?? this.showClockInMenuBar,
+    menuBarShows: menuBarShows ?? this.menuBarShows,
+    language: language ?? this.language,
     welcomed: welcomed ?? this.welcomed,
   );
 
@@ -110,7 +134,8 @@ class AppSettings {
     'quietHoursEnabled': quietHoursEnabled,
     'quietStartHour': quietStartHour,
     'quietEndHour': quietEndHour,
-    'showClockInMenuBar': showClockInMenuBar,
+    'menuBarShows': menuBarShows.name,
+    'language': language.name,
     'welcomed': welcomed,
   };
 }

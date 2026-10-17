@@ -31,7 +31,7 @@ class BanglaVoiceClockApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'বাংলা ভয়েস ক্লক',
+    title: 'Bangla Voice Clock',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(colorSchemeSeed: _seed),
     darkTheme: ThemeData(colorSchemeSeed: _seed, brightness: Brightness.dark),

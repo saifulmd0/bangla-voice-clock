@@ -6,12 +6,12 @@ import '../core/audio/audio_composer.dart';
 import '../core/audio/chime.dart';
 import '../core/audio/pcm_audio.dart';
 import '../core/audio/wav.dart';
-import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
 import '../core/settings/settings_store.dart';
 import '../core/speech/announcement.dart';
 import '../core/speech/speech_token.dart';
 import '../core/speech/voice_pack.dart';
+import '../ui/strings.dart';
 import 'announcer.dart';
 import 'asset_clip_source.dart';
 import 'platform.dart';
@@ -79,6 +79,9 @@ class AppController extends ChangeNotifier {
   AppSettings _settings;
   AppSettings get settings => _settings;
 
+  /// Interface text in the chosen language.
+  Strings get strings => Strings(_settings.language);
+
   late DateTime _now;
 
   /// The current minute, updated every tick.
@@ -122,6 +125,8 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  Future<void> openLink(String url) => _platform.openUrl(url);
+
   /// Announces the current time, whatever the schedule says.
   Future<void> speakNow() => _speak(_clock());
 
@@ -150,7 +155,7 @@ class AppController extends ChangeNotifier {
         : speech;
     await _platform.play(encodeWav(audio), volume: _settings.volume);
     if (_settings.notify) {
-      await _platform.notify(banglaClockWithZone(time), tokens.text);
+      await _platform.notify(strings.clock(time), tokens.text);
     }
   }
 
@@ -172,34 +177,40 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _refreshMenuBar() async {
+    // An empty title makes the menu-bar item show the logo instead.
     await _platform.setStatusTitle(
-      _settings.showClockInMenuBar ? banglaClockFace(_now) : '',
+      _settings.menuBarShows == MenuBarShows.time
+          ? strings.clockFace(_now)
+          : '',
     );
     await _platform.setMenu(menuEntries());
   }
 
   @visibleForTesting
-  List<MenuEntry> menuEntries() => [
-    MenuEntry('', banglaClockWithZone(_now), enabled: false),
-    const MenuEntry('speak', 'এখনই সময় শুনুন'),
-    const MenuEntry.separator(),
-    MenuEntry('mute', 'ঘোষণা বন্ধ', checked: _settings.muted),
-    MenuEntry(
-      'interval',
-      'কতক্ষণ পরপর',
-      children: [
-        for (final minutes in AppSettings.intervals)
-          MenuEntry(
-            'interval:$minutes',
-            intervalLabel(minutes),
-            checked: !_settings.muted && _settings.intervalMinutes == minutes,
-          ),
-      ],
-    ),
-    const MenuEntry.separator(),
-    const MenuEntry('settings', 'সেটিংস…'),
-    const MenuEntry('quit', 'বন্ধ করুন'),
-  ];
+  List<MenuEntry> menuEntries() {
+    final t = strings;
+    return [
+      MenuEntry('', t.clock(_now), enabled: false),
+      MenuEntry('speak', t.speakNow),
+      const MenuEntry.separator(),
+      MenuEntry('mute', t.muteMenu, checked: _settings.muted),
+      MenuEntry(
+        'interval',
+        t.every,
+        children: [
+          for (final minutes in AppSettings.intervals)
+            MenuEntry(
+              'interval:$minutes',
+              t.interval(minutes),
+              checked: !_settings.muted && _settings.intervalMinutes == minutes,
+            ),
+        ],
+      ),
+      const MenuEntry.separator(),
+      MenuEntry('settings', t.settings),
+      MenuEntry('quit', t.quit),
+    ];
+  }
 
   @override
   void dispose() {
@@ -210,8 +221,3 @@ class AppController extends ChangeNotifier {
     super.dispose();
   }
 }
-
-/// "১৫ মিনিট", "৩০ মিনিট", "১ ঘণ্টা".
-String intervalLabel(int minutes) => minutes % 60 == 0
-    ? '${banglaDigits(minutes ~/ 60)} ঘণ্টা'
-    : '${banglaDigits(minutes)} মিনিট';

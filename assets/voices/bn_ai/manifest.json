@@ -1,8 +1,9 @@
 {
   "format": 1,
   "id": "bn_ai",
-  "name": "মিষ্টি কণ্ঠ (AI)",
+  "name": "Areeba AI (ElevenLabs)",
   "language": "bn",
+  "author": "Saiful",
   "credits": "AI voice designed and generated with ElevenLabs (eleven_v4, voice XlH1ww91ELlLw7wRYFeW).",
   "clips": {
     "starter": "clips/starter.wav",
