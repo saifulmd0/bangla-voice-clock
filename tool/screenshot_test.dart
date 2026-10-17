@@ -138,6 +138,16 @@ void main() {
             .writeAsBytes(png!.buffer.asUint8List());
       });
       if (name == 'bn-light') {
+        await tester.tap(find.text('টাইমার'));
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('.impeccable/review/bn-timer.png')
+              .writeAsBytes(png!.buffer.asUint8List());
+        });
+        await tester.tap(find.text('ঘড়ি'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('কৃতজ্ঞতা'));
         await tester.pumpAndSettle();
         await tester.runAsync(() async {
