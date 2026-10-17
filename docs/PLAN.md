@@ -336,6 +336,11 @@ bangla_voice_clock/
 | **M8** | Real voice | Swap in the human-recorded pack | depends on recording |
 | Later | Platforms | Windows → Android → iOS → Linux | – |
 
+**Progress (2026-10-18):** M0–M3 done. M3 notes: the menu-bar item, audio, notifications and
+launch at login are native Swift (`macos/Runner/MainFlutterWindow.swift`), with no plugins; the
+window starts hidden, so the Swift side starts the Flutter engine itself. Release builds log to
+`~/Library/Containers/com.projuktiteam.banglaVoiceClock/Data/Library/Logs/Bangla Voice Clock/app.log`.
+
 **v1.0 = M0–M5 + M7** (talking clock, alarms, prayer times on macOS). Events can ship in v1.1 if
 you want an earlier release.
 
