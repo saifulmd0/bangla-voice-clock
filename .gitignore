@@ -49,3 +49,6 @@ app.*.map.json
 
 # Original Windows app used for study only; not ours to redistribute
 /Reference/
+
+# Voice packs built locally from material we may not redistribute
+/voices_local/

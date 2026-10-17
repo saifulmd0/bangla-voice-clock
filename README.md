@@ -26,3 +26,18 @@ flutter analyze
 
 Building and running the macOS app locally (`flutter run -d macos`) also needs Xcode.
 Without Xcode, push to GitHub and let CI build it.
+
+### Hearing the announcement engine
+
+The engine runs from the command line, without the app:
+
+```sh
+# Speak a time (24-hour) with a voice pack folder; macOS plays it with afplay
+dart run tool/speak.dart --pack <voice-pack-dir> --time 10:15
+
+# Convert a voice made for the original Windows app (VClock.def + vclock.wav)
+dart run tool/import_legacy_voice.dart VClock.def vclock.wav <out-dir>
+```
+
+Voice packs built from material we can't redistribute go in `voices_local/`,
+which git ignores.
