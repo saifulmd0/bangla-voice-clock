@@ -12,8 +12,8 @@ enum AppLanguage {
   final String label;
 }
 
-/// What the menu-bar item shows.
-enum MenuBarShows { time, logo }
+/// What the menu-bar item shows: the time, the logo icon, or both.
+enum MenuBarShows { time, logo, both }
 
 /// Light or dark, or following macOS.
 enum Appearance { system, light, dark }
@@ -35,6 +35,7 @@ class AppSettings {
     this.language = AppLanguage.bn,
     this.appearance = Appearance.light,
     this.sayBeje = true,
+    this.timerMinutes = 25,
     this.welcomed = false,
   });
 
@@ -69,6 +70,7 @@ class AppSettings {
       appearance:
           Appearance.values.asNameMap()[json['appearance']] ?? d.appearance,
       sayBeje: read('sayBeje', d.sayBeje),
+      timerMinutes: read('timerMinutes', d.timerMinutes).clamp(1, 180),
       welcomed: read('welcomed', d.welcomed),
     );
   }
@@ -97,6 +99,9 @@ class AppSettings {
   /// Whether exact times say "দশটা বেজে সাত মিনিট" or "দশটা সাত মিনিট".
   final bool sayBeje;
 
+  /// The length last chosen for the timer, in minutes.
+  final int timerMinutes;
+
   /// Whether the settings window has been shown once, on first launch.
   final bool welcomed;
 
@@ -122,6 +127,7 @@ class AppSettings {
     AppLanguage? language,
     Appearance? appearance,
     bool? sayBeje,
+    int? timerMinutes,
     bool? welcomed,
   }) => AppSettings(
     muted: muted ?? this.muted,
@@ -138,6 +144,7 @@ class AppSettings {
     language: language ?? this.language,
     appearance: appearance ?? this.appearance,
     sayBeje: sayBeje ?? this.sayBeje,
+    timerMinutes: timerMinutes ?? this.timerMinutes,
     welcomed: welcomed ?? this.welcomed,
   );
 
@@ -156,6 +163,7 @@ class AppSettings {
     'language': language.name,
     'appearance': appearance.name,
     'sayBeje': sayBeje,
+    'timerMinutes': timerMinutes,
     'welcomed': welcomed,
   };
 }

@@ -7,12 +7,15 @@ import 'app_settings.dart';
 class SettingsStore {
   SettingsStore(this.file);
 
+  /// `%APPDATA%\Bangla Voice Clock\settings.json` on Windows, and on macOS
   /// `~/Library/Application Support/Bangla Voice Clock/settings.json`, which
   /// for a sandboxed app is inside its own container.
   factory SettingsStore.standard() => SettingsStore(
     File(
-      '${Platform.environment['HOME']}/Library/Application Support/'
-      'Bangla Voice Clock/settings.json',
+      Platform.isWindows
+          ? '${Platform.environment['APPDATA']}\\Bangla Voice Clock\\settings.json'
+          : '${Platform.environment['HOME']}/Library/Application Support/'
+                'Bangla Voice Clock/settings.json',
     ),
   );
 

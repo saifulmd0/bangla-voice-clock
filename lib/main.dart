@@ -16,7 +16,7 @@ void main() {
     WidgetsFlutterBinding.ensureInitialized();
     log.write('Starting');
     final controller = await AppController.create(
-      platform: MacosPlatform(),
+      platform: NativePlatform(),
       store: SettingsStore.standard(),
     );
     runApp(BanglaVoiceClockApp(controller: controller));

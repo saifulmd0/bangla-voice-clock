@@ -48,7 +48,10 @@ abstract interface class AppPlatform {
   Stream<void> get clockDisturbed;
 
   Future<void> play(Uint8List wav, {double volume = 1});
-  Future<void> setStatusTitle(String title);
+
+  /// Sets the menu-bar item: [title] (the time, or empty) and whether to
+  /// show the logo icon beside it.
+  Future<void> setStatus({required String title, required bool icon});
   Future<void> setMenu(List<MenuEntry> entries);
   Future<void> showWindow();
   Future<void> notify(String title, String body);
@@ -65,9 +68,11 @@ abstract interface class AppPlatform {
   Future<void> quit();
 }
 
-/// [AppPlatform] for macOS, backed by the Swift code in `macos/Runner`.
-class MacosPlatform implements AppPlatform {
-  MacosPlatform() {
+/// [AppPlatform] for the desktop, backed by native code: Swift in
+/// `macos/Runner/MainFlutterWindow.swift` and C++ in
+/// `windows/runner/native_bridge.cpp`.
+class NativePlatform implements AppPlatform {
+  NativePlatform() {
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'menuItemSelected':
@@ -78,7 +83,7 @@ class MacosPlatform implements AppPlatform {
     });
   }
 
-  static const _channel = MethodChannel('bangla_voice_clock/macos');
+  static const _channel = MethodChannel('bangla_voice_clock/platform');
   final _menu = StreamController<String>.broadcast();
   final _clock = StreamController<void>.broadcast();
 
@@ -93,8 +98,8 @@ class MacosPlatform implements AppPlatform {
       _channel.invokeMethod('play', {'wav': wav, 'volume': volume});
 
   @override
-  Future<void> setStatusTitle(String title) =>
-      _channel.invokeMethod('setStatusTitle', title);
+  Future<void> setStatus({required String title, required bool icon}) =>
+      _channel.invokeMethod('setStatus', {'title': title, 'icon': icon});
 
   @override
   Future<void> setMenu(List<MenuEntry> entries) =>

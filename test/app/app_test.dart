@@ -9,6 +9,7 @@ import 'package:bangla_voice_clock/core/settings/app_settings.dart';
 import 'package:bangla_voice_clock/core/settings/settings_store.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
+import 'package:bangla_voice_clock/core/speech/timer_phrases.dart';
 import 'package:bangla_voice_clock/main.dart';
 import 'package:bangla_voice_clock/ui/settings_page.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class FakePlatform implements AppPlatform {
   final notifications = <String>[];
   final opened = <String>[];
   String title = '';
+  bool icon = false;
   List<MenuEntry> entries = [];
   var windowShown = 0;
 
@@ -31,7 +33,11 @@ class FakePlatform implements AppPlatform {
   Future<void> play(Uint8List wav, {double volume = 1}) async =>
       played.add(wav);
   @override
-  Future<void> setStatusTitle(String title) async => this.title = title;
+  Future<void> setStatus({required String title, required bool icon}) async {
+    this.title = title;
+    this.icon = icon;
+  }
+
   @override
   Future<void> setMenu(List<MenuEntry> entries) async => this.entries = entries;
   @override
@@ -143,7 +149,12 @@ void main() {
         menuBarShows: MenuBarShows.logo,
       ),
     );
-    expect(platform.title, isEmpty, reason: 'empty title shows the logo');
+    expect(platform.title, isEmpty);
+    expect(platform.icon, isTrue);
+    await c.update(c.settings.copyWith(menuBarShows: MenuBarShows.both));
+    expect((platform.title, platform.icon), ('10:15', true));
+    await c.update(c.settings.copyWith(menuBarShows: MenuBarShows.time));
+    expect((platform.title, platform.icon), ('10:15', false));
     expect(platform.entries.first.title, '10:15 AM');
     expect(platform.entries[1].title, 'Speak the time now');
     expect(platform.entries.last.title, 'Quit');
@@ -246,6 +257,21 @@ void main() {
     );
     await tester.pump();
     expect(app().themeMode, ThemeMode.dark);
+  });
+
+  test('the timer says the time left and takes the floor', () async {
+    final c = await controller();
+    await c.start();
+    await c.startTimer(70);
+    await pumpEventQueue();
+    expect(platform.notifications.last, 'টাইমার|আর এক ঘণ্টা দশ মিনিট বাকি');
+    expect(c.voice.clipKeysFor(timeLeftTokens(70)), hasLength(2));
+    expect(platform.entries.map((e) => e.id), contains('timer-stop'));
+    expect(c.settings.timerMinutes, 70, reason: 'remembered for next time');
+    platform.menu.add('timer-stop');
+    await pumpEventQueue();
+    expect(c.countdown.running, isFalse);
+    c.dispose();
   });
 
   testWidgets('settings window', (tester) async {

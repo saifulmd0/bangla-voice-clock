@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -51,3 +52,55 @@ jobs:
           name: BanglaVoiceClock-macos
           path: BanglaVoiceClock-macos.zip
           retention-days: 14
+
+  build-windows:
+    name: Build Windows app
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Zip app folder
+        shell: pwsh
+        run: |
+          $app = "Bangla Voice Clock"
+          New-Item -ItemType Directory -Path $app | Out-Null
+          Copy-Item -Recurse build/windows/x64/runner/Release/* $app
+          Compress-Archive -Path $app -DestinationPath BanglaVoiceClock-windows.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: BanglaVoiceClock-windows
+          path: BanglaVoiceClock-windows.zip
+          retention-days: 14
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mv BanglaVoiceClock-macos.zip "BanglaVoiceClock-${TAG}-macos.zip"
+          mv BanglaVoiceClock-windows.zip "BanglaVoiceClock-${TAG}-windows.zip"
+          # 0.x versions are pre-releases.
+          prerelease=""
+          case "$TAG" in v0.*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" BanglaVoiceClock-${TAG}-*.zip \
+            --title "Bangla Voice Clock ${TAG#v}" \
+            --notes-file ".github/release-notes/${TAG}.md" $prerelease

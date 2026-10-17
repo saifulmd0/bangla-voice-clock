@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
+import 'package:bangla_voice_clock/core/speech/timer_phrases.dart';
 import 'package:bangla_voice_clock/core/speech/voice_pack.dart';
 import 'package:bangla_voice_clock/core/speech/voice_script.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,7 +32,20 @@ void main() {
 
   test('records 85 words, 96 announcements and 48 + 59 exact parts', () {
     expect(banglaVoiceScript(phrases: false), hasLength(85));
-    expect(script, hasLength(85 + 96 + 24 + 24 + 59));
+    expect(script, hasLength(85 + 96 + 24 + 24 + 59 + 124));
+  });
+
+  test('a full pack counts down any timer in at most two takes', () {
+    final pack = _packOf(script);
+    for (var m = 1; m <= maxTimerMinutes; m++) {
+      expect(
+        pack.clipKeysFor(timeLeftTokens(m)),
+        hasLength(m < 60 || m % 60 == 0 ? 1 : 2),
+        reason: '$m',
+      );
+    }
+    expect(timeLeftTokens(70).text, 'আর এক ঘণ্টা দশ মিনিট বাকি');
+    expect(pack.clipKeysFor(timerDoneTokens), ['timer.done']);
   });
 
   test('without বেজে, exact minutes are still two takes', () {

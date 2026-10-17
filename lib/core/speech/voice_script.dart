@@ -1,6 +1,7 @@
 import 'bangla_phrase_builder.dart';
 import 'bangla_words.dart';
 import 'speech_token.dart';
+import 'timer_phrases.dart';
 
 /// One line for a voice to record: the clip it becomes and what to say.
 class ScriptLine {
@@ -23,6 +24,7 @@ class ScriptLine {
 /// make the common announcements sound natural:
 ///
 /// * every quarter-hour announcement, whole ("এখন সময় সকাল সোয়া দশটা।");
+/// * the timer's countdown ("আর দশ মিনিট বাকি।", "সময় শেষ।");
 /// * for exact times, the opening for each hour ("এখন সময় সকাল দশটা বেজে")
 ///   (also without বেজে: "এখন সময় সকাল দশটা", spoken to lead on) and the
 ///   ending for each minute ("সাত মিনিট।"), so any minute is two natural
@@ -59,6 +61,16 @@ List<ScriptLine> banglaVoiceScript({bool phrases = true}) {
         line(_exact(noBeje, h, 1).sublist(0, _exactOpeningLength)),
       for (var m = 1; m <= 59; m++)
         line(_exact(builder, 0, m).sublist(_exactOpeningLength), ends: true),
+      // The timer: whole phrases for under an hour and for whole hours, and
+      // for the rest an hours opening joined to a minutes ending.
+      for (var m = 1; m <= 59; m++) line(timeLeftTokens(m), ends: true),
+      for (var h = 1; h <= maxTimerMinutes ~/ 60; h++)
+        line(timeLeftTokens(h * 60), ends: true),
+      for (var h = 1; h < maxTimerMinutes ~/ 60; h++)
+        line(timeLeftTokens(h * 60 + 1).sublist(0, 2)),
+      for (var m = 1; m <= 59; m++)
+        line(timeLeftTokens(60 + m).sublist(2), ends: true),
+      line(timerDoneTokens, ends: true),
     ],
   ];
 }

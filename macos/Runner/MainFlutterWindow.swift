@@ -49,7 +49,7 @@ class NativeBridge: NSObject {
 
   init(window: NSWindow, messenger: FlutterBinaryMessenger) {
     self.window = window
-    channel = FlutterMethodChannel(name: "bangla_voice_clock/macos", binaryMessenger: messenger)
+    channel = FlutterMethodChannel(name: "bangla_voice_clock/platform", binaryMessenger: messenger)
     super.init()
     // The app's logo as a template image, so it follows the menu bar's colour.
     let logo =
@@ -87,11 +87,14 @@ class NativeBridge: NSObject {
       } catch {
         result(FlutterError(code: "play_failed", message: "\(error)", details: nil))
       }
-    case "setStatusTitle":
-      let title = call.arguments as? String ?? ""
-      statusItem.button?.title = title
-      // Show the clock icon only when there is no time to show.
-      statusItem.button?.imagePosition = title.isEmpty ? .imageOnly : .noImage
+    case "setStatus":
+      let args = call.arguments as? [String: Any] ?? [:]
+      let title = args["title"] as? String ?? ""
+      // Never leave the item empty: no time means the icon shows.
+      let icon = (args["icon"] as? Bool ?? true) || title.isEmpty
+      statusItem.button?.title = title.isEmpty ? "" : (icon ? " " + title : title)
+      statusItem.button?.imagePosition =
+        !icon ? .noImage : (title.isEmpty ? .imageOnly : .imageLeft)
       result(nil)
     case "setMenu":
       guard let entries = call.arguments as? [[String: Any]] else {

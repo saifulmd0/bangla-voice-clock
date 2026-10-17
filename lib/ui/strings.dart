@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_words.dart';
@@ -102,15 +104,48 @@ class Strings {
   String get menuBar => _t('মেনু বার', 'Menu bar');
   String get look => _t('চেহারা', 'Look');
   String get appearance => _t('রং', 'Appearance');
-  String get appearanceSystem => _t('ম্যাকের মতো', 'Match Mac');
+  String get appearanceSystem => Platform.isWindows
+      ? _t('উইন্ডোজের মতো', 'Match Windows')
+      : _t('ম্যাকের মতো', 'Match Mac');
   String get appearanceLight => _t('হালকা', 'Light');
   String get appearanceDark => _t('গাঢ়', 'Dark');
   String get menuBarShows => _t('মেনু বারে দেখান', 'Menu bar shows');
   String get menuBarTime => _t('সময়', 'Time');
-  String get menuBarLogo => _t('লোগো', 'Logo');
+  String get menuBarLogo => _t('আইকন', 'Icon');
+  String get menuBarBoth => _t('আইকন + সময়', 'Icon + Time');
   String get notify => _t('ঘোষণার সাথে নোটিফিকেশন', 'Show a notification');
   String get launchAtLogin =>
-      _t('ম্যাক চালু হলে নিজে থেকে চালু হবে', 'Open at login');
+      _t('কম্পিউটার চালু হলে নিজে থেকে চালু হবে', 'Open at login');
+
+  // Tabs and timer.
+  String get clockTab => _t('ঘড়ি', 'Clock');
+  String get timerTab => _t('টাইমার', 'Timer');
+  String minutes(int n) => _t('${banglaDigits(n)} মিনিট', '$n min');
+  String get startTimer => _t('শুরু করুন', 'Start');
+  String get stopTimer => _t('টাইমার বন্ধ করুন', 'Stop timer');
+  String get timerHint => _t(
+    'চলার সময় প্রতি মিনিটে বাকি সময় বলে দেবে, শেষে বলবে "সময় শেষ"।',
+    'While it runs, it says the time left every minute, then "সময় শেষ" '
+        '(time is up) at the end.',
+  );
+  String timerClassic(String voice) => _t(
+    '$voice বাকি সময় বলতে পারে না, তাই প্রতি মিনিটে এখনকার সময় বলবে।',
+    "$voice can't say the time left, so it says the current time every "
+        'minute instead.',
+  );
+  String timerLeftMenu(int minutes) => _t(
+    'টাইমার: আর ${banglaDigits(minutes)} মিনিট বাকি',
+    'Timer: $minutes min left',
+  );
+  String get timerReady => _t('কত মিনিটের টাইমার?', 'How many minutes?');
+  String countdownFace(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    final sec = d.inSeconds % 60;
+    String two(int v) => v.toString().padLeft(2, '0');
+    final face = h > 0 ? '$h:${two(m)}:${two(sec)}' : '${two(m)}:${two(sec)}';
+    return _bn ? banglaDigits(face) : face;
+  }
 
   // Menu.
   String get settings => _t('সেটিংস…', 'Settings…');

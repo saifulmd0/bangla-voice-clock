@@ -4,10 +4,11 @@
 //   flutter test tool/generate_icons_test.dart
 //
 // Writes macos/Runner/Assets.xcassets/{AppIcon.appiconset,StatusIcon.imageset}
-// and docs/brand/icon.png. Afterwards, re-embed each PNG's provenance with
+// docs/brand/icon.png and the Windows icon windows/runner/resources/app_icon.ico. Afterwards, re-embed each PNG's provenance with
 // `impeccable embed-prompt <png> --prompt "Origin: drawn in code ..."`, saying
 // it was rendered here from DotDialPainter, so the files record their source.
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:bangla_voice_clock/ui/brand.dart';
@@ -16,17 +17,44 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _assets = 'macos/Runner/Assets.xcassets';
 
+Future<Uint8List> _render(int size, void Function(Canvas, Size) draw) async {
+  final recorder = ui.PictureRecorder();
+  draw(Canvas(recorder), Size.square(size.toDouble()));
+  final image = await recorder.endRecording().toImage(size, size);
+  final png = await image.toByteData(format: ui.ImageByteFormat.png);
+  return png!.buffer.asUint8List();
+}
+
 Future<void> _write(
   String path,
   int size,
   void Function(Canvas, Size) draw,
 ) async {
-  final recorder = ui.PictureRecorder();
-  draw(Canvas(recorder), Size.square(size.toDouble()));
-  final image = await recorder.endRecording().toImage(size, size);
-  final png = await image.toByteData(format: ui.ImageByteFormat.png);
   await File(path).parent.create(recursive: true);
-  await File(path).writeAsBytes(png!.buffer.asUint8List());
+  await File(path).writeAsBytes(await _render(size, draw));
+}
+
+/// A Windows .ico holding PNG images at [sizes] (supported since Vista).
+Future<void> _writeIco(String path, List<int> sizes) async {
+  final images = [for (final s in sizes) await _render(s, _windowsIcon)];
+  final header = ByteData(6 + 16 * sizes.length)
+    ..setUint16(2, 1, Endian.little)
+    ..setUint16(4, sizes.length, Endian.little);
+  var offset = header.lengthInBytes;
+  for (final (i, size) in sizes.indexed) {
+    final entry = 6 + 16 * i;
+    header
+      ..setUint8(entry, size >= 256 ? 0 : size)
+      ..setUint8(entry + 1, size >= 256 ? 0 : size)
+      ..setUint16(entry + 4, 1, Endian.little)
+      ..setUint16(entry + 6, 32, Endian.little)
+      ..setUint32(entry + 8, images[i].length, Endian.little)
+      ..setUint32(entry + 12, offset, Endian.little);
+    offset += images[i].length;
+  }
+  final bytes = BytesBuilder()..add(header.buffer.asUint8List());
+  images.forEach(bytes.add);
+  await File(path).writeAsBytes(bytes.toBytes());
 }
 
 /// The macOS icon: the dot dial on a pale sky tile, at Apple's icon grid
@@ -57,6 +85,22 @@ void _appIcon(Canvas canvas, Size size) {
   ).paint(canvas, Size.square(mark));
 }
 
+/// The Windows icon: the same tile filling its square (Windows icons have
+/// no margin or shadow), so it stays legible at the tray's 16 pixels.
+void _windowsIcon(Canvas canvas, Size size) {
+  final s = size.width;
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(s * 0.2)),
+    Paint()..color = Sky.tile,
+  );
+  final mark = s * 0.84;
+  canvas.translate((s - mark) / 2, (s - mark) / 2);
+  DotDialPainter(
+    weight: s <= 64 ? 1.25 : 1,
+    quartersOnly: s <= 32,
+  ).paint(canvas, Size.square(mark));
+}
+
 void _statusIcon(Canvas canvas, Size size) {
   final pad = size.width * 0.04;
   canvas.translate(pad, pad);
@@ -75,6 +119,15 @@ void main() {
         );
       }
       await _write('docs/brand/icon.png', 512, _appIcon);
+      await _writeIco('windows/runner/resources/app_icon.ico', [
+        16,
+        20,
+        24,
+        32,
+        48,
+        64,
+        256,
+      ]);
       await _write(
         '$_assets/StatusIcon.imageset/status_icon.png',
         18,

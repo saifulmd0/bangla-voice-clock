@@ -9,9 +9,13 @@ import 'package:flutter/foundation.dart';
 class ErrorLog {
   ErrorLog(this.file);
 
+  /// On Windows, `%LOCALAPPDATA%\Bangla Voice Clock\app.log`.
   factory ErrorLog.standard() => ErrorLog(
     File(
-      '${Platform.environment['HOME']}/Library/Logs/Bangla Voice Clock/app.log',
+      Platform.isWindows
+          ? '${Platform.environment['LOCALAPPDATA']}\\Bangla Voice Clock\\app.log'
+          : '${Platform.environment['HOME']}/Library/Logs/Bangla Voice Clock/'
+                'app.log',
     ),
   );
 

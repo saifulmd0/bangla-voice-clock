@@ -26,6 +26,12 @@ abstract final class ClipKeys {
   static const minute = 'exact.minute';
   static String number(int n) => 'num.$n';
 
+  // A countdown: "আর ... বাকি", and "সময় শেষ" at the end.
+  static const timerAr = 'timer.ar';
+  static const timerLeft = 'timer.baki';
+  static String timerHours(int h) => 'timer.hours.$h';
+  static const timerDone = 'timer.done';
+
   /// The key of a clip that speaks the words [keys] in one take.
   static String phrase(Iterable<String> keys) => keys.join(' ');
 
@@ -55,6 +61,9 @@ const derWord = 'দেড়টা';
 const araiWord = 'আড়াইটা';
 const bejeWord = 'বেজে';
 const minuteWord = 'মিনিট';
+const timerArWord = 'আর';
+const timerLeftWord = 'বাকি';
+const timerDoneWords = 'সময় শেষ';
 
 /// "একটা" … "বারোটা", indexed by 12-hour value (index 0 unused).
 const hourWords = [

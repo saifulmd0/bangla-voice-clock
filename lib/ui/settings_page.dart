@@ -1,287 +1,324 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
+import '../core/speech/speech_token.dart';
+import '../core/speech/timer_phrases.dart';
 import 'brand.dart';
 import 'strings.dart';
 
-/// The settings window, opened from the menu bar.
-class SettingsPage extends StatelessWidget {
+part 'timer_view.dart';
+
+/// The app's window, opened from the menu bar: the clock's settings, and
+/// the timer.
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.controller});
 
   final AppController controller;
 
   @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+enum _Tab { clock, timer }
+
+class _SettingsPageState extends State<SettingsPage> {
+  var _tab = _Tab.clock;
+
+  AppController get controller => widget.controller;
+
+  @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: controller,
     builder: (context, _) {
-      final s = controller.settings;
       final t = controller.strings;
-      void set(AppSettings next) => controller.update(next);
       return Scaffold(
-        body: ListView(
-          padding: const EdgeInsets.only(bottom: 16),
+        body: Column(
           children: [
-            _DialHeader(controller: controller),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: FilledButton.icon(
-                      onPressed: controller.speakNow,
-                      icon: const Icon(Icons.record_voice_over_outlined),
-                      label: Text(t.speakNow),
-                    ),
-                  ),
-                  _Section(
-                    title: t.look,
-                    children: [
-                      _ChoiceRow(
-                        title: t.appearance,
-                        child: _Segmented<Appearance>(
-                          segments: [
-                            _Segment(
-                              value: Appearance.light,
-                              label: Text(t.appearanceLight),
-                            ),
-                            _Segment(
-                              value: Appearance.dark,
-                              label: Text(t.appearanceDark),
-                            ),
-                            _Segment(
-                              value: Appearance.system,
-                              label: Text(t.appearanceSystem),
-                            ),
-                          ],
-                          selected: s.appearance,
-                          onChanged: (v) => set(s.copyWith(appearance: v)),
-                        ),
-                      ),
-                      _ChoiceRow(
-                        title: t.menuBarShows,
-                        child: _Segmented<MenuBarShows>(
-                          segments: [
-                            _Segment(
-                              value: MenuBarShows.time,
-                              label: Text(t.menuBarTime),
-                            ),
-                            _Segment(
-                              value: MenuBarShows.logo,
-                              label: Text(t.menuBarLogo),
-                              icon: SizedBox.square(
-                                dimension: 18,
-                                child: CustomPaint(
-                                  painter: DotDialPainter.template(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                          selected: s.menuBarShows,
-                          onChanged: (v) => set(s.copyWith(menuBarShows: v)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  _Section(
-                    title: t.announcements,
-                    children: [
-                      SwitchListTile.adaptive(
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(context)
-                            .colorScheme
-                            .outline,
-                        title: Text(t.announceOn),
-                        value: !s.muted,
-                        onChanged: (on) => set(s.copyWith(muted: !on)),
-                      ),
-                      _ChoiceRow(
-                        title: t.every,
-                        child: _Segmented<int>(
-                          segments: [
-                            for (final m in AppSettings.intervals)
-                              _Segment(value: m, label: Text(t.interval(m))),
-                          ],
-                          selected: s.intervalMinutes,
-                          onChanged: (v) => set(s.copyWith(intervalMinutes: v)),
-                        ),
-                      ),
-                      RadioGroup<AnnouncementStyle>(
-                        // A quarter-hour voice always speaks traditionally.
-                        groupValue: controller.voiceSaysEveryMinute
-                            ? s.style
-                            : AnnouncementStyle.traditional,
-                        onChanged: (v) => set(s.copyWith(style: v)),
-                        child: Column(
-                          children: [
-                            _styleTile(
-                              AnnouncementStyle.traditional,
-                              t.traditional,
-                            ),
-                            _styleTile(
-                              AnnouncementStyle.exact,
-                              t.exact,
-                              enabled: controller.voiceSaysEveryMinute,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (!controller.voiceSaysEveryMinute)
-                        _Note(
-                          t.quarterOnlyVoice(controller.voice.manifest.name),
-                        )
-                      else if (s.style == AnnouncementStyle.exact)
-                        SwitchListTile.adaptive(
-                          activeTrackColor: Theme.of(context)
-                              .colorScheme
-                              .primary,
-                          inactiveTrackColor: Theme.of(context)
-                              .colorScheme
-                              .outline,
-                          title: Text(t.sayBeje),
-                          subtitle: Text(t.sayBejeHint),
-                          value: s.sayBeje,
-                          onChanged: (v) => set(s.copyWith(sayBeje: v)),
-                        ),
-                    ],
-                  ),
-                  _Section(
-                    title: t.voice,
-                    children: [
-                      RadioGroup<String>(
-                        groupValue: controller.voice.id,
-                        onChanged: (id) => set(s.copyWith(voiceId: id)),
-                        child: Column(
-                          children: [
-                            for (final MapEntry(key: id, value: pack)
-                                in controller.voices.entries)
-                              _RadioTile(
-                                value: id,
-                                title: Text(
-                                  t.voiceLabel(
-                                    pack.manifest.name,
-                                    pack.manifest.author,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      ListTile(
-                        leading: Tooltip(
-                          message: t.volume,
-                          child: const Icon(Icons.volume_up_outlined),
-                        ),
-                        title: Slider.adaptive(
-                          value: s.volume,
-                          semanticFormatterCallback: (v) =>
-                              '${t.volume} ${(v * 100).round()}%',
-                          onChanged: (v) => set(s.copyWith(volume: v)),
-                        ),
-                      ),
-                      SwitchListTile.adaptive(
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(context)
-                            .colorScheme
-                            .outline,
-                        title: Text(t.chime),
-                        value: s.chime,
-                        onChanged: (v) => set(s.copyWith(chime: v)),
-                      ),
-                    ],
-                  ),
-                  _Section(
-                    title: t.quietHours,
-                    children: [
-                      SwitchListTile.adaptive(
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(context)
-                            .colorScheme
-                            .outline,
-                        title: Text(t.quietHoursOn),
-                        value: s.quietHoursEnabled,
-                        onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
-                      ),
-                      if (s.quietHoursEnabled)
-                        ListTile(
-                          title: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 12,
-                            children: [
-                              if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
-                              _HourPicker(
-                                strings: t,
-                                hour: s.quietStartHour,
-                                onChanged: (h) =>
-                                    set(s.copyWith(quietStartHour: h)),
-                              ),
-                              Text(t.quietTo),
-                              _HourPicker(
-                                strings: t,
-                                hour: s.quietEndHour,
-                                onChanged: (h) =>
-                                    set(s.copyWith(quietEndHour: h)),
-                              ),
-                              if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                  _Section(
-                    title: t.other,
-                    children: [
-                      _ChoiceRow(
-                        title: t.languageLabel,
-                        child: _Segmented<AppLanguage>(
-                          segments: [
-                            for (final l in AppLanguage.values)
-                              _Segment(value: l, label: Text(l.label)),
-                          ],
-                          selected: s.language,
-                          onChanged: (v) => set(s.copyWith(language: v)),
-                        ),
-                      ),
-                      SwitchListTile.adaptive(
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(context)
-                            .colorScheme
-                            .outline,
-                        title: Text(t.notify),
-                        value: s.notify,
-                        onChanged: (v) => set(s.copyWith(notify: v)),
-                      ),
-                      if (controller.launchAtLogin case final enabled?)
-                        SwitchListTile.adaptive(
-                          activeTrackColor: Theme.of(context)
-                              .colorScheme
-                              .primary,
-                          inactiveTrackColor: Theme.of(context)
-                              .colorScheme
-                              .outline,
-                          title: Text(t.launchAtLogin),
-                          value: enabled,
-                          onChanged: controller.setLaunchAtLogin,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _Footer(controller: controller),
-                ],
+            ColoredBox(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Sky.bandNight
+                  : Sky.band,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(80, 14, 80, 0),
+                child: _Segmented<_Tab>(
+                  segments: [
+                    _Segment(value: _Tab.clock, label: Text(t.clockTab)),
+                    _Segment(value: _Tab.timer, label: Text(t.timerTab)),
+                  ],
+                  selected: _tab,
+                  onChanged: (tab) => setState(() => _tab = tab),
+                ),
               ),
+            ),
+            Expanded(
+              child: switch (_tab) {
+                _Tab.clock => _clockTab(context),
+                _Tab.timer => _TimerView(controller: controller),
+              },
             ),
           ],
         ),
       );
     },
   );
+
+  Widget _clockTab(BuildContext context) {
+    final s = controller.settings;
+    final t = controller.strings;
+    void set(AppSettings next) => controller.update(next);
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 16),
+      children: [
+        _DialHeader(controller: controller),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: FilledButton.icon(
+                  onPressed: controller.speakNow,
+                  icon: const Icon(Icons.record_voice_over_outlined),
+                  label: Text(t.speakNow),
+                ),
+              ),
+              _Section(
+                title: t.look,
+                children: [
+                  _ChoiceRow(
+                    title: t.appearance,
+                    child: _Segmented<Appearance>(
+                      segments: [
+                        _Segment(
+                          value: Appearance.light,
+                          label: Text(t.appearanceLight),
+                        ),
+                        _Segment(
+                          value: Appearance.dark,
+                          label: Text(t.appearanceDark),
+                        ),
+                        _Segment(
+                          value: Appearance.system,
+                          label: Text(t.appearanceSystem),
+                        ),
+                      ],
+                      selected: s.appearance,
+                      onChanged: (v) => set(s.copyWith(appearance: v)),
+                    ),
+                  ),
+                  // A Windows tray icon can't show text, so the time goes in
+                  // its tooltip and there is nothing to choose.
+                  if (!Platform.isWindows)
+                    _ChoiceRow(
+                      title: t.menuBarShows,
+                      child: _Segmented<MenuBarShows>(
+                        segments: [
+                          _Segment(
+                            value: MenuBarShows.time,
+                            label: Text(t.menuBarTime),
+                          ),
+                          _Segment(
+                            value: MenuBarShows.logo,
+                            label: Text(t.menuBarLogo),
+                            icon: SizedBox.square(
+                              dimension: 18,
+                              child: CustomPaint(
+                                painter: DotDialPainter.template(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                          _Segment(
+                            value: MenuBarShows.both,
+                            label: Text(t.menuBarBoth),
+                          ),
+                        ],
+                        selected: s.menuBarShows,
+                        onChanged: (v) => set(s.copyWith(menuBarShows: v)),
+                      ),
+                    ),
+                ],
+              ),
+              _Section(
+                title: t.announcements,
+                children: [
+                  SwitchListTile.adaptive(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                    title: Text(t.announceOn),
+                    value: !s.muted,
+                    onChanged: (on) => set(s.copyWith(muted: !on)),
+                  ),
+                  _ChoiceRow(
+                    title: t.every,
+                    child: _Segmented<int>(
+                      segments: [
+                        for (final m in AppSettings.intervals)
+                          _Segment(value: m, label: Text(t.interval(m))),
+                      ],
+                      selected: s.intervalMinutes,
+                      onChanged: (v) => set(s.copyWith(intervalMinutes: v)),
+                    ),
+                  ),
+                  RadioGroup<AnnouncementStyle>(
+                    // A quarter-hour voice always speaks traditionally.
+                    groupValue: controller.voiceSaysEveryMinute
+                        ? s.style
+                        : AnnouncementStyle.traditional,
+                    onChanged: (v) => set(s.copyWith(style: v)),
+                    child: Column(
+                      children: [
+                        _styleTile(
+                          AnnouncementStyle.traditional,
+                          t.traditional,
+                        ),
+                        _styleTile(
+                          AnnouncementStyle.exact,
+                          t.exact,
+                          enabled: controller.voiceSaysEveryMinute,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!controller.voiceSaysEveryMinute)
+                    _Note(t.quarterOnlyVoice(controller.voice.manifest.name))
+                  else if (s.style == AnnouncementStyle.exact)
+                    SwitchListTile.adaptive(
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                      title: Text(t.sayBeje),
+                      subtitle: Text(t.sayBejeHint),
+                      value: s.sayBeje,
+                      onChanged: (v) => set(s.copyWith(sayBeje: v)),
+                    ),
+                ],
+              ),
+              _Section(
+                title: t.voice,
+                children: [
+                  RadioGroup<String>(
+                    groupValue: controller.voice.id,
+                    onChanged: (id) => set(s.copyWith(voiceId: id)),
+                    child: Column(
+                      children: [
+                        for (final MapEntry(key: id, value: pack)
+                            in controller.voices.entries)
+                          _RadioTile(
+                            value: id,
+                            title: Text(
+                              t.voiceLabel(
+                                pack.manifest.name,
+                                pack.manifest.author,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  ListTile(
+                    leading: Tooltip(
+                      message: t.volume,
+                      child: const Icon(Icons.volume_up_outlined),
+                    ),
+                    title: Slider.adaptive(
+                      value: s.volume,
+                      semanticFormatterCallback: (v) =>
+                          '${t.volume} ${(v * 100).round()}%',
+                      onChanged: (v) => set(s.copyWith(volume: v)),
+                    ),
+                  ),
+                  SwitchListTile.adaptive(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                    title: Text(t.chime),
+                    value: s.chime,
+                    onChanged: (v) => set(s.copyWith(chime: v)),
+                  ),
+                ],
+              ),
+              _Section(
+                title: t.quietHours,
+                children: [
+                  SwitchListTile.adaptive(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                    title: Text(t.quietHoursOn),
+                    value: s.quietHoursEnabled,
+                    onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
+                  ),
+                  if (s.quietHoursEnabled)
+                    ListTile(
+                      title: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        children: [
+                          if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
+                          _HourPicker(
+                            strings: t,
+                            hour: s.quietStartHour,
+                            onChanged: (h) =>
+                                set(s.copyWith(quietStartHour: h)),
+                          ),
+                          Text(t.quietTo),
+                          _HourPicker(
+                            strings: t,
+                            hour: s.quietEndHour,
+                            onChanged: (h) => set(s.copyWith(quietEndHour: h)),
+                          ),
+                          if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              _Section(
+                title: t.other,
+                children: [
+                  _ChoiceRow(
+                    title: t.languageLabel,
+                    child: _Segmented<AppLanguage>(
+                      segments: [
+                        for (final l in AppLanguage.values)
+                          _Segment(value: l, label: Text(l.label)),
+                      ],
+                      selected: s.language,
+                      onChanged: (v) => set(s.copyWith(language: v)),
+                    ),
+                  ),
+                  SwitchListTile.adaptive(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                    title: Text(t.notify),
+                    value: s.notify,
+                    onChanged: (v) => set(s.copyWith(notify: v)),
+                  ),
+                  if (controller.launchAtLogin case final enabled?)
+                    SwitchListTile.adaptive(
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                      title: Text(t.launchAtLogin),
+                      value: enabled,
+                      onChanged: controller.setLaunchAtLogin,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _Footer(controller: controller),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _styleTile(
     AnnouncementStyle style,

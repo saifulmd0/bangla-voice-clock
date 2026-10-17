@@ -27,7 +27,7 @@ class _QuietPlatform implements AppPlatform {
   @override
   Future<void> play(Uint8List wav, {double volume = 1}) async {}
   @override
-  Future<void> setStatusTitle(String title) async {}
+  Future<void> setStatus({required String title, required bool icon}) async {}
   @override
   Future<void> setMenu(List<MenuEntry> entries) async {}
   @override

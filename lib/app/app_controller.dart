@@ -13,7 +13,9 @@ import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
 import '../core/speech/voice_pack.dart';
 import '../ui/strings.dart';
+import '../core/speech/timer_phrases.dart';
 import 'announcer.dart';
+import 'countdown.dart';
 import 'asset_clip_source.dart';
 import 'platform.dart';
 
@@ -35,8 +37,15 @@ class AppController extends ChangeNotifier {
     _now = _clock();
     _announcer = Announcer(
       schedule: () => _settings.schedule,
-      muted: () => _settings.muted,
+      // The timer has the floor while it runs.
+      muted: () => _settings.muted || countdown.running,
       speak: _speak,
+    );
+    countdown = Countdown(
+      onMinute: _onTimerMinute,
+      onDone: _onTimerDone,
+      onTick: notifyListeners,
+      now: _clock,
     );
     _ticker = MinuteTicker(_onMinute, now: _clock);
   }
@@ -71,6 +80,9 @@ class AppController extends ChangeNotifier {
   final DateTime Function() _clock;
   late final Announcer _announcer;
   late final MinuteTicker _ticker;
+
+  /// The timer tab's countdown.
+  late final Countdown countdown;
   final _subscriptions = <StreamSubscription<void>>[];
   final _chimes = <int, PcmAudio>{};
 
@@ -167,10 +179,52 @@ class AppController extends ChangeNotifier {
     unawaited(_announcer.onMinute(now));
   }
 
-  Future<void> _speak(DateTime time) async {
-    final tokens = announcementAt(time);
+  Future<void> _speak(DateTime time) =>
+      _say(announcementAt(time), title: strings.clock(time));
+
+  /// Starts the timer at [minutes] and remembers the length for next time.
+  Future<void> startTimer(int minutes) async {
+    countdown.start(Duration(minutes: minutes));
+    notifyListeners();
+    await _refreshMenuBar();
+    await update(_settings.copyWith(timerMinutes: minutes));
+  }
+
+  Future<void> stopTimer() async {
+    countdown.stop();
+    notifyListeners();
+    await _refreshMenuBar();
+  }
+
+  /// Whether the selected voice can count the timer down; the classic voice
+  /// can't, so it says the time instead.
+  bool get voiceCountsDown => voice.canSpeak(timeLeftTokens(1));
+
+  Future<void> _onTimerMinute(int minutesLeft) async {
+    await _refreshMenuBar();
+    if (voiceCountsDown) {
+      await _say(timeLeftTokens(minutesLeft), title: strings.timerTab);
+    } else {
+      await _speak(_clock());
+    }
+  }
+
+  Future<void> _onTimerDone() async {
+    await _refreshMenuBar();
+    if (voiceCountsDown) {
+      await _say(timerDoneTokens, title: strings.timerTab, withChime: true);
+    } else {
+      await _speak(_clock());
+    }
+  }
+
+  Future<void> _say(
+    List<SpeechToken> tokens, {
+    required String title,
+    bool? withChime,
+  }) async {
     final speech = await voice.render(tokens);
-    final audio = _settings.chime
+    final audio = (withChime ?? _settings.chime)
         ? const AudioComposer(gap: Duration(milliseconds: 250)).compose([
             _chimes.putIfAbsent(
               speech.sampleRate,
@@ -188,7 +242,7 @@ class AppController extends ChangeNotifier {
       notifyListeners();
     });
     if (_settings.notify) {
-      await _platform.notify(strings.clock(time), tokens.text);
+      await _platform.notify(title, tokens.text);
     }
   }
 
@@ -204,6 +258,8 @@ class AppController extends ChangeNotifier {
         );
       case ['settings']:
         await _platform.showWindow();
+      case ['timer-stop']:
+        await stopTimer();
       case ['credits']:
         await _platform.showWindow();
         _creditsRequests.add(null);
@@ -213,14 +269,16 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _refreshMenuBar() async {
-    // An empty title makes the menu-bar item show the logo instead.
-    await _platform.setStatusTitle(
-      _settings.menuBarShows == MenuBarShows.time
-          ? strings.clockFace(_now)
-          : '',
+    final shows = _settings.menuBarShows;
+    await _platform.setStatus(
+      title: shows == MenuBarShows.logo ? '' : statusTitle,
+      icon: shows != MenuBarShows.time,
     );
     await _platform.setMenu(menuEntries());
   }
+
+  /// The text beside the menu-bar icon: the time.
+  String get statusTitle => strings.clockFace(_now);
 
   @visibleForTesting
   List<MenuEntry> menuEntries() {
@@ -229,6 +287,14 @@ class AppController extends ChangeNotifier {
       MenuEntry('', t.clock(_now), enabled: false),
       MenuEntry('speak', t.speakNow),
       const MenuEntry.separator(),
+      if (countdown.running) ...[
+        MenuEntry(
+          '',
+          t.timerLeftMenu((countdown.remaining.inSeconds / 60).ceil()),
+          enabled: false,
+        ),
+        MenuEntry('timer-stop', t.stopTimer),
+      ],
       MenuEntry('mute', t.muteMenu, checked: _settings.muted),
       MenuEntry(
         'interval',
@@ -252,6 +318,7 @@ class AppController extends ChangeNotifier {
   @override
   void dispose() {
     _ticker.stop();
+    countdown.stop();
     _speakingTimer?.cancel();
     unawaited(_creditsRequests.close());
     for (final s in _subscriptions) {
