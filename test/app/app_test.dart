@@ -121,6 +121,12 @@ void main() {
     platform.menu.add('interval:60');
     await pumpEventQueue();
     expect(c.settings.intervalMinutes, 60);
+    // Saving is real file IO, which pumpEventQueue doesn't wait for.
+    final store = SettingsStore(File('${dir.path}/settings.json'));
+    for (var i = 0; i < 100; i++) {
+      if ((await store.load()).intervalMinutes == 60) break;
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
     final reloaded = await controller();
     expect(reloaded.settings.intervalMinutes, 60);
     c.dispose();
