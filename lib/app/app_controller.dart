@@ -87,6 +87,17 @@ class AppController extends ChangeNotifier {
   /// The current minute, updated every tick.
   DateTime get now => _now;
 
+  bool _speaking = false;
+
+  /// Whether an announcement is playing now.
+  bool get speaking => _speaking;
+  Timer? _speakingTimer;
+
+  final _creditsRequests = StreamController<void>.broadcast();
+
+  /// Fires when the menu bar asks for the credits page.
+  Stream<void> get creditsRequests => _creditsRequests.stream;
+
   bool? _launchAtLogin;
 
   /// Null when the system can't launch the app at login.
@@ -154,6 +165,13 @@ class AppController extends ChangeNotifier {
           ])
         : speech;
     await _platform.play(encodeWav(audio), volume: _settings.volume);
+    _speaking = true;
+    notifyListeners();
+    _speakingTimer?.cancel();
+    _speakingTimer = Timer(audio.duration, () {
+      _speaking = false;
+      notifyListeners();
+    });
     if (_settings.notify) {
       await _platform.notify(strings.clock(time), tokens.text);
     }
@@ -171,6 +189,9 @@ class AppController extends ChangeNotifier {
         );
       case ['settings']:
         await _platform.showWindow();
+      case ['credits']:
+        await _platform.showWindow();
+        _creditsRequests.add(null);
       case ['quit']:
         await _platform.quit();
     }
@@ -208,6 +229,7 @@ class AppController extends ChangeNotifier {
       ),
       const MenuEntry.separator(),
       MenuEntry('settings', t.settings),
+      MenuEntry('credits', t.creditsMenu),
       MenuEntry('quit', t.quit),
     ];
   }
@@ -215,6 +237,8 @@ class AppController extends ChangeNotifier {
   @override
   void dispose() {
     _ticker.stop();
+    _speakingTimer?.cancel();
+    unawaited(_creditsRequests.close());
     for (final s in _subscriptions) {
       unawaited(s.cancel());
     }

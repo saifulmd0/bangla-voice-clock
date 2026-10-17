@@ -1,6 +1,8 @@
+<p align="center"><img src="docs/brand/icon.png" width="128" alt="Bangla Voice Clock icon: a twelve-petal alpona rosette on fired earth"></p>
+
 # Bangla Voice Clock
 
-A free talking clock that announces the time in Bangla. macOS first, other platforms later.
+**বাংলা ভয়েস ক্লক.** A free talking clock that announces the time in Bangla. macOS first, other platforms later.
 
 Inspired by the original *Bangla Voice Clock* for Windows (1998–2002) by Q A M Khaled Ferdaus,
 and by [Schedule Voice Clock](https://github.com/HridoyVaraby/schedule-voice-clock) for Ubuntu.
@@ -16,9 +18,13 @@ Every push to `main` builds the macOS app on GitHub Actions.
 3. These builds are not signed yet. The first time, right-click **Bangla Voice Clock** and
    choose **Open**.
 
-The clock lives in the menu bar (there's no Dock icon). Click the time there to hear it now,
-mute it, change how often it speaks, or open the settings: voice, traditional (সোয়া/সাড়ে/পৌনে)
-or exact-minute wording, volume, chime, quiet hours and launch at login.
+The clock lives in the menu bar (there's no Dock icon), showing the time in Bangla or the logo.
+Click it to hear the time now, mute it, change how often it speaks, or open the settings: voice,
+traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording, volume, chime, quiet hours, launch at login,
+and the interface language (বাংলা by default, or English). The settings window draws today's
+schedule as an alpona dial; see [DESIGN.md](DESIGN.md) for the brand.
+
+Developed by [Saiful Islam](https://github.com/saifulmd0).
 
 ## Development
 

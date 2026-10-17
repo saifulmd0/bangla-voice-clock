@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
+import 'alpona.dart';
 import 'strings.dart';
 
 /// The settings window, opened from the menu bar.
@@ -21,165 +23,216 @@ class SettingsPage extends StatelessWidget {
       void set(AppSettings next) => controller.update(next);
       return Scaffold(
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          padding: const EdgeInsets.only(bottom: 16),
           children: [
-            _ClockHeader(controller: controller),
-            const SizedBox(height: 16),
-            _Section(
-              title: t.announcements,
-              children: [
-                SwitchListTile(
-                  title: Text(t.announceOn),
-                  value: !s.muted,
-                  onChanged: (on) => set(s.copyWith(muted: !on)),
-                ),
-                ListTile(
-                  title: Text(t.every),
-                  trailing: SegmentedButton<int>(
-                    showSelectedIcon: false,
-                    segments: [
-                      for (final m in AppSettings.intervals)
-                        ButtonSegment(value: m, label: Text(t.interval(m))),
-                    ],
-                    selected: {s.intervalMinutes},
-                    onSelectionChanged: (v) =>
-                        set(s.copyWith(intervalMinutes: v.single)),
+            _DialHeader(controller: controller),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: FilledButton.icon(
+                      onPressed: controller.speakNow,
+                      icon: const Icon(Icons.record_voice_over_outlined),
+                      label: Text(t.speakNow),
+                    ),
                   ),
-                ),
-                RadioGroup<AnnouncementStyle>(
-                  groupValue: s.style,
-                  onChanged: (v) => set(s.copyWith(style: v)),
-                  child: Column(
+                  _Section(
+                    title: t.menuBar,
                     children: [
-                      _styleTile(AnnouncementStyle.traditional, t.traditional),
-                      _styleTile(AnnouncementStyle.exact, t.exact),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            _Section(
-              title: t.voice,
-              children: [
-                RadioGroup<String>(
-                  groupValue: controller.voice.id,
-                  onChanged: (id) => set(s.copyWith(voiceId: id)),
-                  child: Column(
-                    children: [
-                      for (final MapEntry(key: id, value: pack)
-                          in controller.voices.entries)
-                        RadioListTile(
-                          value: id,
-                          title: Text(
-                            t.voiceLabel(
-                              pack.manifest.name,
-                              pack.manifest.author,
+                      _ChoiceRow(
+                        title: t.menuBarShows,
+                        child: _Segmented<MenuBarShows>(
+                          segments: [
+                            _Segment(
+                              value: MenuBarShows.time,
+                              label: Text(t.menuBarTime),
                             ),
+                            _Segment(
+                              value: MenuBarShows.logo,
+                              label: Text(t.menuBarLogo),
+                              icon: SizedBox.square(
+                                dimension: 18,
+                                child: CustomPaint(
+                                  painter: RosettePainter.template(
+                                    line: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          selected: s.menuBarShows,
+                          onChanged: (v) => set(s.copyWith(menuBarShows: v)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  _Section(
+                    title: t.announcements,
+                    children: [
+                      SwitchListTile.adaptive(
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context)
+                            .colorScheme
+                            .outline,
+                        title: Text(t.announceOn),
+                        value: !s.muted,
+                        onChanged: (on) => set(s.copyWith(muted: !on)),
+                      ),
+                      _ChoiceRow(
+                        title: t.every,
+                        child: _Segmented<int>(
+                          segments: [
+                            for (final m in AppSettings.intervals)
+                              _Segment(value: m, label: Text(t.interval(m))),
+                          ],
+                          selected: s.intervalMinutes,
+                          onChanged: (v) => set(s.copyWith(intervalMinutes: v)),
+                        ),
+                      ),
+                      RadioGroup<AnnouncementStyle>(
+                        groupValue: s.style,
+                        onChanged: (v) => set(s.copyWith(style: v)),
+                        child: Column(
+                          children: [
+                            _styleTile(
+                              AnnouncementStyle.traditional,
+                              t.traditional,
+                            ),
+                            _styleTile(AnnouncementStyle.exact, t.exact),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  _Section(
+                    title: t.voice,
+                    children: [
+                      RadioGroup<String>(
+                        groupValue: controller.voice.id,
+                        onChanged: (id) => set(s.copyWith(voiceId: id)),
+                        child: Column(
+                          children: [
+                            for (final MapEntry(key: id, value: pack)
+                                in controller.voices.entries)
+                              _RadioTile(
+                                value: id,
+                                title: Text(
+                                  t.voiceLabel(
+                                    pack.manifest.name,
+                                    pack.manifest.author,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      ListTile(
+                        leading: Tooltip(
+                          message: t.volume,
+                          child: const Icon(Icons.volume_up_outlined),
+                        ),
+                        title: Slider.adaptive(
+                          value: s.volume,
+                          semanticFormatterCallback: (v) =>
+                              '${t.volume} ${(v * 100).round()}%',
+                          onChanged: (v) => set(s.copyWith(volume: v)),
+                        ),
+                      ),
+                      SwitchListTile.adaptive(
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context)
+                            .colorScheme
+                            .outline,
+                        title: Text(t.chime),
+                        value: s.chime,
+                        onChanged: (v) => set(s.copyWith(chime: v)),
+                      ),
+                    ],
+                  ),
+                  _Section(
+                    title: t.quietHours,
+                    children: [
+                      SwitchListTile.adaptive(
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context)
+                            .colorScheme
+                            .outline,
+                        title: Text(t.quietHoursOn),
+                        value: s.quietHoursEnabled,
+                        onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
+                      ),
+                      if (s.quietHoursEnabled)
+                        ListTile(
+                          title: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 12,
+                            children: [
+                              if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
+                              _HourPicker(
+                                strings: t,
+                                hour: s.quietStartHour,
+                                onChanged: (h) =>
+                                    set(s.copyWith(quietStartHour: h)),
+                              ),
+                              Text(t.quietTo),
+                              _HourPicker(
+                                strings: t,
+                                hour: s.quietEndHour,
+                                onChanged: (h) =>
+                                    set(s.copyWith(quietEndHour: h)),
+                              ),
+                              if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
+                            ],
                           ),
                         ),
                     ],
                   ),
-                ),
-                ListTile(
-                  leading: Tooltip(
-                    message: t.volume,
-                    child: const Icon(Icons.volume_up_outlined),
-                  ),
-                  title: Slider(
-                    value: s.volume,
-                    semanticFormatterCallback: (v) =>
-                        '${t.volume} ${(v * 100).round()}%',
-                    onChanged: (v) => set(s.copyWith(volume: v)),
-                  ),
-                ),
-                SwitchListTile(
-                  title: Text(t.chime),
-                  value: s.chime,
-                  onChanged: (v) => set(s.copyWith(chime: v)),
-                ),
-              ],
-            ),
-            _Section(
-              title: t.quietHours,
-              children: [
-                SwitchListTile(
-                  title: Text(t.quietHoursOn),
-                  value: s.quietHoursEnabled,
-                  onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
-                ),
-                if (s.quietHoursEnabled)
-                  ListTile(
-                    title: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      children: [
-                        _HourPicker(
-                          strings: t,
-                          hour: s.quietStartHour,
-                          onChanged: (h) => set(s.copyWith(quietStartHour: h)),
+                  _Section(
+                    title: t.other,
+                    children: [
+                      _ChoiceRow(
+                        title: t.languageLabel,
+                        child: _Segmented<AppLanguage>(
+                          segments: [
+                            for (final l in AppLanguage.values)
+                              _Segment(value: l, label: Text(l.label)),
+                          ],
+                          selected: s.language,
+                          onChanged: (v) => set(s.copyWith(language: v)),
                         ),
-                        Text(t.from),
-                        _HourPicker(
-                          strings: t,
-                          hour: s.quietEndHour,
-                          onChanged: (h) => set(s.copyWith(quietEndHour: h)),
+                      ),
+                      SwitchListTile.adaptive(
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context)
+                            .colorScheme
+                            .outline,
+                        title: Text(t.notify),
+                        value: s.notify,
+                        onChanged: (v) => set(s.copyWith(notify: v)),
+                      ),
+                      if (controller.launchAtLogin case final enabled?)
+                        SwitchListTile.adaptive(
+                          activeTrackColor: Theme.of(context)
+                              .colorScheme
+                              .primary,
+                          inactiveTrackColor: Theme.of(context)
+                              .colorScheme
+                              .outline,
+                          title: Text(t.launchAtLogin),
+                          value: enabled,
+                          onChanged: controller.setLaunchAtLogin,
                         ),
-                        if (t.until.isNotEmpty) Text(t.until),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            _Section(
-              title: t.other,
-              children: [
-                ListTile(
-                  title: Text(t.languageLabel),
-                  trailing: SegmentedButton<AppLanguage>(
-                    showSelectedIcon: false,
-                    segments: [
-                      for (final l in AppLanguage.values)
-                        ButtonSegment(value: l, label: Text(l.label)),
                     ],
-                    selected: {s.language},
-                    onSelectionChanged: (v) =>
-                        set(s.copyWith(language: v.single)),
                   ),
-                ),
-                ListTile(
-                  title: Text(t.menuBarShows),
-                  trailing: SegmentedButton<MenuBarShows>(
-                    showSelectedIcon: false,
-                    segments: [
-                      ButtonSegment(
-                        value: MenuBarShows.time,
-                        label: Text(t.menuBarTime),
-                      ),
-                      ButtonSegment(
-                        value: MenuBarShows.logo,
-                        label: Text(t.menuBarLogo),
-                      ),
-                    ],
-                    selected: {s.menuBarShows},
-                    onSelectionChanged: (v) =>
-                        set(s.copyWith(menuBarShows: v.single)),
-                  ),
-                ),
-                SwitchListTile(
-                  title: Text(t.notify),
-                  value: s.notify,
-                  onChanged: (v) => set(s.copyWith(notify: v)),
-                ),
-                if (controller.launchAtLogin case final enabled?)
-                  SwitchListTile(
-                    title: Text(t.launchAtLogin),
-                    value: enabled,
-                    onChanged: controller.setLaunchAtLogin,
-                  ),
-              ],
+                  const SizedBox(height: 12),
+                  _Footer(controller: controller),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            _Footer(controller: controller),
           ],
         ),
       );
@@ -191,7 +244,7 @@ class SettingsPage extends StatelessWidget {
     final example = BanglaPhraseBuilder(includeStarter: false)
         .build(10, 15, style: style)
         .text;
-    return RadioListTile(
+    return _RadioTile(
       value: style,
       title: Text(label),
       subtitle: Text(example),
@@ -199,8 +252,10 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-class _ClockHeader extends StatelessWidget {
-  const _ClockHeader({required this.controller});
+/// The fired-earth band holding today's alpona dial, with the time and the
+/// next announcement at its centre.
+class _DialHeader extends StatelessWidget {
+  const _DialHeader({required this.controller});
 
   final AppController controller;
 
@@ -208,25 +263,193 @@ class _ClockHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = controller.strings;
-    return Column(
-      children: [
-        Text(t.clock(controller.now), style: theme.textTheme.displaySmall),
-        const SizedBox(height: 4),
-        Text(
-          t.nextAnnouncement(controller.nextAnnouncement),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+    final s = controller.settings;
+    final dark = theme.brightness == Brightness.dark;
+    return ColoredBox(
+      color: dark ? Alpona.earthDeep : Alpona.earth,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: Semantics(
+            label: t.dialSummary(s),
+            child: SizedBox.square(
+              dimension: 280,
+              child: CustomPaint(
+                painter: DayDialPainter(
+                  now: controller.now,
+                  schedule: s.schedule,
+                  muted: s.muted,
+                  speaking: controller.speaking,
+                  zoneLabels: t.zone,
+                  labelStyle: theme.textTheme.labelMedium!.copyWith(
+                    color: Alpona.rice,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 64),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FittedBox(
+                          child: Text(
+                            t.clock(controller.now),
+                            style: theme.textTheme.displaySmall?.copyWith(
+                              color: Alpona.rice,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          t.nextAnnouncement(controller.nextAnnouncement),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Alpona.rice,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: controller.speakNow,
-          icon: const Icon(Icons.record_voice_over_outlined),
-          label: Text(t.speakNow),
-        ),
-      ],
+      ),
     );
   }
+}
+
+/// A macOS-style radio row inside a [RadioGroup]: leaf green when chosen,
+/// and a filled, visible ring when not.
+class _RadioTile<T> extends StatelessWidget {
+  const _RadioTile({required this.value, required this.title, this.subtitle});
+
+  final T value;
+  final Widget title;
+  final Widget? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final chosen = RadioGroup.maybeOf<T>(context)?.groupValue == value;
+    return ListTile(
+      leading: Stack(
+        alignment: Alignment.center,
+        children: [
+          CupertinoRadio<T>(
+            value: value,
+            activeColor: scheme.primary,
+            inactiveColor: scheme.surfaceContainerLowest,
+          ),
+          // Cupertino's own unchosen ring is too faint on these cards, and
+          // in dark mode it fills at low opacity, so draw a clear ring.
+          if (!chosen)
+            IgnorePointer(
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: scheme.outline, width: 1.5),
+                ),
+              ),
+            ),
+        ],
+      ),
+      title: title,
+      subtitle: subtitle,
+      onTap: () => RadioGroup.maybeOf<T>(context)?.onChanged(value),
+    );
+  }
+}
+
+/// One option of a [_Segmented] control.
+class _Segment<T> {
+  const _Segment({required this.value, required this.label, this.icon});
+
+  final T value;
+  final Widget label;
+  final Widget? icon;
+}
+
+/// A macOS-style segmented control: a rounded track with the chosen
+/// segment raised on it, filling the row's width.
+class _Segmented<T extends Object> extends StatelessWidget {
+  const _Segmented({
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<_Segment<T>> segments;
+  final T selected;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final style = Theme.of(context).textTheme.labelLarge;
+    return SizedBox(
+      width: double.infinity,
+      child: CupertinoSlidingSegmentedControl<T>(
+        groupValue: selected,
+        backgroundColor: scheme.surfaceContainerHigh,
+        // In dark mode the chosen segment is lifted well clear of the track.
+        thumbColor: scheme.brightness == Brightness.light
+            ? scheme.surfaceContainerLowest
+            : const Color(0xFF5A463B),
+        padding: const EdgeInsets.all(3),
+        onValueChanged: (v) {
+          if (v != null) onChanged(v);
+        },
+        children: {
+          for (final segment in segments)
+            segment.value: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: DefaultTextStyle.merge(
+                style: style?.copyWith(color: scheme.onSurface),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (segment.icon case final icon?) ...[
+                      icon,
+                      const SizedBox(width: 6),
+                    ],
+                    segment.label,
+                  ],
+                ),
+              ),
+            ),
+        },
+      ),
+    );
+  }
+}
+
+/// A setting chosen from a few options: its label, then the options at
+/// full width underneath.
+class _ChoiceRow extends StatelessWidget {
+  const _ChoiceRow({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: Theme.of(context).listTileTheme.titleTextStyle),
+        const SizedBox(height: 8),
+        child,
+      ],
+    ),
+  );
 }
 
 class _Section extends StatelessWidget {
@@ -265,14 +488,36 @@ class _HourPicker extends StatelessWidget {
   final int hour;
   final ValueChanged<int> onChanged;
 
+  // A bordered pop-up button showing the value and a chevron, like a
+  // macOS pop-up menu, rather than Material's underlined dropdown.
   @override
-  Widget build(BuildContext context) => DropdownButton<int>(
-    value: hour,
-    onChanged: (h) => onChanged(h!),
-    items: [
+  Widget build(BuildContext context) => MenuAnchor(
+    menuChildren: [
       for (var h = 0; h < 24; h++)
-        DropdownMenuItem(value: h, child: Text(strings.hour(h))),
+        MenuItemButton(
+          onPressed: () => onChanged(h),
+          leadingIcon: h == hour
+              ? const Icon(Icons.check, size: 18)
+              : const SizedBox(width: 18),
+          child: Text(strings.hour(h)),
+        ),
     ],
+    builder: (context, menu, _) => OutlinedButton(
+      onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(strings.hour(hour)),
+          const SizedBox(width: 4),
+          const Icon(Icons.unfold_more, size: 18),
+        ],
+      ),
+    ),
   );
 }
 
@@ -295,10 +540,7 @@ class _Footer extends StatelessWidget {
         ),
         const Text('·'),
         TextButton(
-          onPressed: () => showDialog<void>(
-            context: context,
-            builder: (_) => CreditsDialog(controller: controller),
-          ),
+          onPressed: () => showCredits(context, controller),
           child: Text(t.credits),
         ),
       ],
@@ -306,43 +548,76 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/// Everyone the app owes, opened from the footer.
-class CreditsDialog extends StatelessWidget {
-  const CreditsDialog({super.key, required this.controller});
+/// The credits page, opened over the settings with a way back.
+Route<void> creditsRoute(AppController controller) => MaterialPageRoute<void>(
+  builder: (_) => CreditsPage(controller: controller),
+);
+
+Future<void> showCredits(BuildContext context, AppController controller) =>
+    Navigator.of(context).push(creditsRoute(controller));
+
+/// Everyone the app owes, opened from the footer or the menu bar.
+class CreditsPage extends StatelessWidget {
+  const CreditsPage({super.key, required this.controller});
 
   final AppController controller;
 
   @override
   Widget build(BuildContext context) {
     final t = controller.strings;
-    return AlertDialog(
-      title: Text(t.credits),
-      content: SizedBox(
-        width: 380,
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            for (final credit in creditsFor(t))
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(credit.title),
-                subtitle: Text(credit.detail),
-                trailing: credit.url == null
-                    ? null
-                    : const Icon(Icons.open_in_new, size: 18),
-                onTap: credit.url == null
-                    ? null
-                    : () => controller.openLink(credit.url!),
-              ),
-          ],
-        ),
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t.credits),
+        leading: BackButton(onPressed: () => Navigator.of(context).pop()),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(t.close),
-        ),
-      ],
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          const Center(
+            child: SizedBox.square(
+              dimension: 96,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Alpona.earth,
+                  borderRadius: BorderRadius.all(Radius.circular(22)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(14),
+                  child: CustomPaint(painter: RosettePainter()),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            t.appName,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final credit in creditsFor(t))
+                  ListTile(
+                    title: Text(credit.title),
+                    subtitle: Text(credit.detail),
+                    trailing: credit.url == null
+                        ? null
+                        : const Icon(Icons.open_in_new, size: 18),
+                    onTap: credit.url == null
+                        ? null
+                        : () => controller.openLink(credit.url!),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

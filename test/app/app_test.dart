@@ -10,6 +10,7 @@ import 'package:bangla_voice_clock/core/settings/settings_store.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
 import 'package:bangla_voice_clock/main.dart';
+import 'package:bangla_voice_clock/ui/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -138,16 +139,24 @@ void main() {
     expect(platform.entries.first.title, '10:15 AM');
     expect(platform.entries[1].title, 'Speak the time now');
     expect(platform.entries.last.title, 'Quit');
+    expect(platform.entries.map((e) => e.id), contains('credits'));
     await c.speakNow();
     // The announcement itself stays in Bangla.
     expect(platform.notifications.single, '10:15 AM|এখন সময় সকাল সোয়া দশটা');
     c.dispose();
   });
 
+  void tallWindow(WidgetTester tester) {
+    tester.view
+      ..physicalSize = const Size(960, 3600)
+      ..devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+  }
+
   testWidgets('voice labels, footer and credits', (tester) async {
+    tallWindow(tester);
     final c = await tester.runAsync(controller);
     await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
-    await tester.scrollUntilVisible(find.text('কৃতজ্ঞতা'), 300);
     expect(find.text('Areeba AI (ElevenLabs) - by Saiful'), findsOneWidget);
     expect(
       find.text('Classic (1998) - by Moshfekah Ferdaus Mahita'),
@@ -161,7 +170,7 @@ void main() {
       find.text('Schedule Voice Clock'),
       100,
       scrollable: find.descendant(
-        of: find.byType(AlertDialog),
+        of: find.byType(CreditsPage),
         matching: find.byType(Scrollable),
       ),
     );
@@ -169,18 +178,35 @@ void main() {
     expect(platform.opened.last, contains('schedule-voice-clock'));
   });
 
+  testWidgets('the menu bar opens the credits page', (tester) async {
+    tallWindow(tester);
+    final c = await tester.runAsync(controller);
+    await tester.runAsync(c!.start);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c));
+    platform.menu.add('credits');
+    await tester.runAsync(() => pumpEventQueue());
+    await tester.pumpAndSettle();
+    expect(find.byType(CreditsPage), findsOneWidget);
+    expect(platform.windowShown, greaterThanOrEqualTo(1));
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(CreditsPage), findsNothing);
+    c.dispose();
+  });
+
   testWidgets('settings window', (tester) async {
+    tallWindow(tester);
     final c = await tester.runAsync(controller);
     await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
     expect(find.text('সকাল ১০:১৫'), findsOneWidget);
     expect(find.text('এখনই সময় শুনুন'), findsOneWidget);
-    expect(find.text('পরের ঘোষণা সকাল ১০:৩০'), findsOneWidget);
+    expect(find.text('পরের ঘোষণা সকাল\u00A0১০:৩০'), findsOneWidget);
 
     await tester.tap(find.text('৩০ মিনিট'));
     await tester.runAsync(() => pumpEventQueue());
     await tester.pump();
     expect(c.settings.intervalMinutes, 30);
-    expect(find.text('পরের ঘোষণা সকাল ১০:৩০'), findsOneWidget);
+    expect(find.text('পরের ঘোষণা সকাল\u00A0১০:৩০'), findsOneWidget);
 
     await tester.tap(find.text('মিনিট ধরে'));
     await tester.pump();

@@ -57,6 +57,17 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+    - family: HindSiliguri
+      fonts:
+        - asset: assets/fonts/hind_siliguri/HindSiliguri-Regular.ttf
+        - asset: assets/fonts/hind_siliguri/HindSiliguri-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/hind_siliguri/HindSiliguri-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/hind_siliguri/HindSiliguri-Bold.ttf
+          weight: 700
+
   assets:
     - assets/voices/bn_ai/
     - assets/voices/bn_ai/clips/

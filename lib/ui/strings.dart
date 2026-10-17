@@ -1,5 +1,6 @@
 import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
+import '../core/speech/bangla_words.dart';
 
 /// Every piece of interface text, in [language].
 class Strings {
@@ -19,8 +20,42 @@ class Strings {
       _bn ? banglaClockFace(time) : _englishClock(time, withPeriod: false);
   String nextAnnouncement(DateTime? next) => next == null
       ? _t('ঘোষণা বন্ধ আছে', 'Announcements are off')
-      : _t('পরের ঘোষণা ${clock(next)}', 'Next announcement at ${clock(next)}');
+      : _t(
+          'পরের ঘোষণা ${_together(clock(next))}',
+          'Next announcement at ${_together(clock(next))}',
+        );
+
+  /// Keeps "সকাল ১০:৩০" on one line when the text wraps.
+  static String _together(String text) => text.replaceAll(' ', '\u00A0');
   String get speakNow => _t('এখনই সময় শুনুন', 'Speak the time now');
+
+  /// The part of the day, as the dial labels it.
+  String zone(DayZone zone) => _bn
+      ? zone.word
+      : switch (zone) {
+          DayZone.bhor => 'Dawn',
+          DayZone.sokal => 'Morning',
+          DayZone.dupur => 'Noon',
+          DayZone.bikal => 'Afternoon',
+          DayZone.sondha => 'Evening',
+          DayZone.raat => 'Night',
+        };
+
+  /// What the dial shows, for VoiceOver.
+  String dialSummary(AppSettings s) {
+    final quiet = s.quietHoursEnabled
+        ? _t(
+            ', ${hour(s.quietStartHour)} থেকে ${hour(s.quietEndHour)} নীরব',
+            ', silent ${hour(s.quietStartHour)} to ${hour(s.quietEndHour)}',
+          )
+        : '';
+    return s.muted
+        ? _t('আজকের ঘোষণা: বন্ধ', "Today's announcements: muted")
+        : _t(
+            'আজকের ঘোষণা: প্রতি ${interval(s.intervalMinutes)}$quiet',
+            "Today's announcements: every ${interval(s.intervalMinutes)}$quiet",
+          );
+  }
 
   // Announcements.
   String get announcements => _t('ঘোষণা', 'Announcements');
@@ -42,9 +77,13 @@ class Strings {
 
   // Quiet hours.
   String get quietHours => _t('নীরব সময়', 'Quiet hours');
-  String get quietHoursOn => _t('এই সময়ে ঘোষণা হবে না', 'Stay silent between');
-  String get from => _t('থেকে', 'to');
-  String get until => _t('পর্যন্ত', '');
+  String get quietHoursOn =>
+      _t('এই সময়ে ঘোষণা হবে না', 'Stay silent during these hours');
+
+  /// The words around the two hour pickers: "[from] … [to] … [until]".
+  String get quietFrom => _t('', 'From');
+  String get quietTo => _t('থেকে', 'to');
+  String get quietUntil => _t('পর্যন্ত', '');
   String hour(int h) => _bn
       ? banglaClockWithZone(DateTime(2000, 1, 1, h))
       : _englishClock(DateTime(2000, 1, 1, h));
@@ -52,6 +91,7 @@ class Strings {
   // Other settings.
   String get other => _t('অন্যান্য', 'General');
   String get languageLabel => _t('ভাষা', 'Language');
+  String get menuBar => _t('মেনু বার', 'Menu bar');
   String get menuBarShows => _t('মেনু বারে দেখান', 'Menu bar shows');
   String get menuBarTime => _t('সময়', 'Time');
   String get menuBarLogo => _t('লোগো', 'Logo');
@@ -67,6 +107,8 @@ class Strings {
   String get developedBy =>
       _t('ডেভেলপ করেছেন সাইফুল ইসলাম', 'Developed by Saiful Islam');
   String get credits => _t('কৃতজ্ঞতা', 'Credits');
+  String get creditsMenu => _t('কৃতজ্ঞতা…', 'Credits…');
+  String get back => _t('ফিরে যান', 'Back');
   String get close => _t('বন্ধ', 'Close');
 
   static String _englishClock(DateTime t, {bool withPeriod = true}) {
