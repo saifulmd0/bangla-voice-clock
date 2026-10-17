@@ -19,6 +19,9 @@ class MainFlutterWindow: NSWindow, NSWindowDelegate {
     RegisterGeneratedPlugins(registry: flutterViewController)
     bridge = NativeBridge(
       window: self, messenger: flutterViewController.engine.binaryMessenger)
+    // Flutter normally starts Dart when the window first appears, but this
+    // window starts hidden (the app lives in the menu bar), so start it now.
+    _ = flutterViewController.engine.run(withEntrypoint: nil)
 
     super.awakeFromNib()
   }
