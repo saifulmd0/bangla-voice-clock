@@ -159,6 +159,25 @@ void main() {
       expect(trimmed.length, 100 + 2 * 20);
     });
 
+    test('a low noise factor keeps a soft word ending', () {
+      const rate = 1000;
+      // Hiss at 300, a loud word, then a soft ending at about twice the hiss
+      // (like the "-নিট" of মিনিট in the 1998 recording).
+      final samples = Int16List.fromList([
+        for (var i = 0; i < 1000; i++) i.isEven ? 300 : -300,
+      ]);
+      for (var i = 300; i < 500; i++) {
+        samples[i] = i.isEven ? 6000 : -6000;
+      }
+      for (var i = 500; i < 700; i++) {
+        samples[i] = i.isEven ? 650 : -650;
+      }
+      final audio = PcmAudio(samples, rate);
+      const padding = Duration.zero;
+      expect(audio.trimSilence(padding: padding).length, 200);
+      expect(audio.trimSilence(noiseFactor: 1.6, padding: padding).length, 400);
+    });
+
     test('trimSilence leaves pure silence untouched', () {
       final silent = PcmAudio(Int16List(500), 1000);
       expect(silent.trimSilence().length, 500);

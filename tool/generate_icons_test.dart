@@ -1,15 +1,16 @@
-// Renders the app icon and the menu-bar logo from RosettePainter, so the
+// Renders the app icon and the menu-bar logo from DotDialPainter, so the
 // icons always match the logo drawn in the app.
 //
 //   flutter test tool/generate_icons_test.dart
 //
 // Writes macos/Runner/Assets.xcassets/{AppIcon.appiconset,StatusIcon.imageset}
 // and docs/brand/icon.png. Afterwards, re-embed each PNG's provenance with
-// `impeccable embed-prompt <png> --prompt "Origin: ..."` (see docs/BRAND.md).
+// `impeccable embed-prompt <png> --prompt "Origin: drawn in code ..."`, saying
+// it was rendered here from DotDialPainter, so the files record their source.
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:bangla_voice_clock/ui/alpona.dart';
+import 'package:bangla_voice_clock/ui/brand.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -28,7 +29,7 @@ Future<void> _write(
   await File(path).writeAsBytes(png!.buffer.asUint8List());
 }
 
-/// The macOS icon: the rosette on a fired-earth tile, at Apple's icon grid
+/// The macOS icon: the dot dial on a pale sky tile, at Apple's icon grid
 /// (an 824/1024 rounded square with a soft drop shadow).
 void _appIcon(Canvas canvas, Size size) {
   final s = size.width;
@@ -46,19 +47,20 @@ void _appIcon(Canvas canvas, Size size) {
       ..color = Colors.black.withValues(alpha: 0.28)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, s * 0.012),
   );
-  canvas.drawRRect(tile, Paint()..color = Alpona.earth);
-  final mark = s * (s <= 64 ? 0.66 : 0.62);
+  canvas.drawRRect(tile, Paint()..color = Sky.tile);
+  final mark = s * 0.62;
   canvas.translate((s - mark) / 2, (s - mark) / 2);
-  (s <= 64 ? const RosettePainter.small() : const RosettePainter()).paint(
-    canvas,
-    Size.square(mark),
-  );
+  // Small icons drop the eight minor dots, which would blur away.
+  DotDialPainter(
+    weight: s <= 64 ? 1.25 : 1,
+    quartersOnly: s <= 32,
+  ).paint(canvas, Size.square(mark));
 }
 
 void _statusIcon(Canvas canvas, Size size) {
   final pad = size.width * 0.04;
   canvas.translate(pad, pad);
-  RosettePainter.template(tiny: size.width < 24)
+  DotDialPainter.template(tiny: size.width < 24)
       .paint(canvas, Size.square(size.width - 2 * pad));
 }
 

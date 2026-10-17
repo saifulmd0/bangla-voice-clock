@@ -6,131 +6,94 @@ import '../core/clock/announcement_schedule.dart';
 import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/bangla_words.dart';
 
-/// The brand's colours, taken from alpona: rice-paste line on fired earth.
-abstract final class Alpona {
-  static const earth = Color(0xFF9C3D26);
-  static const earthDeep = Color(0xFF7A2E1C);
-  static const rice = Color(0xFFF6F0E4);
-  static const turmeric = Color(0xFFE2A12B);
-  static const leaf = Color(0xFF2F6B3F);
-  static const soot = Color(0xFF231A16);
+/// The brand's colours: a clear morning sky, with coral for "now".
+abstract final class Sky {
+  static const blue = Color(0xFF2F74D0);
+  static const blueNight = Color(0xFF8AB8F5);
+  static const coral = Color(0xFFFF8A65);
+
+  /// Edge for the coral now dot, so it holds 3:1 against the pale band.
+  static const coralEdge = Color(0xFFC7471F);
+  static const ink = Color(0xFF172338);
+  static const inkNight = Color(0xFFE8EFFA);
+  static const ground = Color(0xFFF5F9FF);
+  static const groundNight = Color(0xFF0F1724);
+  static const band = Color(0xFFE1EEFD);
+  static const bandNight = Color(0xFF172A45);
+  static const tile = Color(0xFFEEF5FF);
 }
 
-/// The logo: a twelve-petal alpona rosette, one petal for each hour on a
-/// clock face, the top one lit in turmeric for the hour being spoken.
-///
-/// Below about 64 pixels the twelve petals blur together, so small sizes
-/// draw [RosettePainter.small]: eight petals and no dots.
-class RosettePainter extends CustomPainter {
-  const RosettePainter({
-    this.line = Alpona.rice,
-    this.accent = Alpona.turmeric,
+/// The logo: a clock face of twelve dots, the four quarter hours larger and
+/// the twelve in coral, with hands at ten o'clock. The dots are the same
+/// fingertip dots the dial in the app uses for announcements.
+class DotDialPainter extends CustomPainter {
+  const DotDialPainter({
+    this.color = Sky.blue,
+    this.accent = Sky.coral,
     this.weight = 1,
-    this.petals = 12,
-    this.dots = true,
+    this.quartersOnly = false,
   });
 
-  const RosettePainter.small({
-    this.line = Alpona.rice,
-    this.accent = Alpona.turmeric,
-  }) : weight = 1.7,
-       petals = 8,
-       dots = false;
-
-  /// The menu-bar version: one colour, small-size drawing, no accent. At
-  /// 1x (18 pixels) eight petals read as a cog, so [tiny] draws six.
-  const RosettePainter.template({this.line = Colors.black, bool tiny = false})
+  /// The menu-bar version: one colour and a heavier drawing. At 1x
+  /// ([tiny], 18 pixels) the eight small dots vanish, so only the quarter
+  /// hours are drawn.
+  const DotDialPainter.template({this.color = Colors.black, bool tiny = false})
     : accent = null,
-      weight = tiny ? 2.1 : 1.5,
-      petals = tiny ? 6 : 8,
-      dots = false;
+      weight = tiny ? 1.45 : 1.2,
+      quartersOnly = tiny;
 
-  final Color line;
+  final Color color;
 
-  /// Fill for the top petal, or null for a single-colour mark.
+  /// Colour of the twelve o'clock dot, or null for a single-colour mark.
   final Color? accent;
 
-  /// Line weight relative to the logo's.
+  /// Drawing weight relative to the app icon's.
   final double weight;
-  final int petals;
-  final bool dots;
+  final bool quartersOnly;
 
   @override
   void paint(Canvas canvas, Size size) {
     final r = size.shortestSide / 2;
     final c = size.center(Offset.zero);
-    final stroke = Paint()
-      ..color = line
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * 0.055 * weight
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final fill = Paint()..color = line;
-
-    final step = 2 * math.pi / petals;
-    for (var i = 0; i < petals; i++) {
-      final angle = -math.pi / 2 + i * step;
-      final petal = _petal(c, r, angle, spread: 2.4 / petals);
-      if (i == 0 && accent != null) {
-        canvas.drawPath(petal, Paint()..color = accent!);
-      }
-      canvas.drawPath(petal, stroke);
-      // Fingertip dots between the petal tips.
-      if (dots) {
-        canvas.drawCircle(
-          _at(c, r * 0.86, angle + step / 2),
-          r * 0.045 * weight,
-          fill,
-        );
-      }
+    final fill = Paint()..color = color;
+    for (var i = 0; i < 12; i++) {
+      final quarter = i % 3 == 0;
+      if (!quarter && quartersOnly) continue;
+      final at = _at(c, r * 0.8, -math.pi / 2 + i * math.pi / 6);
+      final radius = (quarter ? 0.1 : 0.062) * r * weight;
+      canvas.drawCircle(
+        at,
+        radius,
+        i == 0 && accent != null ? (Paint()..color = accent!) : fill,
+      );
     }
-    canvas.drawCircle(c, r * 0.25, stroke);
-    canvas.drawCircle(c, r * 0.1 * math.sqrt(weight), fill);
-  }
-
-  /// A teardrop petal from the inner ring to its tip, pointing at [angle].
-  static Path _petal(
-    Offset c,
-    double r,
-    double angle, {
-    required double spread,
-  }) {
-    final base = _at(c, r * 0.32, angle);
-    final tip = _at(c, r * 0.93, angle);
-    return Path()
-      ..moveTo(base.dx, base.dy)
-      ..cubicTo(
-        _at(c, r * 0.55, angle - spread * 1.6).dx,
-        _at(c, r * 0.55, angle - spread * 1.6).dy,
-        _at(c, r * 0.86, angle - spread * 0.5).dx,
-        _at(c, r * 0.86, angle - spread * 0.5).dy,
-        tip.dx,
-        tip.dy,
-      )
-      ..cubicTo(
-        _at(c, r * 0.86, angle + spread * 0.5).dx,
-        _at(c, r * 0.86, angle + spread * 0.5).dy,
-        _at(c, r * 0.55, angle + spread * 1.6).dx,
-        _at(c, r * 0.55, angle + spread * 1.6).dy,
-        base.dx,
-        base.dy,
-      )
-      ..close();
+    final hand = Paint()
+      ..color = color
+      ..strokeWidth = r * 0.12 * weight
+      ..strokeCap = StrokeCap.round;
+    // Minute hand up to twelve, hour hand to ten. At small sizes the
+    // minute hand stops short, so a clear gap keeps it from merging with
+    // the twelve dot into one bar, and the hour hand grows to match, or it
+    // shrinks to a smudge beside the hub.
+    final minute = quartersOnly ? 0.42 : 0.5;
+    final hour = quartersOnly ? 0.44 : 0.36;
+    canvas
+      ..drawLine(c, _at(c, r * minute, -math.pi / 2), hand)
+      ..drawLine(c, _at(c, r * hour, -math.pi / 2 - math.pi / 3), hand)
+      ..drawCircle(c, r * 0.1 * weight, fill);
   }
 
   @override
-  bool shouldRepaint(RosettePainter old) =>
-      old.line != line ||
+  bool shouldRepaint(DotDialPainter old) =>
+      old.color != color ||
       old.accent != accent ||
       old.weight != weight ||
-      old.petals != petals ||
-      old.dots != dots;
+      old.quartersOnly != quartersOnly;
 }
 
-/// Draws today as an alpona ring, noon at the top and midnight at the
-/// bottom: the six parts of the day as arcs, a dot for every scheduled
-/// announcement (none in quiet hours, hollow when muted) and a turmeric
-/// dot at [now].
+/// Draws today as a dial, noon at the top and midnight at the bottom: the
+/// six parts of the day as arcs, a dot for every scheduled announcement
+/// (none in quiet hours, hollow when muted) and a coral dot at [now].
 class DayDialPainter extends CustomPainter {
   DayDialPainter({
     required this.now,
@@ -139,6 +102,8 @@ class DayDialPainter extends CustomPainter {
     this.speaking = false,
     required this.zoneLabels,
     required this.labelStyle,
+    required this.color,
+    required this.background,
     DayZones? zones,
   }) : zones = zones ?? DayZones.standard;
 
@@ -154,6 +119,10 @@ class DayDialPainter extends CustomPainter {
   final String Function(DayZone zone) zoneLabels;
   final TextStyle labelStyle;
 
+  /// Colour of the arcs and dots, and of the band behind the dial.
+  final Color color;
+  final Color background;
+
   /// The angle of [minuteOfDay] on the dial.
   static double angleOf(num minuteOfDay) =>
       math.pi / 2 + minuteOfDay / (24 * 60) * 2 * math.pi;
@@ -163,7 +132,7 @@ class DayDialPainter extends CustomPainter {
     final r = size.shortestSide / 2;
     final c = size.center(Offset.zero);
     final line = Paint()
-      ..color = Alpona.rice
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -178,7 +147,7 @@ class DayDialPainter extends CustomPainter {
         false,
         line
           ..strokeWidth = r * 0.022
-          ..color = Alpona.rice.withValues(alpha: 0.75),
+          ..color = color.withValues(alpha: 0.45),
       );
       _label(canvas, c, r * 0.84, angleOf((start + end) / 2), zoneLabels(zone));
     }
@@ -193,34 +162,39 @@ class DayDialPainter extends CustomPainter {
       if (!schedule.announcesAt(t)) continue;
       final p = _at(c, r * 0.76, angleOf(m));
       final size = m % 60 == 0 ? math.min(dot * 1.45, pitch * 0.34) : dot;
+      // Announcements already made today are dimmed, so the next one
+      // stands out.
+      final past = m < now.hour * 60 + now.minute;
+      final ink = past ? color.withValues(alpha: 0.35) : color;
       if (muted) {
         canvas.drawCircle(
           p,
           size,
           Paint()
-            ..color = Alpona.rice.withValues(alpha: 0.7)
+            ..color = ink.withValues(alpha: ink.a * 0.8)
             ..style = PaintingStyle.stroke
             ..strokeWidth = dot * 0.5,
         );
       } else {
-        canvas.drawCircle(p, size, Paint()..color = Alpona.rice);
+        canvas.drawCircle(p, size, Paint()..color = ink);
       }
     }
 
-    // Now, haloed in turmeric while the clock speaks.
+    // Now, haloed in coral while the clock speaks.
     final nowAt = _at(c, r * 0.76, angleOf(now.hour * 60 + now.minute));
     if (speaking) {
       canvas.drawCircle(
         nowAt,
         r * 0.13,
         Paint()
-          ..color = Alpona.turmeric.withValues(alpha: 0.35)
+          ..color = Sky.coral.withValues(alpha: 0.4)
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.04),
       );
     }
     canvas
-      ..drawCircle(nowAt, r * 0.065, Paint()..color = Alpona.earth)
-      ..drawCircle(nowAt, r * 0.05, Paint()..color = Alpona.turmeric);
+      ..drawCircle(nowAt, r * 0.07, Paint()..color = background)
+      ..drawCircle(nowAt, r * 0.055, Paint()..color = Sky.coralEdge)
+      ..drawCircle(nowAt, r * 0.042, Paint()..color = Sky.coral);
   }
 
   /// Each part of the day as (start minute, end minute, zone), in order
@@ -272,7 +246,9 @@ class DayDialPainter extends CustomPainter {
       old.schedule.intervalMinutes != schedule.intervalMinutes ||
       old.schedule.quietHours?.startHour != schedule.quietHours?.startHour ||
       old.schedule.quietHours?.endHour != schedule.quietHours?.endHour ||
-      old.labelStyle != labelStyle;
+      old.labelStyle != labelStyle ||
+      old.color != color ||
+      old.background != background;
 }
 
 Offset _at(Offset c, double radius, double angle) =>

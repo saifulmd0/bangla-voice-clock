@@ -106,8 +106,8 @@ void main() {
 
     final pack = await VoicePack.loadDirectory(dir.path);
     final clip = await pack.clip(ClipKeys.hour(1));
-    // The 300 ms range is trimmed to the 100 ms tone plus 40 ms either side.
-    expect(clip.length, 180);
+    // The 300 ms range is trimmed to the 100 ms tone plus 60 ms either side.
+    expect(clip.length, 220);
     expect(clip.sampleRate, rate);
   });
 }

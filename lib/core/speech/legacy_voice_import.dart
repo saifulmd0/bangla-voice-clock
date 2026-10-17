@@ -118,7 +118,15 @@ Future<VoicePackManifest> importLegacyVoice({
   for (final MapEntry(key: entryName, value: range) in block.entries.entries) {
     final key = keyMap[entryName];
     if (key == null) continue;
-    final clip = recording.slice(range.start, range.end).trimSilence();
+    // The original's ranges already bracket each word, so trim gently: a
+    // soft ending such as the "-নিট" of মিনিট sits only about twice above
+    // the hiss and must survive.
+    final clip = recording
+        .slice(range.start, range.end)
+        .trimSilence(
+          noiseFactor: 1.6,
+          padding: const Duration(milliseconds: 60),
+        );
     final path = 'clips/${key.replaceAll('.', '_').replaceAll(' ', '__')}.wav';
     await File('${outDir.path}/$path').writeAsBytes(encodeWav(clip));
     clips[key] = path;

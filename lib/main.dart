@@ -59,8 +59,8 @@ class _BanglaVoiceClockAppState extends State<BanglaVoiceClockApp> {
     navigatorKey: _navigator,
     title: 'Bangla Voice Clock',
     debugShowCheckedModeBanner: false,
-    theme: alponaTheme(Brightness.light),
-    darkTheme: alponaTheme(Brightness.dark),
+    theme: skyTheme(Brightness.light),
+    darkTheme: skyTheme(Brightness.dark),
     home: SettingsPage(controller: widget.controller),
   );
 }

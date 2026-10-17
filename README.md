@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/brand/icon.png" width="128" alt="Bangla Voice Clock icon: a twelve-petal alpona rosette on fired earth"></p>
+<p align="center"><img src="docs/brand/icon.png" width="128" alt="Bangla Voice Clock icon: a clock face of twelve blue dots with a coral dot at twelve"></p>
 
 # Bangla Voice Clock
 
@@ -22,7 +22,7 @@ The clock lives in the menu bar (there's no Dock icon), showing the time in Bang
 Click it to hear the time now, mute it, change how often it speaks, or open the settings: voice,
 traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording, volume, chime, quiet hours, launch at login,
 and the interface language (বাংলা by default, or English). The settings window draws today's
-schedule as an alpona dial; see [DESIGN.md](DESIGN.md) for the brand.
+schedule as a dial of dots; see [DESIGN.md](DESIGN.md) for the brand.
 
 Developed by [Saiful Islam](https://github.com/saifulmd0).
 

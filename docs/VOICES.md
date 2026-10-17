@@ -60,3 +60,9 @@ minute clips are "পনেরো মিনিট", "ত্রিশ মিন�
 them `# 15 min` and so on), spoken after the hour, so the importer stores them as exact-style
 minute endings. It has no "বেজে", which is optional, and no সোয়া/সাড়ে/পৌনে, so the traditional
 style setting doesn't apply to it. At other minutes it says the quarter hour just passed.
+
+The original recording is 8-bit, 11 kHz and quiet at the ends of words, so the importer trims
+gently (noise factor 1.6, 60 ms padding): the soft "-নিট" of মিনিট sits only about twice above the
+hiss. The original's "পঁয়তাল্লিশ মিনিট" is the weakest clip; its ending is faint in the 1998
+recording itself, and splicing in the "মিনিট" from "পনেরো মিনিট" sounded worse, so it is kept as
+recorded.

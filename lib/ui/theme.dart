@@ -1,61 +1,61 @@
 import 'package:flutter/material.dart';
 
-import 'alpona.dart';
+import 'brand.dart';
 
-/// The app theme: alpona's earth, rice and turmeric, leaf green for
-/// controls, and Hind Siliguri for Bangla and Latin alike.
-ThemeData alponaTheme(Brightness brightness) {
+/// The app theme: clear sky blue on airy white, coral for now, and Hind
+/// Siliguri for Bangla and Latin alike.
+ThemeData skyTheme(Brightness brightness) {
   final light = brightness == Brightness.light;
   final scheme = light
       ? const ColorScheme(
           brightness: Brightness.light,
-          primary: Alpona.leaf,
+          primary: Sky.blue,
           onPrimary: Color(0xFFFFFFFF),
-          primaryContainer: Color(0xFFD3E8D7),
-          onPrimaryContainer: Color(0xFF0E2A16),
-          secondary: Alpona.earth,
-          onSecondary: Alpona.rice,
-          secondaryContainer: Color(0xFFF6DDD3),
-          onSecondaryContainer: Color(0xFF3B140A),
-          tertiary: Color(0xFF8A5A00),
+          primaryContainer: Color(0xFFD3E4FA),
+          onPrimaryContainer: Color(0xFF0B2A57),
+          secondary: Color(0xFF2B5A9E),
+          onSecondary: Color(0xFFFFFFFF),
+          secondaryContainer: Color(0xFFDCE8F8),
+          onSecondaryContainer: Color(0xFF0E2A52),
+          tertiary: Color(0xFFB4431F),
           onTertiary: Color(0xFFFFFFFF),
           error: Color(0xFFB3261E),
           onError: Color(0xFFFFFFFF),
-          surface: Color(0xFFFAF5EC),
-          onSurface: Alpona.soot,
-          onSurfaceVariant: Color(0xFF5E4B40),
-          surfaceContainerLowest: Color(0xFFFFFDF8),
-          surfaceContainerLow: Color(0xFFF6EFE3),
-          surfaceContainer: Color(0xFFF1E8DA),
-          surfaceContainerHigh: Color(0xFFEBE1D1),
-          surfaceContainerHighest: Color(0xFFE5DAC8),
-          outline: Color(0xFF9C8878),
-          outlineVariant: Color(0xFFE2D5C3),
+          surface: Sky.ground,
+          onSurface: Sky.ink,
+          onSurfaceVariant: Color(0xFF4A5A73),
+          surfaceContainerLowest: Color(0xFFFFFFFF),
+          surfaceContainerLow: Color(0xFFEFF5FD),
+          surfaceContainer: Color(0xFFE9F0F9),
+          surfaceContainerHigh: Color(0xFFE3EBF6),
+          surfaceContainerHighest: Color(0xFFD9E3F1),
+          outline: Color(0xFF7B8BA4),
+          outlineVariant: Color(0xFFDCE5F1),
         )
       : const ColorScheme(
           brightness: Brightness.dark,
-          primary: Color(0xFF8CC79A),
-          onPrimary: Color(0xFF0E2A16),
-          primaryContainer: Color(0xFF1F4A2B),
-          onPrimaryContainer: Color(0xFFD3E8D7),
-          secondary: Color(0xFFE08A6F),
-          onSecondary: Color(0xFF3B140A),
-          secondaryContainer: Color(0xFF5C2414),
-          onSecondaryContainer: Color(0xFFF6DDD3),
-          tertiary: Alpona.turmeric,
-          onTertiary: Color(0xFF2E1E00),
+          primary: Sky.blueNight,
+          onPrimary: Color(0xFF08264D),
+          primaryContainer: Color(0xFF1C3D6B),
+          onPrimaryContainer: Color(0xFFD6E6FC),
+          secondary: Color(0xFFA3BEE6),
+          onSecondary: Color(0xFF0E2A52),
+          secondaryContainer: Color(0xFF203A60),
+          onSecondaryContainer: Color(0xFFDCE8F8),
+          tertiary: Sky.coral,
+          onTertiary: Color(0xFF3A1004),
           error: Color(0xFFF2B8B5),
           onError: Color(0xFF601410),
-          surface: Color(0xFF1C1310),
-          onSurface: Color(0xFFF3EADC),
-          onSurfaceVariant: Color(0xFFCDB9A8),
-          surfaceContainerLowest: Color(0xFF160F0C),
-          surfaceContainerLow: Color(0xFF251A15),
-          surfaceContainer: Color(0xFF2A1E18),
-          surfaceContainerHigh: Color(0xFF33251E),
-          surfaceContainerHighest: Color(0xFF3D2D25),
-          outline: Color(0xFF8F7A6B),
-          outlineVariant: Color(0xFF3E2F26),
+          surface: Sky.groundNight,
+          onSurface: Sky.inkNight,
+          onSurfaceVariant: Color(0xFFA9B7CC),
+          surfaceContainerLowest: Color(0xFF0B121D),
+          surfaceContainerLow: Color(0xFF152033),
+          surfaceContainer: Color(0xFF19263B),
+          surfaceContainerHigh: Color(0xFF1F2D44),
+          surfaceContainerHighest: Color(0xFF27364F),
+          outline: Color(0xFF7E8DA6),
+          outlineVariant: Color(0xFF2A3850),
         );
 
   // One generous size for every row, ranked by weight, not by size.

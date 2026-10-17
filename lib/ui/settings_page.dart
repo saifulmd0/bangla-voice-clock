@@ -5,7 +5,7 @@ import '../app/app_controller.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
-import 'alpona.dart';
+import 'brand.dart';
 import 'strings.dart';
 
 /// The settings window, opened from the menu bar.
@@ -55,8 +55,8 @@ class SettingsPage extends StatelessWidget {
                               icon: SizedBox.square(
                                 dimension: 18,
                                 child: CustomPaint(
-                                  painter: RosettePainter.template(
-                                    line: Theme.of(context)
+                                  painter: DotDialPainter.template(
+                                    color: Theme.of(context)
                                         .colorScheme
                                         .onSurface,
                                   ),
@@ -252,7 +252,7 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-/// The fired-earth band holding today's alpona dial, with the time and the
+/// The sky band holding today's dial, with the time and the
 /// next announcement at its centre.
 class _DialHeader extends StatelessWidget {
   const _DialHeader({required this.controller});
@@ -266,7 +266,7 @@ class _DialHeader extends StatelessWidget {
     final s = controller.settings;
     final dark = theme.brightness == Brightness.dark;
     return ColoredBox(
-      color: dark ? Alpona.earthDeep : Alpona.earth,
+      color: dark ? Sky.bandNight : Sky.band,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Center(
@@ -281,8 +281,10 @@ class _DialHeader extends StatelessWidget {
                   muted: s.muted,
                   speaking: controller.speaking,
                   zoneLabels: t.zone,
+                  color: theme.colorScheme.primary,
+                  background: dark ? Sky.bandNight : Sky.band,
                   labelStyle: theme.textTheme.labelMedium!.copyWith(
-                    color: Alpona.rice,
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -297,7 +299,7 @@ class _DialHeader extends StatelessWidget {
                           child: Text(
                             t.clock(controller.now),
                             style: theme.textTheme.displaySmall?.copyWith(
-                              color: Alpona.rice,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -306,7 +308,7 @@ class _DialHeader extends StatelessWidget {
                           t.nextAnnouncement(controller.nextAnnouncement),
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Alpona.rice,
+                            color: theme.colorScheme.onSurfaceVariant,
                             height: 1.3,
                           ),
                         ),
@@ -323,8 +325,8 @@ class _DialHeader extends StatelessWidget {
   }
 }
 
-/// A macOS-style radio row inside a [RadioGroup]: leaf green when chosen,
-/// and a filled, visible ring when not.
+/// A macOS-style radio row inside a [RadioGroup]: sky blue when chosen,
+/// and a clear outline ring when not.
 class _RadioTile<T> extends StatelessWidget {
   const _RadioTile({required this.value, required this.title, this.subtitle});
 
@@ -377,7 +379,7 @@ class _Segment<T> {
 }
 
 /// A macOS-style segmented control: a rounded track with the chosen
-/// segment raised on it, filling the row's width.
+/// segment raised on it by a soft shadow, filling the row's width.
 class _Segmented<T extends Object> extends StatelessWidget {
   const _Segmented({
     required this.segments,
@@ -391,39 +393,81 @@ class _Segmented<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final style = Theme.of(context).textTheme.labelLarge;
-    return SizedBox(
-      width: double.infinity,
-      child: CupertinoSlidingSegmentedControl<T>(
-        groupValue: selected,
-        backgroundColor: scheme.surfaceContainerHigh,
-        // In dark mode the chosen segment is lifted well clear of the track.
-        thumbColor: scheme.brightness == Brightness.light
-            ? scheme.surfaceContainerLowest
-            : const Color(0xFF5A463B),
-        padding: const EdgeInsets.all(3),
-        onValueChanged: (v) {
-          if (v != null) onChanged(v);
-        },
-        children: {
-          for (final segment in segments)
-            segment.value: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: DefaultTextStyle.merge(
-                style: style?.copyWith(color: scheme.onSurface),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (segment.icon case final icon?) ...[
-                      icon,
-                      const SizedBox(width: 6),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final light = scheme.brightness == Brightness.light;
+    final index = segments.indexWhere((s) => s.value == selected);
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final width = box.maxWidth / segments.length;
+          return Stack(
+            children: [
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                left: width * index,
+                top: 0,
+                bottom: 0,
+                width: width,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: light
+                        ? scheme.surfaceContainerLowest
+                        : const Color(0xFF3B5078),
+                    borderRadius: BorderRadius.circular(7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: light ? 0.12 : 0.3,
+                        ),
+                        offset: const Offset(0, 1),
+                        blurRadius: 3,
+                      ),
                     ],
-                    segment.label,
-                  ],
+                  ),
                 ),
               ),
-            ),
+              Row(
+                children: [
+                  for (final segment in segments)
+                    Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: segment.value == selected,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(7),
+                          onTap: () => onChanged(segment.value),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 7),
+                            child: DefaultTextStyle.merge(
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: scheme.onSurface,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (segment.icon case final icon?) ...[
+                                    icon,
+                                    const SizedBox(width: 6),
+                                  ],
+                                  segment.label,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
         },
       ),
     );
@@ -529,17 +573,23 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = controller.strings;
+    // The deeper section blue, so 15pt link text clears 4.5:1.
+    final link = TextButton.styleFrom(
+      foregroundColor: Theme.of(context).colorScheme.secondary,
+    );
     return Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 4,
       children: [
         TextButton(
+          style: link,
           onPressed: () => controller.openLink(developerUrl),
           child: Text(t.developedBy),
         ),
         const Text('·'),
         TextButton(
+          style: link,
           onPressed: () => showCredits(context, controller),
           child: Text(t.credits),
         ),
@@ -579,12 +629,12 @@ class CreditsPage extends StatelessWidget {
               dimension: 96,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Alpona.earth,
+                  color: Sky.tile,
                   borderRadius: BorderRadius.all(Radius.circular(22)),
                 ),
                 child: Padding(
                   padding: EdgeInsets.all(14),
-                  child: CustomPaint(painter: RosettePainter()),
+                  child: CustomPaint(painter: DotDialPainter()),
                 ),
               ),
             ),

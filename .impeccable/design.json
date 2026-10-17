@@ -1,382 +1,398 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T20:18:36.843800+00:00",
+  "generatedAt": "2026-10-17T20:48:13.573681+00:00",
   "title": "Design System: Bangla Voice Clock",
   "extensions": {
     "colorMeta": {
-      "earth": {
+      "sky-blue": {
         "role": "primary",
-        "displayName": "Fired Earth",
-        "canonical": "#9C3D26",
-        "oklch": "oklch(48.7% 0.132 34.9)",
+        "displayName": "Clear Sky Blue",
+        "canonical": "#2F74D0",
+        "oklch": "oklch(56.4% 0.158 256.9)",
         "tonalRamp": [
-          "#1C0200",
-          "#431004",
-          "#6E2310",
-          "#9A3B24",
-          "#BE5C44",
-          "#DE826B",
-          "#F7B09E",
-          "#FFE3D7"
+          "#000A21",
+          "#02234F",
+          "#053F84",
+          "#165EB8",
+          "#3D81DF",
+          "#68A6FD",
+          "#A8CCFE",
+          "#E5EFFF"
         ]
       },
-      "earth-deep": {
+      "sky-blue-night": {
         "role": "primary",
-        "displayName": "Banked Earth",
-        "canonical": "#7A2E1C",
-        "oklch": "oklch(40.7% 0.111 34.7)",
+        "displayName": "Night Sky Blue",
+        "canonical": "#8AB8F5",
+        "oklch": "oklch(77.3% 0.101 255.7)",
         "tonalRamp": [
-          "#1A0401",
-          "#3F150B",
-          "#682A1B",
-          "#914330",
-          "#B5634F",
-          "#D58774",
-          "#EFB4A5",
-          "#FFE5DB"
+          "#000A20",
+          "#01244E",
+          "#184276",
+          "#386299",
+          "#5884BE",
+          "#7AA8E4",
+          "#A6CCFF",
+          "#E4F0FF"
         ]
       },
-      "rice": {
+      "on-sky-night": {
         "role": "primary",
-        "displayName": "Rice Paste",
-        "canonical": "#F6F0E4",
-        "oklch": "oklch(95.7% 0.017 84.6)",
+        "displayName": "Night Button Ink",
+        "canonical": "#08264D",
+        "oklch": "oklch(27.2% 0.080 256.7)",
         "tonalRamp": [
-          "#0F0B04",
-          "#28231B",
-          "#443F36",
-          "#625D53",
-          "#827D72",
-          "#A39E93",
-          "#C9C3B8",
-          "#F4EEE2"
+          "#000A21",
+          "#06244B",
+          "#24426C",
+          "#43628E",
+          "#6384B2",
+          "#85A7D7",
+          "#A8CCFD",
+          "#E5EFFF"
         ]
       },
-      "turmeric": {
+      "coral": {
         "role": "tertiary",
-        "displayName": "Turmeric",
-        "canonical": "#E2A12B",
-        "oklch": "oklch(75.3% 0.145 76.9)",
+        "displayName": "Coral",
+        "canonical": "#FF8A65",
+        "oklch": "oklch(75.5% 0.151 38.3)",
         "tonalRamp": [
-          "#180600",
-          "#3B1B00",
-          "#623300",
-          "#8A4E00",
-          "#AD6E00",
-          "#CC922E",
-          "#E7BC7C",
-          "#FFEAC4"
+          "#1B0300",
+          "#461000",
+          "#752100",
+          "#A5380F",
+          "#CC5C38",
+          "#F37F5B",
+          "#FDB59E",
+          "#FFE9E3"
         ]
       },
-      "leaf": {
-        "role": "secondary",
-        "displayName": "Leaf",
-        "canonical": "#2F6B3F",
-        "oklch": "oklch(47.6% 0.094 150.1)",
-        "tonalRamp": [
-          "#010F04",
-          "#0A2C14",
-          "#1A4B28",
-          "#306C40",
-          "#518D5F",
-          "#77AE83",
-          "#A8D0AF",
-          "#DDF6E1"
-        ]
-      },
-      "soot": {
+      "ink": {
         "role": "neutral",
-        "displayName": "Soot",
-        "canonical": "#231A16",
-        "oklch": "oklch(22.7% 0.016 45.2)",
+        "displayName": "Deep Ink",
+        "canonical": "#172338",
+        "oklch": "oklch(25.6% 0.043 261.1)",
         "tonalRamp": [
-          "#110906",
-          "#2B221E",
-          "#473D39",
-          "#665B56",
-          "#867A75",
-          "#A89B96",
-          "#CEC1BC",
-          "#F9EBE6"
-        ]
-      },
-      "rice-ground": {
-        "role": "neutral",
-        "displayName": "Rice Ground",
-        "canonical": "#FAF5EC",
-        "oklch": "oklch(97.2% 0.013 82.4)",
-        "tonalRamp": [
-          "#0E0B06",
-          "#27241D",
-          "#433F38",
-          "#615D55",
-          "#817D75",
-          "#A29E95",
-          "#C8C3BB",
-          "#F3EEE5"
-        ]
-      },
-      "card-light": {
-        "role": "neutral",
-        "displayName": "Card Rice",
-        "canonical": "#FFFDF8",
-        "oklch": "oklch(99.4% 0.007 88.6)",
-        "tonalRamp": [
-          "#0C0B08",
-          "#252420",
-          "#41403C",
-          "#5F5D59",
-          "#7F7D79",
-          "#A09E9A",
-          "#C6C4BF",
-          "#F0EEE9"
-        ]
-      },
-      "track-light": {
-        "role": "neutral",
-        "displayName": "Track Sand",
-        "canonical": "#EBE1D1",
-        "oklch": "oklch(91.3% 0.024 79.7)",
-        "tonalRamp": [
-          "#0D0B07",
-          "#28231C",
-          "#453F34",
-          "#655C4F",
-          "#857C6E",
-          "#A69D90",
-          "#CAC3B9",
-          "#F2EEE7"
-        ]
-      },
-      "hairline-light": {
-        "role": "neutral",
-        "displayName": "Hairline Sand",
-        "canonical": "#E2D5C3",
-        "oklch": "oklch(87.9% 0.028 76.2)",
-        "tonalRamp": [
-          "#0E0B06",
-          "#29231B",
-          "#473E32",
-          "#675C4C",
-          "#877B6B",
-          "#A89D8D",
-          "#CBC3B7",
-          "#F3EEE6"
-        ]
-      },
-      "outline-light": {
-        "role": "neutral",
-        "displayName": "Warm Outline",
-        "canonical": "#9C8878",
-        "oklch": "oklch(64.0% 0.034 60.8)",
-        "tonalRamp": [
-          "#0F0A06",
-          "#2C221A",
-          "#4B3C31",
-          "#6C5A4B",
-          "#8D7969",
-          "#AD9B8C",
-          "#CFC1B6",
-          "#F6EDE6"
-        ]
-      },
-      "ink-muted": {
-        "role": "neutral",
-        "displayName": "Muted Earth Ink",
-        "canonical": "#5E4B40",
-        "oklch": "oklch(42.9% 0.031 51.7)",
-        "tonalRamp": [
-          "#100A07",
-          "#2C211B",
-          "#4B3C33",
-          "#6D594E",
-          "#8D786D",
-          "#AD9A8F",
-          "#D0C1B8",
-          "#F6ECE7"
-        ]
-      },
-      "earth-dark-ground": {
-        "role": "neutral",
-        "displayName": "Night Earth",
-        "canonical": "#1C1310",
-        "oklch": "oklch(19.7% 0.016 39.2)",
-        "tonalRamp": [
-          "#110906",
-          "#2B211E",
-          "#483D39",
-          "#665B57",
-          "#867A76",
-          "#A89B97",
-          "#CEC1BC",
-          "#F9EBE7"
-        ]
-      },
-      "card-dark": {
-        "role": "neutral",
-        "displayName": "Night Card",
-        "canonical": "#160F0C",
-        "oklch": "oklch(17.6% 0.013 44.4)",
-        "tonalRamp": [
-          "#100907",
-          "#2A221F",
-          "#463E3A",
-          "#655B58",
-          "#857B77",
-          "#A69C98",
-          "#CCC2BD",
-          "#F7ECE7"
-        ]
-      },
-      "track-dark": {
-        "role": "neutral",
-        "displayName": "Night Track",
-        "canonical": "#33251E",
-        "oklch": "oklch(27.9% 0.025 47.8)",
-        "tonalRamp": [
-          "#0F0A08",
-          "#2A221E",
-          "#493D36",
-          "#6A5A52",
-          "#8A7971",
-          "#AB9B93",
-          "#CEC1BB",
-          "#F4EDE9"
-        ]
-      },
-      "thumb-dark": {
-        "role": "neutral",
-        "displayName": "Night Thumb",
-        "canonical": "#5A463B",
-        "oklch": "oklch(31.3% 0.028 47.8)",
-        "tonalRamp": [
-          "#0F0A07",
-          "#2B221D",
-          "#4A3C35",
-          "#6B5950",
-          "#8C796F",
-          "#AC9A91",
-          "#CFC1BA",
-          "#F5ECE8"
-        ]
-      },
-      "hairline-dark": {
-        "role": "neutral",
-        "displayName": "Night Hairline",
-        "canonical": "#3E2F26",
-        "oklch": "oklch(31.9% 0.027 52.4)",
-        "tonalRamp": [
-          "#0F0A07",
-          "#2B221D",
-          "#4A3D35",
-          "#6A5A50",
-          "#8B796F",
-          "#AB9B91",
-          "#CEC1BA",
-          "#F5EDE8"
-        ]
-      },
-      "outline-dark": {
-        "role": "neutral",
-        "displayName": "Night Outline",
-        "canonical": "#8F7A6B",
-        "oklch": "oklch(59.5% 0.034 57.5)",
-        "tonalRamp": [
-          "#100A06",
-          "#2C221A",
-          "#4C3C31",
-          "#6D594B",
-          "#8E796A",
-          "#AE9A8C",
-          "#D0C1B6",
-          "#F6ECE6"
+          "#030A1D",
+          "#19253A",
+          "#354259",
+          "#53627A",
+          "#74839D",
+          "#96A6C1",
+          "#BACAE6",
+          "#E6EFFF"
         ]
       },
       "ink-night": {
         "role": "neutral",
-        "displayName": "Night Rice Ink",
-        "canonical": "#F3EADC",
-        "oklch": "oklch(94.0% 0.021 79.1)",
+        "displayName": "Night Ink",
+        "canonical": "#E8EFFA",
+        "oklch": "oklch(95.0% 0.017 259.4)",
         "tonalRamp": [
-          "#0D0B07",
-          "#27231D",
-          "#453F35",
-          "#645C51",
-          "#847C70",
-          "#A59D92",
-          "#C9C3BA",
-          "#F1EEE8"
+          "#070B12",
+          "#20252D",
+          "#3D424B",
+          "#5C626B",
+          "#7C838D",
+          "#9FA5B0",
+          "#C3CAD4",
+          "#E8EFFA"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#4A5A73",
+        "oklch": "oklch(46.4% 0.046 259.2)",
+        "tonalRamp": [
+          "#020A1E",
+          "#17253B",
+          "#33435A",
+          "#52627B",
+          "#72839E",
+          "#94A6C2",
+          "#B8CAE7",
+          "#E5EFFF"
         ]
       },
       "ink-muted-night": {
         "role": "neutral",
         "displayName": "Night Muted Ink",
-        "canonical": "#CDB9A8",
-        "oklch": "oklch(79.8% 0.033 62.7)",
+        "canonical": "#A9B7CC",
+        "oklch": "oklch(77.5% 0.034 258.4)",
         "tonalRamp": [
-          "#0F0A06",
-          "#2B221A",
-          "#4B3D31",
-          "#6B5A4B",
-          "#8C796A",
-          "#AC9B8C",
-          "#CFC1B6",
-          "#F5EDE6"
+          "#040B19",
+          "#1B2536",
+          "#374354",
+          "#566275",
+          "#768397",
+          "#98A6BB",
+          "#BCCAE0",
+          "#E5EFFF"
         ]
       },
-      "leaf-night": {
+      "section-blue": {
         "role": "secondary",
-        "displayName": "Night Leaf",
-        "canonical": "#8CC79A",
-        "oklch": "oklch(77.7% 0.088 151.3)",
+        "displayName": "Section Blue",
+        "canonical": "#2B5A9E",
+        "oklch": "oklch(47.1% 0.122 257.9)",
         "tonalRamp": [
-          "#010F04",
-          "#0C2B16",
-          "#1D4B2B",
-          "#336C43",
-          "#538C62",
-          "#79AD85",
-          "#A9CFB1",
-          "#DEF6E3"
+          "#000A22",
+          "#012251",
+          "#0F3F81",
+          "#3160A5",
+          "#5283CA",
+          "#74A6F1",
+          "#A9CBFE",
+          "#E5EFFF"
         ]
       },
-      "leaf-night-ink": {
+      "section-blue-night": {
         "role": "secondary",
-        "displayName": "Night Leaf Ink",
-        "canonical": "#0E2A16",
-        "oklch": "oklch(25.7% 0.051 150.7)",
+        "displayName": "Night Section Blue",
+        "canonical": "#A3BEE6",
+        "oklch": "oklch(79.5% 0.064 258.1)",
         "tonalRamp": [
-          "#050E07",
-          "#19281C",
-          "#2F4634",
-          "#49664F",
-          "#68866E",
-          "#8BA790",
-          "#B5CBB9",
-          "#E5F3E8"
+          "#000923",
+          "#102544",
+          "#2C4264",
+          "#4A6286",
+          "#6A84A9",
+          "#8CA7CE",
+          "#B0CBF4",
+          "#E5EFFE"
         ]
       },
-      "earth-night": {
+      "ground": {
         "role": "neutral",
-        "displayName": "Night Earth Ink",
-        "canonical": "#E08A6F",
-        "oklch": "oklch(71.7% 0.113 38.2)",
+        "displayName": "Airy Ground",
+        "canonical": "#F5F9FF",
+        "oklch": "oklch(98.1% 0.009 258.3)",
         "tonalRamp": [
-          "#1A0401",
-          "#3F1507",
-          "#682A16",
-          "#91432A",
-          "#B5634A",
-          "#D58870",
-          "#EFB4A1",
-          "#FFE5D9"
+          "#090B0F",
+          "#22252A",
+          "#3F4247",
+          "#5E6166",
+          "#7F8388",
+          "#A2A5AB",
+          "#C6C9CF",
+          "#EBEFF5"
+        ]
+      },
+      "ground-night": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "#0F1724",
+        "oklch": "oklch(20.4% 0.029 259.9)",
+        "tonalRamp": [
+          "#050B17",
+          "#1D2533",
+          "#394252",
+          "#586272",
+          "#788394",
+          "#9BA6B8",
+          "#BECADC",
+          "#E5EFFF"
+        ]
+      },
+      "band": {
+        "role": "neutral",
+        "displayName": "Pale Sky Band",
+        "canonical": "#E1EEFD",
+        "oklch": "oklch(94.4% 0.025 251.9)",
+        "tonalRamp": [
+          "#040C15",
+          "#1C2631",
+          "#39434F",
+          "#57626F",
+          "#788491",
+          "#9AA6B4",
+          "#BECBD9",
+          "#E4F0FE"
+        ]
+      },
+      "band-night": {
+        "role": "neutral",
+        "displayName": "Night Band",
+        "canonical": "#172A45",
+        "oklch": "oklch(28.4% 0.056 257.3)",
+        "tonalRamp": [
+          "#000A22",
+          "#122540",
+          "#2F4360",
+          "#4D6281",
+          "#6D84A4",
+          "#8FA7C8",
+          "#B3CBEE",
+          "#E5EFFF"
+        ]
+      },
+      "tile": {
+        "role": "neutral",
+        "displayName": "Logo Tile",
+        "canonical": "#EEF5FF",
+        "oklch": "oklch(96.8% 0.015 257.2)",
+        "tonalRamp": [
+          "#070B12",
+          "#20252D",
+          "#3D424A",
+          "#5C626A",
+          "#7D838C",
+          "#9FA6AF",
+          "#C3CAD3",
+          "#E8EFF9"
+        ]
+      },
+      "cloud-white": {
+        "role": "neutral",
+        "displayName": "Cloud White",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "card-night": {
+        "role": "neutral",
+        "displayName": "Night Card",
+        "canonical": "#0B121D",
+        "oklch": "oklch(18.1% 0.025 259.2)",
+        "tonalRamp": [
+          "#050B16",
+          "#1E2531",
+          "#3A4250",
+          "#596270",
+          "#798392",
+          "#9CA6B5",
+          "#C0CADA",
+          "#E6EFFE"
+        ]
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Track Blue-Grey",
+        "canonical": "#E3EBF6",
+        "oklch": "oklch(93.7% 0.017 256.3)",
+        "tonalRamp": [
+          "#070B12",
+          "#20262D",
+          "#3C434B",
+          "#5B626B",
+          "#7C838D",
+          "#9EA6B0",
+          "#C2CAD5",
+          "#E7EFFA"
+        ]
+      },
+      "track-night": {
+        "role": "neutral",
+        "displayName": "Night Track",
+        "canonical": "#1F2D44",
+        "oklch": "oklch(29.6% 0.046 260.0)",
+        "tonalRamp": [
+          "#020A1E",
+          "#17253B",
+          "#33425B",
+          "#52627C",
+          "#72839F",
+          "#94A6C3",
+          "#B8CAE8",
+          "#E5EFFF"
+        ]
+      },
+      "thumb-night": {
+        "role": "neutral",
+        "displayName": "Night Thumb",
+        "canonical": "#3B5078",
+        "oklch": "oklch(43.3% 0.072 262.6)",
+        "tonalRamp": [
+          "#000729",
+          "#112347",
+          "#2D4168",
+          "#4B618A",
+          "#6B83AE",
+          "#8DA6D3",
+          "#B0CAF9",
+          "#E6EFFF"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#DCE5F1",
+        "oklch": "oklch(91.9% 0.019 255.5)",
+        "tonalRamp": [
+          "#060B13",
+          "#1F262E",
+          "#3B434C",
+          "#5A626C",
+          "#7B838E",
+          "#9DA6B1",
+          "#C1CAD6",
+          "#E6EFFB"
+        ]
+      },
+      "hairline-night": {
+        "role": "neutral",
+        "displayName": "Night Hairline",
+        "canonical": "#2A3850",
+        "oklch": "oklch(34.0% 0.046 260.9)",
+        "tonalRamp": [
+          "#020A1E",
+          "#18253C",
+          "#34425B",
+          "#52627C",
+          "#73839F",
+          "#95A6C3",
+          "#B8CAE8",
+          "#E6EFFE"
+        ]
+      },
+      "outline": {
+        "role": "neutral",
+        "displayName": "Outline",
+        "canonical": "#7B8BA4",
+        "oklch": "oklch(63.3% 0.042 259.3)",
+        "tonalRamp": [
+          "#020B1D",
+          "#182539",
+          "#354359",
+          "#53627A",
+          "#73839C",
+          "#96A6C0",
+          "#B9CAE5",
+          "#E6EFFE"
+        ]
+      },
+      "outline-night": {
+        "role": "neutral",
+        "displayName": "Night Outline",
+        "canonical": "#7E8DA6",
+        "oklch": "oklch(64.0% 0.041 260.6)",
+        "tonalRamp": [
+          "#030A1C",
+          "#192539",
+          "#354258",
+          "#546279",
+          "#74839C",
+          "#96A6C0",
+          "#BACAE5",
+          "#E6EFFF"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The time inside the dial."
+        "purpose": "The time inside the dial, in ink."
       },
       "headline": {
         "displayName": "Headline",
@@ -384,7 +400,7 @@
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Section titles in earth ink."
+        "purpose": "Section titles in section blue."
       },
       "row": {
         "displayName": "Row",
@@ -392,26 +408,26 @@
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Subtitles and the next-announcement line."
+        "purpose": "Subtitles, credit details and the next-announcement line."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Segmented options and the Speak now button (16pt there)."
+        "purpose": "Segmented options, footer links, pop-up button; Speak now sets it at 16pt."
       },
       "dial-label": {
         "displayName": "Dial Label",
-        "purpose": "Day-part names around the dial ring."
+        "purpose": "Day-part names around the dial ring, in ink."
       }
     },
     "shadows": [
       {
         "name": "icon-tile",
-        "value": "0 1% 1.2% rgba(0,0,0,0.28) (blur radius 1.2% of icon size, offset 1% down)",
+        "value": "black at 28% alpha, offset 1% of icon size down, blur 1.2% of icon size",
         "purpose": "Drop shadow under the app-icon tile only, per Apple's icon grid."
       },
       {
         "name": "speaking-halo",
-        "value": "turmeric #E2A12B at 35% alpha, radius 13% of dial radius, blur 4% of dial radius",
+        "value": "coral #FF8A65 at 40% alpha, radius 13% of dial radius, blur 4% of dial radius",
         "purpose": "Halo around the now dot while the clock is speaking."
       }
     ],
@@ -420,6 +436,11 @@
         "name": "native-controls",
         "value": "Cupertino defaults",
         "purpose": "Switch, segmented thumb and radio animate with their native macOS timing; no custom motion tokens."
+      },
+      {
+        "name": "speaking-glow",
+        "value": "halo on while speaking, off otherwise (no tween)",
+        "purpose": "The now dot lights while the clock speaks."
       }
     ],
     "breakpoints": [
@@ -432,47 +453,69 @@
         "value": "480pt"
       }
     ],
+    "dialGeometry": {
+      "box": "280pt square; ring of about 240pt with day-part labels outside it",
+      "arcs": "radius 66% of r, stroke 2.2% of r, primary at 45% alpha, 0.035 rad gap at each end",
+      "dots": "radius 76% of r; size min(2.2% of r, 22% of pitch); on the hour x1.45, capped at 34% of pitch",
+      "muted": "dots drawn as rings, primary at 80% alpha, stroke half the dot size",
+      "labels": "near edge at 84% of r, pushed out by half the label's extent along the radius",
+      "now": "coral dot 5% of r inside a band-coloured ring of 6.5% of r",
+      "centre": "time (display, fitted) over next announcement (body, 1.3), inset 64pt"
+    },
     "brandMarks": [
       {
-        "name": "rosette-full",
-        "use": "App icon above 64px, credits logo",
-        "petals": 12,
-        "dots": true,
-        "accent": "turmeric top petal",
-        "weight": 1
+        "name": "logo-full",
+        "use": "Credits tile; app icon above 64px",
+        "dots": 12,
+        "accent": "coral twelve",
+        "weight": 1,
+        "hands": "10:00"
       },
       {
-        "name": "rosette-small",
-        "use": "App icon at 64px and below",
-        "petals": 8,
-        "dots": false,
-        "weight": 1.7
+        "name": "logo-small",
+        "use": "App icon at 64px and below (above 32px)",
+        "dots": 12,
+        "accent": "coral twelve",
+        "weight": 1.25
       },
       {
-        "name": "rosette-template-2x",
-        "use": "Menu bar at 2x (36px), in-app Logo segment icon",
-        "petals": 8,
-        "dots": false,
+        "name": "logo-tiny",
+        "use": "App icon at 32px and below",
+        "dots": 4,
+        "accent": "coral twelve",
+        "weight": 1.25
+      },
+      {
+        "name": "template-2x",
+        "use": "Menu bar at 2x (36px); in-app Logo segment icon (18pt)",
+        "dots": 12,
         "accent": null,
-        "weight": 1.5
+        "weight": 1.2
       },
       {
-        "name": "rosette-template-1x",
+        "name": "template-1x",
         "use": "Menu bar at 1x (18px)",
-        "petals": 6,
-        "dots": false,
+        "dots": 4,
         "accent": null,
-        "weight": 2.1
+        "weight": 1.45
       }
     ],
-    "recordedDeviations": [
+    "decisions": [
       {
-        "what": "Dark-mode header band is earth-deep #7A2E1C, not earth #9C3D26",
-        "why": "Full fired earth glares next to the #1C1310 dark ground at night; rice #F6F0E4 keeps about 8.3:1 on earth-deep."
+        "what": "Dot Dial on Clear Sky replaces the Alpona Dial world",
+        "why": "The user chose logo C and theme 2, each from four options on a variants page; the earth palette read too dark."
       },
       {
-        "what": "Dial box is 280pt, not the contract's 240pt",
-        "why": "Day-part labels sit outside a ring of about 240pt and need the room at the 480pt window width."
+        "what": "Logo hands at 10:00, not about 10:08",
+        "why": "V-shaped hands read as a tick mark at small sizes."
+      },
+      {
+        "what": "App icons at 32px and below and the 1x menu-bar template keep only the four quarter-hour dots",
+        "why": "The eight small dots blur away at those sizes."
+      },
+      {
+        "what": "Dial box is 280pt",
+        "why": "Day-part labels sit outside a ring of about 240pt and need that room at the 480pt window width."
       }
     ]
   },
@@ -483,23 +526,23 @@
       "refersTo": "button-speak",
       "description": "The one filled button, centred under the dial band.",
       "html": "<button class=\"ds-btn-speak\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6\"/><path d=\"M16 5.5c1 .9 1 2.6 0 3.5M18.5 3.5c2.1 2 2.1 5.5 0 7.5\"/></svg>এখনই সময় শুনুন</button>",
-      "css": ".ds-btn-speak{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:8px;background:#2F6B3F;color:#FFFFFF;border:none;border-radius:9999px;padding:14px 22px;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s}.ds-btn-speak:hover{background:#306C40;filter:brightness(1.08)}.ds-btn-speak:active{filter:brightness(.92)}.ds-btn-speak:focus-visible{outline:2px solid #2F6B3F;outline-offset:3px}"
+      "css": ".ds-btn-speak{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:8px;background:#2F74D0;color:#FFFFFF;border:none;border-radius:9999px;padding:14px 22px;font-size:16px;font-weight:600;cursor:pointer;transition:filter .15s}.ds-btn-speak:hover{filter:brightness(1.08)}.ds-btn-speak:active{filter:brightness(.92)}.ds-btn-speak:focus-visible{outline:2px solid #2F74D0;outline-offset:3px}@media (prefers-color-scheme:dark){.ds-btn-speak{background:#8AB8F5;color:#08264D}}"
     },
     {
-      "name": "Dial Header Band",
+      "name": "Day Dial Band",
       "kind": "custom",
-      "refersTo": "dial-header",
-      "description": "Fired-earth band holding today's alpona dial; earth-deep in dark mode.",
-      "html": "<div class=\"ds-dial-band\"><svg viewBox=\"0 0 280 280\" width=\"280\" height=\"280\"><g fill=\"none\" stroke=\"rgba(246,240,228,.75)\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M140 47.6 A92.4 92.4 0 0 1 222 97\"/><path d=\"M226 104 A92.4 92.4 0 0 1 226 176\"/><path d=\"M222 183 A92.4 92.4 0 0 1 58 183\"/><path d=\"M54 176 A92.4 92.4 0 0 1 54 104\"/><path d=\"M58 97 A92.4 92.4 0 0 1 133 47.8\"/></g><g fill=\"#F6F0E4\"><circle cx=\"140\" cy=\"33.6\" r=\"3\"/><circle cx=\"193\" cy=\"47.8\" r=\"2.2\"/><circle cx=\"232\" cy=\"87\" r=\"3\"/><circle cx=\"246\" cy=\"140\" r=\"2.2\"/><circle cx=\"232\" cy=\"193\" r=\"3\"/></g><circle cx=\"87\" cy=\"47.8\" r=\"9.1\" fill=\"#9C3D26\"/><circle cx=\"87\" cy=\"47.8\" r=\"7\" fill=\"#E2A12B\"/><text x=\"140\" y=\"146\" text-anchor=\"middle\" class=\"ds-dial-time\">সকাল ১০:২০</text></svg></div>",
-      "css": ".ds-dial-band{background:#9C3D26;padding:20px 0;display:flex;justify-content:center}.ds-dial-time{font-family:'Hind Siliguri',sans-serif;fill:#F6F0E4;font-size:30px;font-weight:600}@media (prefers-color-scheme:dark){.ds-dial-band{background:#7A2E1C}}"
+      "refersTo": "dial-band",
+      "description": "Pale sky band holding today's dial of announcement dots, coral now dot, ink time at the centre.",
+      "html": "<div class=\"ds-dial-band\"><svg viewBox=\"0 0 280 280\" width=\"280\" height=\"280\"><g fill=\"none\" stroke=\"rgba(47,116,208,.45)\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M58.4 183.4 A92.4 92.4 0 0 1 47.7 143.2\"/><path d=\"M47.7 136.8 A92.4 92.4 0 0 1 136.8 47.7\"/><path d=\"M143.2 47.7 A92.4 92.4 0 0 1 203.0 72.4\"/><path d=\"M207.6 77.0 A92.4 92.4 0 0 1 232.3 136.8\"/><path d=\"M232.3 143.2 A92.4 92.4 0 0 1 221.6 183.4\"/><path d=\"M218.4 189.0 A92.4 92.4 0 0 1 61.6 189.0\"/></g><g fill=\"#2F74D0\"><circle cx=\"37.2\" cy=\"112.5\" r=\"4\"/><circle cx=\"47.9\" cy=\"86.8\" r=\"4\"/><circle cx=\"64.8\" cy=\"64.8\" r=\"4\"/><circle cx=\"86.8\" cy=\"47.9\" r=\"4\"/><circle cx=\"112.5\" cy=\"37.2\" r=\"4\"/><circle cx=\"140.0\" cy=\"33.6\" r=\"4\"/><circle cx=\"167.5\" cy=\"37.2\" r=\"4\"/><circle cx=\"193.2\" cy=\"47.9\" r=\"4\"/><circle cx=\"215.2\" cy=\"64.8\" r=\"4\"/><circle cx=\"232.1\" cy=\"86.8\" r=\"4\"/><circle cx=\"242.8\" cy=\"112.5\" r=\"4\"/><circle cx=\"246.4\" cy=\"140.0\" r=\"4\"/><circle cx=\"242.8\" cy=\"167.5\" r=\"4\"/><circle cx=\"232.1\" cy=\"193.2\" r=\"4\"/><circle cx=\"215.2\" cy=\"215.2\" r=\"4\"/><circle cx=\"193.2\" cy=\"232.1\" r=\"4\"/></g><circle cx=\"95.0\" cy=\"43.6\" r=\"9.1\" fill=\"#E1EEFD\"/><circle cx=\"95.0\" cy=\"43.6\" r=\"7\" fill=\"#FF8A65\"/><text x=\"140\" y=\"146\" text-anchor=\"middle\" class=\"ds-dial-time\">সকাল ১০:২০</text></svg></div>",
+      "css": ".ds-dial-band{background:#E1EEFD;padding:20px 0;display:flex;justify-content:center}.ds-dial-time{font-family:'Hind Siliguri',sans-serif;fill:#172338;font-size:30px;font-weight:600}@media (prefers-color-scheme:dark){.ds-dial-band{background:#172A45}.ds-dial-time{fill:#E8EFFA}}"
     },
     {
       "name": "Grouped Section Card",
       "kind": "card",
       "refersTo": "group-card",
-      "description": "Earth section title over an outlined, shadowless card of 16pt rows.",
+      "description": "Section-blue title over a white, outlined, shadowless card of 16pt rows.",
       "html": "<section class=\"ds-section\"><h3 class=\"ds-section-title\">ঘোষণা</h3><div class=\"ds-card\"><div class=\"ds-row\">সময় ঘোষণা চালু</div><div class=\"ds-row\">কতক্ষণ পরপর</div></div></section>",
-      "css": ".ds-section{font-family:'Hind Siliguri',sans-serif;}.ds-section-title{margin:0 0 4px 8px;font-size:16px;font-weight:700;color:#9C3D26}.ds-card{background:#FFFDF8;border:1px solid #E2D5C3;border-radius:14px;overflow:hidden}.ds-row{padding:12px 16px;font-size:16px;font-weight:500;color:#231A16}.ds-row:hover{background:#F6EFE3}"
+      "css": ".ds-section{font-family:'Hind Siliguri',sans-serif;}.ds-section-title{margin:0 0 4px 8px;font-size:16px;font-weight:700;color:#2B5A9E}.ds-card{background:#FFFFFF;border:1px solid #DCE5F1;border-radius:14px;overflow:hidden}.ds-row{padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-row:hover{background:#EFF5FD}"
     },
     {
       "name": "Segmented Control",
@@ -507,23 +550,23 @@
       "refersTo": "segmented-track",
       "description": "macOS sliding segmented control at full row width.",
       "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button class=\"ds-seg-opt ds-seg-on\" role=\"radio\" aria-checked=\"true\">১৫ মিনিট</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">৩০ মিনিট</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">১ ঘণ্টা</button></div>",
-      "css": ".ds-seg{display:flex;background:#EBE1D1;padding:3px;border-radius:9px;width:100%}.ds-seg-opt{font-family:'Hind Siliguri',sans-serif;flex:1;border:none;background:transparent;padding:6px 0;font-size:15px;font-weight:600;color:#231A16;border-radius:7px;cursor:pointer;transition:background .2s}.ds-seg-on{background:#FFFDF8;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}.ds-seg-opt:focus-visible{outline:2px solid #2F6B3F;outline-offset:1px}"
+      "css": ".ds-seg{display:flex;background:#E3EBF6;padding:3px;border-radius:9px;width:100%}.ds-seg-opt{font-family:'Hind Siliguri',sans-serif;flex:1;border:none;background:transparent;padding:6px 0;font-size:15px;font-weight:600;color:#172338;border-radius:7px;cursor:pointer;transition:background .2s}.ds-seg-on{background:#FFFFFF;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}.ds-seg-opt:focus-visible{outline:2px solid #2F74D0;outline-offset:1px}"
     },
     {
       "name": "Switch Row",
       "kind": "input",
       "refersTo": "group-card",
-      "description": "Cupertino switch, leaf when on, warm outline when off.",
+      "description": "Cupertino switch, sky blue when on, outline colour when off.",
       "html": "<label class=\"ds-switch-row\">সময় ঘোষণা চালু<input type=\"checkbox\" class=\"ds-switch\" checked></label>",
-      "css": ".ds-switch-row{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:16px;font-weight:500;color:#231A16}.ds-switch{appearance:none;width:51px;height:31px;border-radius:9999px;background:#9C8878;position:relative;cursor:pointer;transition:background .2s}.ds-switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .2s}.ds-switch:checked{background:#2F6B3F}.ds-switch:checked::after{transform:translateX(20px)}.ds-switch:focus-visible{outline:2px solid #2F6B3F;outline-offset:2px}"
+      "css": ".ds-switch-row{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-switch{appearance:none;width:51px;height:31px;border-radius:9999px;background:#7B8BA4;position:relative;cursor:pointer;transition:background .2s}.ds-switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .2s}.ds-switch:checked{background:#2F74D0}.ds-switch:checked::after{transform:translateX(20px)}.ds-switch:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
     },
     {
       "name": "Radio Row",
       "kind": "input",
       "refersTo": "group-card",
-      "description": "Cupertino radio with title and example subtitle; unchosen ring stays visible.",
+      "description": "Cupertino radio with title and example subtitle; the unchosen ring is drawn in the outline colour so it stays visible.",
       "html": "<label class=\"ds-radio-row\"><input type=\"radio\" name=\"ds-style\" class=\"ds-radio\" checked><span><span class=\"ds-radio-title\">প্রচলিত</span><span class=\"ds-radio-sub\">সকাল সোয়া দশটা</span></span></label><label class=\"ds-radio-row\"><input type=\"radio\" name=\"ds-style\" class=\"ds-radio\"><span><span class=\"ds-radio-title\">মিনিট ধরে</span><span class=\"ds-radio-sub\">সকাল দশটা বেজে পনেরো মিনিট</span></span></label>",
-      "css": ".ds-radio-row{font-family:'Hind Siliguri',sans-serif;display:flex;gap:24px;align-items:center;padding:10px 16px;cursor:pointer}.ds-radio{appearance:none;width:18px;height:18px;border-radius:50%;background:#D5CBC0;margin:0;flex:none}.ds-radio:checked{background:#fff;border:5px solid #2F6B3F}.ds-radio:focus-visible{outline:2px solid #2F6B3F;outline-offset:2px}.ds-radio-title{display:block;font-size:16px;font-weight:500;color:#231A16}.ds-radio-sub{display:block;font-size:16px;line-height:1.35;color:#5E4B40}"
+      "css": ".ds-radio-row{font-family:'Hind Siliguri',sans-serif;display:flex;gap:24px;align-items:center;padding:10px 16px;cursor:pointer}.ds-radio{appearance:none;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:1.5px solid #7B8BA4;margin:0;flex:none}.ds-radio:checked{width:18px;height:18px;background:#fff;border:5px solid #2F74D0}.ds-radio:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}.ds-radio-title{display:block;font-size:16px;font-weight:500;color:#172338}.ds-radio-sub{display:block;font-size:16px;line-height:1.35;color:#4A5A73}"
     },
     {
       "name": "Hour Pop-up Button",
@@ -531,42 +574,51 @@
       "refersTo": "popup-button",
       "description": "macOS-style pop-up for quiet hours, not an underlined dropdown.",
       "html": "<button class=\"ds-popup\">রাত ১১:০০<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 9l4-4 4 4M8 15l4 4 4-4\"/></svg></button>",
-      "css": ".ds-popup{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:4px;padding:8px 8px 8px 14px;border:1px solid #9C8878;border-radius:8px;background:transparent;color:#231A16;font-size:15px;font-weight:600;cursor:pointer}.ds-popup:hover{background:rgba(35,26,22,.06)}.ds-popup:focus-visible{outline:2px solid #2F6B3F;outline-offset:2px}"
+      "css": ".ds-popup{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:4px;padding:8px 8px 8px 14px;border:1px solid #7B8BA4;border-radius:8px;background:transparent;color:#172338;font-size:15px;font-weight:600;cursor:pointer}.ds-popup:hover{background:rgba(23,35,56,.06)}.ds-popup:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
     },
     {
       "name": "Footer Text Link",
       "kind": "nav",
       "refersTo": "text-link",
-      "description": "Leaf text links to the developer and the credits page.",
+      "description": "Sky-blue text links to the developer and the credits page.",
       "html": "<nav class=\"ds-footer\"><a href=\"#\" class=\"ds-link\">ডেভেলপ করেছেন সাইফুল ইসলাম</a><span>·</span><a href=\"#\" class=\"ds-link\">কৃতজ্ঞতা</a></nav>",
-      "css": ".ds-footer{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:center;align-items:center;gap:4px;color:#231A16}.ds-link{color:#2F6B3F;font-size:15px;font-weight:600;text-decoration:none;padding:8px 12px;border-radius:9999px}.ds-link:hover{background:rgba(47,107,63,.08)}.ds-link:focus-visible{outline:2px solid #2F6B3F}"
+      "css": ".ds-footer{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:center;align-items:center;gap:4px;color:#172338}.ds-link{color:#2F74D0;font-size:15px;font-weight:600;text-decoration:none;padding:8px 12px;border-radius:9999px}.ds-link:hover{background:rgba(47,116,208,.08)}.ds-link:focus-visible{outline:2px solid #2F74D0}"
+    },
+    {
+      "name": "Logo Tile",
+      "kind": "custom",
+      "refersTo": "logo-tile",
+      "description": "The full-colour dot-dial logo on its 96pt tile, as on the credits page: twelve dots, coral twelve, hands at 10:00.",
+      "html": "<div class=\"ds-logo-tile\"><svg width=\"68\" height=\"68\" viewBox=\"0 0 68 68\"><circle cx=\"34.00\" cy=\"6.80\" r=\"3.40\" fill=\"#FF8A65\"/><circle cx=\"47.60\" cy=\"10.44\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"57.56\" cy=\"20.40\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"61.20\" cy=\"34.00\" r=\"3.40\" fill=\"#2F74D0\"/><circle cx=\"57.56\" cy=\"47.60\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"47.60\" cy=\"57.56\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"34.00\" cy=\"61.20\" r=\"3.40\" fill=\"#2F74D0\"/><circle cx=\"20.40\" cy=\"57.56\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"10.44\" cy=\"47.60\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"6.80\" cy=\"34.00\" r=\"3.40\" fill=\"#2F74D0\"/><circle cx=\"10.44\" cy=\"20.40\" r=\"2.11\" fill=\"#2F74D0\"/><circle cx=\"20.40\" cy=\"10.44\" r=\"2.11\" fill=\"#2F74D0\"/><g stroke=\"#2F74D0\" stroke-width=\"4.08\" stroke-linecap=\"round\"><line x1=\"34.00\" y1=\"34.00\" x2=\"34.00\" y2=\"17.00\"/><line x1=\"34.00\" y1=\"34.00\" x2=\"23.40\" y2=\"27.88\"/></g><circle cx=\"34.00\" cy=\"34.00\" r=\"3.40\" fill=\"#2F74D0\"/></svg></div>",
+      "css": ".ds-logo-tile{width:96px;height:96px;padding:14px;box-sizing:border-box;background:#EEF5FF;border-radius:22px;display:flex;align-items:center;justify-content:center}"
     }
   ],
   "narrative": {
-    "northStar": "The Alpona Dial",
-    "overview": "**Creative North Star: \"The Alpona Dial\"**\n\nThe whole world is alpona: a rice-paste line drawn on fired earth. The settings window opens on a terracotta band holding today as a ring, noon at the top and midnight at the bottom, with one rice-white dot for every announcement the clock will make. The day is drawn, not listed. Below the band the window turns quiet and native: warm rice ground, outlined grouped cards, macOS controls tinted leaf green. The dial is the one loud thing; everything under it stays out of its way.\n\nDensity is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight alone. Bangla leads and English follows, both set in Hind Siliguri, so switching language never changes the voice of the page.\n\nThe same rosette, a twelve-petal alpona with one petal per hour and the top petal lit in turmeric, is the logo, the app icon and (as a one-colour template) the menu-bar mark. It is drawn in code by one painter, so the icons can never drift from the logo in the app.",
+    "northStar": "Dot Dial on Clear Sky",
+    "overview": "**Creative North Star: \"Dot Dial on Clear Sky\"**\n\nThe day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding today as a 24-hour ring, noon at the top and midnight at the bottom, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.\n\nDensity is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Hind Siliguri, so switching language never changes the voice of the page.\n\nThe logo is the same dial idea reduced to a clock: twelve dots, the four quarter hours larger, the twelve in coral, two round-capped hands at ten o'clock. It was chosen by the user from four logos (logo C) together with this theme (theme 2 of four), replacing the earlier Alpona Dial world, which read too dark and earthy. One painter draws the logo in the app, the app icon and the menu-bar template, so the icons can never drift from the logo.",
     "keyCharacteristics": [
-      "A fired-earth header band holding a 280pt day dial, and nothing else.",
-      "Rice-white line on earth for every brand surface; turmeric only for \"now\" and the lit petal.",
-      "Leaf green is the one control accent.",
+      "A pale sky band holding a 280pt day dial, and nothing else.",
+      "Sky blue for the dial, the logo and every control; coral only for now and the logo's twelve.",
+      "Ink, not white, for every word on the band.",
+      "Fingertip dots are the only ornament: twelve on the logo, one per announcement on the dial.",
       "One row size (16pt), ranked by weight.",
       "Native macOS control forms (Cupertino switch, slider, sliding segmented control, radio, pop-up button).",
       "Flat chrome: depth comes from hairline borders and tonal grounds, not shadows."
     ],
     "rules": [
       {
-        "name": "The Rice-On-Earth Rule",
-        "body": "Brand surfaces are rice line on earth, never the reverse. The dial, the icon tile and the logo tile are earth; what is drawn on them is rice, with turmeric for one thing.",
+        "name": "The One Blue Rule",
+        "body": "Sky blue is the only colour a control, a dot or a hand may take. Section titles use a deeper blue; nothing else competes.",
         "section": "colors"
       },
       {
-        "name": "The One Accent Rule",
-        "body": "Leaf green is the only colour a control may take. Earth names sections; turmeric names now; neither ever fills a control.",
+        "name": "The One Coral Rule",
+        "body": "Coral marks now, and the twelve on the logo. It never fills a control, never sets text and never decorates.",
         "section": "colors"
       },
       {
-        "name": "The Night Fire Rule",
-        "body": "In dark mode the earth band drops to earth-deep. Full earth beside the night ground glares.",
+        "name": "The Ink On Sky Rule",
+        "body": "The band is pale and its words are ink. Blue is for what is drawn on it (arcs, dots), ink for what is read on it (time, day parts, next announcement).",
         "section": "colors"
       },
       {
@@ -578,24 +630,41 @@
         "name": "The Flat Chrome Rule",
         "body": "Settings surfaces never take a custom shadow. Depth is tonal: ground, card, track, thumb.",
         "section": "elevation"
+      },
+      {
+        "name": "The Clock First Rule",
+        "body": "The logo must read as a clock before anything else. The hands show 10:00, not 10:08: V-shaped hands read as a tick mark at small sizes.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Quarter Dots Rule",
+        "body": "At 32px and below, and in the 1x menu-bar template, the logo keeps only the four quarter-hour dots.",
+        "section": "shapes"
       }
     ],
     "dos": [
-      "**Do** draw every brand mark from the rosette painter, choosing its variant by size: full above 64px, small at 64px and below, template with eight petals at 2x and six at 1x in the menu bar.",
+      "**Do** draw every brand mark from the dot-dial painter, choosing its variant by size: full colour above 64px, 1.25x weight at 64px and below, quarter dots only at 32px and below, template at 1.2x in the 2x menu bar and 1.45x with quarter dots only at 1x.",
+      "**Do** keep the logo's hands at 10:00, minute hand to twelve, hour hand to ten.",
       "**Do** keep every settings row at 16pt and rank by weight: 700 for section titles, 500 for row titles, 400 for subtitles.",
-      "**Do** tint every control leaf (#2F6B3F light, #8CC79A dark) and use native macOS forms: Cupertino switch, adaptive slider, sliding segmented control, Cupertino radio, pop-up button.",
-      "**Do** put the dial band on earth-deep (#7A2E1C) in dark mode.",
+      "**Do** tint every control sky blue (#2F74D0 light, #8AB8F5 dark) and use native macOS forms: Cupertino switch, adaptive slider, sliding segmented control, Cupertino radio, pop-up button.",
+      "**Do** set every word on the band in ink, and draw only arcs and dots in blue.",
       "**Do** make every dial dot a real announcement; muted turns dots to outlines, quiet hours leave the ring bare.",
       "**Do** open secondary content such as credits as a pushed page with a back button."
     ],
     "donts": [
       "**Don't** put a list, a clock-face icon or any second element in the header band; the dial owns it.",
-      "**Don't** use turmeric for anything but now and the lit petal, or earth for any control fill.",
-      "**Don't** add ornament (dot rows, petals, borders) to the settings chrome; it lives in the dial and the rosette.",
+      "**Don't** use coral for anything but now and the logo's twelve, or any colour but sky blue for a control.",
+      "**Don't** give the logo V-shaped hands (such as 10:08); at small sizes they read as a tick mark.",
+      "**Don't** add ornament to the settings chrome; dots are the only ornament, and they live in the dial and the logo.",
       "**Don't** give cards or controls custom shadows; separate them with hairlines and tone.",
       "**Don't** shrink text to create hierarchy, or set any settings text below 14pt.",
       "**Don't** use Material's underlined dropdowns or filled segmented buttons where a macOS form exists.",
       "**Don't** open credits in a modal dialog."
     ]
-  }
+  },
+  "decisions": [
+    "Past announcements on the dial are dimmed to 35% so upcoming ones stand out.",
+    "The coral now dot has a #C7471F edge ring so it holds 3:1 against the #E1EEFD band.",
+    "Tiny logo sizes (32px and below, 1x template) use a 42% minute hand and a 44% hour hand: a gap below the twelve dot, and an hour hand that survives as a hand."
+  ]
 }
