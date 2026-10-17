@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../app/app_controller.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
-import '../core/speech/speech_token.dart';
 import 'brand.dart';
 import 'strings.dart';
 
@@ -39,8 +38,29 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   _Section(
-                    title: t.menuBar,
+                    title: t.look,
                     children: [
+                      _ChoiceRow(
+                        title: t.appearance,
+                        child: _Segmented<Appearance>(
+                          segments: [
+                            _Segment(
+                              value: Appearance.light,
+                              label: Text(t.appearanceLight),
+                            ),
+                            _Segment(
+                              value: Appearance.dark,
+                              label: Text(t.appearanceDark),
+                            ),
+                            _Segment(
+                              value: Appearance.system,
+                              label: Text(t.appearanceSystem),
+                            ),
+                          ],
+                          selected: s.appearance,
+                          onChanged: (v) => set(s.copyWith(appearance: v)),
+                        ),
+                      ),
                       _ChoiceRow(
                         title: t.menuBarShows,
                         child: _Segmented<MenuBarShows>(
@@ -94,7 +114,10 @@ class SettingsPage extends StatelessWidget {
                         ),
                       ),
                       RadioGroup<AnnouncementStyle>(
-                        groupValue: s.style,
+                        // A quarter-hour voice always speaks traditionally.
+                        groupValue: controller.voiceSaysEveryMinute
+                            ? s.style
+                            : AnnouncementStyle.traditional,
                         onChanged: (v) => set(s.copyWith(style: v)),
                         child: Column(
                           children: [
@@ -102,10 +125,31 @@ class SettingsPage extends StatelessWidget {
                               AnnouncementStyle.traditional,
                               t.traditional,
                             ),
-                            _styleTile(AnnouncementStyle.exact, t.exact),
+                            _styleTile(
+                              AnnouncementStyle.exact,
+                              t.exact,
+                              enabled: controller.voiceSaysEveryMinute,
+                            ),
                           ],
                         ),
                       ),
+                      if (!controller.voiceSaysEveryMinute)
+                        _Note(
+                          t.quarterOnlyVoice(controller.voice.manifest.name),
+                        )
+                      else if (s.style == AnnouncementStyle.exact)
+                        SwitchListTile.adaptive(
+                          activeTrackColor: Theme.of(context)
+                              .colorScheme
+                              .primary,
+                          inactiveTrackColor: Theme.of(context)
+                              .colorScheme
+                              .outline,
+                          title: Text(t.sayBeje),
+                          subtitle: Text(t.sayBejeHint),
+                          value: s.sayBeje,
+                          onChanged: (v) => set(s.copyWith(sayBeje: v)),
+                        ),
                     ],
                   ),
                   _Section(
@@ -239,15 +283,23 @@ class SettingsPage extends StatelessWidget {
     },
   );
 
-  Widget _styleTile(AnnouncementStyle style, String label) {
-    // 10:15 shows the difference between the styles best.
-    final example = BanglaPhraseBuilder(includeStarter: false)
-        .build(10, 15, style: style)
-        .text;
+  Widget _styleTile(
+    AnnouncementStyle style,
+    String label, {
+    bool enabled = true,
+  }) {
+    // What the chosen voice really says: 10:15 for the traditional style,
+    // 10:07 for minutes (or, for a quarter-hour voice, its own 10:15).
+    final minute = style == AnnouncementStyle.exact && enabled ? 7 : 15;
+    final tokens = controller.announcementAt(
+      DateTime(2000, 1, 1, 10, minute),
+      style: style,
+    );
     return _RadioTile(
       value: style,
+      enabled: enabled,
       title: Text(label),
-      subtitle: Text(example),
+      subtitle: Text(controller.voice.spokenText(tokens.skip(1).toList())),
     );
   }
 }
@@ -325,12 +377,47 @@ class _DialHeader extends StatelessWidget {
   }
 }
 
+/// A short explanation inside a settings group, with an info icon.
+class _Note extends StatelessWidget {
+  const _Note(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: scheme.secondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant, fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A macOS-style radio row inside a [RadioGroup]: sky blue when chosen,
 /// and a clear outline ring when not.
 class _RadioTile<T> extends StatelessWidget {
-  const _RadioTile({required this.value, required this.title, this.subtitle});
+  const _RadioTile({
+    required this.value,
+    required this.title,
+    this.subtitle,
+    this.enabled = true,
+  });
 
   final T value;
+  final bool enabled;
   final Widget title;
   final Widget? subtitle;
 
@@ -344,6 +431,7 @@ class _RadioTile<T> extends StatelessWidget {
         children: [
           CupertinoRadio<T>(
             value: value,
+            enabled: enabled,
             activeColor: scheme.primary,
             inactiveColor: scheme.surfaceContainerLowest,
           ),
@@ -362,6 +450,7 @@ class _RadioTile<T> extends StatelessWidget {
             ),
         ],
       ),
+      enabled: enabled,
       title: title,
       subtitle: subtitle,
       onTap: () => RadioGroup.maybeOf<T>(context)?.onChanged(value),
@@ -456,7 +545,13 @@ class _Segmented<T extends Object> extends StatelessWidget {
                                     icon,
                                     const SizedBox(width: 6),
                                   ],
-                                  segment.label,
+                                  // Long labels shrink rather than overflow.
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: segment.label,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),

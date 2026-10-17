@@ -41,11 +41,13 @@ Classic voice) and a fresh product in its own right.
 
 ## Capabilities and Constraints
 
-- Voices: "Areeba AI (ElevenLabs)" by Saiful (AI-designed, Bangladeshi accent) and
+- Voices: "Areeba AI (ElevenLabs)" by Saiful Islam (AI-designed, Bangladeshi accent) and
   "Classic (1998)" by Moshfekah Ferdaus Mahita (the original app's voice, used with permission).
-- Styles: traditional (quarter hours) and exact minute ("দশটা বেজে সাত মিনিট").
+- Styles: traditional (quarter hours) and exact minute ("দশটা বেজে সাত মিনিট", or without
+  বেজে, as the 1998 voice spoke). The classic voice only says quarter hours.
 - Settings: interval, voice, volume, chime, notification, quiet hours, clock or logo in the menu
-  bar, launch at login, and the interface language (Bangla by default, English optional).
+  bar, launch at login, light/dark appearance (light by default), and the interface language
+  (Bangla by default, English optional).
 - Free and open source; announcements work fully offline.
 - Alarms and prayer times are planned but postponed.
 

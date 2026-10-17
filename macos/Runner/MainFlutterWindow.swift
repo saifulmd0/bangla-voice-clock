@@ -115,6 +115,13 @@ class NativeBridge: NSObject {
       }
       NSWorkspace.shared.open(url)
       result(nil)
+    case "setAppearance":
+      switch call.arguments as? String {
+      case "light": window.appearance = NSAppearance(named: .aqua)
+      case "dark": window.appearance = NSAppearance(named: .darkAqua)
+      default: window.appearance = nil
+      }
+      result(nil)
     case "launchAtLogin":
       if #available(macOS 13.0, *) {
         result(SMAppService.mainApp.status == .enabled)

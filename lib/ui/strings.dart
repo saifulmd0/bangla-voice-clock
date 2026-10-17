@@ -67,6 +67,14 @@ class Strings {
       : _t('${banglaDigits(minutes)} মিনিট', '$minutes minutes');
   String get traditional => _t('প্রচলিত', 'Traditional');
   String get exact => _t('মিনিট ধরে', 'By the minute');
+  String get sayBeje => _t('"বেজে" বলুন', 'Say "বেজে"');
+  String get sayBejeHint =>
+      _t('যেমন: দশটা বেজে সাত মিনিট', 'As in: দশটা বেজে সাত মিনিট');
+  String quarterOnlyVoice(String voice) => _t(
+    '$voice শুধু ১৫ মিনিট পরপর সময় বলতে পারে, তাই "মিনিট ধরে" এই কণ্ঠে নেই।',
+    '$voice can only say the quarter hours, so "By the minute" is not '
+        'available with this voice.',
+  );
 
   // Voice.
   String get voice => _t('কণ্ঠ', 'Voice');
@@ -92,6 +100,11 @@ class Strings {
   String get other => _t('অন্যান্য', 'General');
   String get languageLabel => _t('ভাষা', 'Language');
   String get menuBar => _t('মেনু বার', 'Menu bar');
+  String get look => _t('চেহারা', 'Look');
+  String get appearance => _t('রং', 'Appearance');
+  String get appearanceSystem => _t('ম্যাকের মতো', 'Match Mac');
+  String get appearanceLight => _t('হালকা', 'Light');
+  String get appearanceDark => _t('গাঢ়', 'Dark');
   String get menuBarShows => _t('মেনু বারে দেখান', 'Menu bar shows');
   String get menuBarTime => _t('সময়', 'Time');
   String get menuBarLogo => _t('লোগো', 'Logo');
@@ -146,7 +159,7 @@ List<Credit> creditsFor(Strings s) {
           : 'The voice of the original app, used with permission.',
     ),
     Credit(
-      'Areeba AI (ElevenLabs) - by Saiful',
+      'Areeba AI (ElevenLabs) - by Saiful Islam',
       bn ? 'বাংলাদেশি উচ্চারণের কণ্ঠ, ElevenLabs দিয়ে ডিজাইন ও তৈরি।' : 'A voice with a Bangladeshi accent, designed and generated with ElevenLabs.',
       url: 'https://elevenlabs.io',
     ),

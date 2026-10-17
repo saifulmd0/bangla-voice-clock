@@ -119,7 +119,7 @@ class VoicePack {
   List<String> clipKeysFor(List<SpeechToken> tokens) {
     tokens = [
       for (final t in tokens)
-        if (!t.optional || has(t.key)) t,
+        if (!t.optional || _words.contains(t.key)) t,
     ];
     final keys = <String>[];
     final missing = <String>[];
@@ -142,6 +142,11 @@ class VoicePack {
     return keys;
   }
 
+  /// Every word key the pack can say, alone or inside a phrase.
+  late final Set<String> _words = {
+    for (final key in manifest.clips.keys) ...key.split(' '),
+  };
+
   late final int _longestPhrase = manifest.clips.keys.fold(
     1,
     (longest, key) => math.max(longest, ClipKeys.wordCount(key)),
@@ -158,6 +163,13 @@ class VoicePack {
     }
     return null;
   }
+
+  /// The words of [tokens] as this pack will say them: optional words it
+  /// can't say (the classic voice's missing বেজে) are left out.
+  String spokenText(List<SpeechToken> tokens) => [
+    for (final t in tokens)
+      if (t.text.isNotEmpty && (!t.optional || _words.contains(t.key))) t.text,
+  ].join(' ');
 
   bool canSpeak(List<SpeechToken> tokens) {
     try {

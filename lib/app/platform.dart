@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+import '../core/settings/app_settings.dart';
+
 /// An item in the menu-bar menu.
 class MenuEntry {
   const MenuEntry(
@@ -51,6 +53,9 @@ abstract interface class AppPlatform {
   Future<void> showWindow();
   Future<void> notify(String title, String body);
   Future<void> openUrl(String url);
+
+  /// Makes the window's own chrome (title bar) light, dark or follow macOS.
+  Future<void> setAppearance(Appearance appearance);
 
   /// Null where launching at login isn't supported (before macOS 13).
   Future<bool?> launchAtLogin();
@@ -104,6 +109,10 @@ class MacosPlatform implements AppPlatform {
 
   @override
   Future<void> openUrl(String url) => _channel.invokeMethod('openUrl', url);
+
+  @override
+  Future<void> setAppearance(Appearance appearance) =>
+      _channel.invokeMethod('setAppearance', appearance.name);
 
   @override
   Future<bool?> launchAtLogin() => _channel.invokeMethod<bool>('launchAtLogin');

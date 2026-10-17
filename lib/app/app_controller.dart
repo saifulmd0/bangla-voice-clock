@@ -9,6 +9,7 @@ import '../core/audio/wav.dart';
 import '../core/settings/app_settings.dart';
 import '../core/settings/settings_store.dart';
 import '../core/speech/announcement.dart';
+import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
 import '../core/speech/voice_pack.dart';
 import '../ui/strings.dart';
@@ -114,6 +115,7 @@ class AppController extends ChangeNotifier {
       ..add(_platform.menuSelections.listen(_onMenu))
       ..add(_platform.clockDisturbed.listen((_) => _ticker.restart()));
     _launchAtLogin = await _platform.launchAtLogin();
+    await _platform.setAppearance(_settings.appearance);
     _ticker.start();
     await _refreshMenuBar();
     if (!_settings.welcomed) {
@@ -123,7 +125,9 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> update(AppSettings settings) async {
+    final appearanceChanged = settings.appearance != _settings.appearance;
     _settings = settings;
+    if (appearanceChanged) await _platform.setAppearance(settings.appearance);
     notifyListeners();
     await _refreshMenuBar();
     await _store.save(settings);
@@ -142,8 +146,19 @@ class AppController extends ChangeNotifier {
   Future<void> speakNow() => _speak(_clock());
 
   /// The words [speakNow] would say.
-  List<SpeechToken> announcementAt(DateTime time) =>
-      announcementFor(time, _settings.style, voice);
+  List<SpeechToken> announcementAt(DateTime time, {AnnouncementStyle? style}) =>
+      announcementFor(
+        time,
+        style ?? _settings.style,
+        voice,
+        builder: BanglaPhraseBuilder(sayBeje: _settings.sayBeje),
+      );
+
+  /// Whether the selected voice can say any minute (the classic voice only
+  /// says quarter hours).
+  bool get voiceSaysEveryMinute => voice.canSpeak(
+    BanglaPhraseBuilder().build(10, 7, style: AnnouncementStyle.exact),
+  );
 
   void _onMinute(DateTime now) {
     _now = now;

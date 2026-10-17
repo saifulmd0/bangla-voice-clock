@@ -106,7 +106,7 @@ Future<void> _run(
         model: option('--model') ?? 'eleven_v4',
         packId: option('--pack-id') ?? 'bn_ai',
         packName: option('--pack-name') ?? 'Areeba AI (ElevenLabs)',
-        packAuthor: option('--pack-author') ?? 'Saiful',
+        packAuthor: option('--pack-author') ?? 'Saiful Islam',
         redo: {...?option('--redo')?.split(',').map((s) => s.trim())},
         seed: int.parse(option('--seed') ?? '1'),
         force: args.contains('--force'),

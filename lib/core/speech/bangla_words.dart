@@ -18,6 +18,11 @@ abstract final class ClipKeys {
   static const der = 'half.der';
   static const arai = 'half.arai';
   static const beje = 'exact.beje';
+
+  /// A silent marker that takes বেজে's place when it is left out, so a
+  /// pack can record an opening ("এখন সময় সকাল দশটা") that leads into the
+  /// minutes rather than ending the sentence.
+  static const open = 'exact.open';
   static const minute = 'exact.minute';
   static String number(int n) => 'num.$n';
 

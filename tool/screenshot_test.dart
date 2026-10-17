@@ -11,6 +11,7 @@ import 'package:bangla_voice_clock/app/app_controller.dart';
 import 'package:bangla_voice_clock/app/platform.dart';
 import 'package:bangla_voice_clock/core/settings/app_settings.dart';
 import 'package:bangla_voice_clock/core/settings/settings_store.dart';
+import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,8 @@ class _QuietPlatform implements AppPlatform {
   Future<void> notify(String title, String body) async {}
   @override
   Future<void> openUrl(String url) async {}
+  @override
+  Future<void> setAppearance(Appearance appearance) async {}
   @override
   Future<bool?> launchAtLogin() async => false;
   @override
@@ -79,12 +82,22 @@ void main() {
       ),
       (
         'en-dark',
-        const AppSettings(language: AppLanguage.en, quietHoursEnabled: true),
+        const AppSettings(
+          language: AppLanguage.en,
+          quietHoursEnabled: true,
+          appearance: Appearance.dark,
+          style: AnnouncementStyle.exact,
+        ),
         Brightness.dark,
       ),
       (
         'bn-muted',
         const AppSettings(muted: true, intervalMinutes: 60),
+        Brightness.light,
+      ),
+      (
+        'bn-classic',
+        const AppSettings(voiceId: 'bn_classic'),
         Brightness.light,
       ),
     ]) {

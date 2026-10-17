@@ -91,9 +91,10 @@ class DotDialPainter extends CustomPainter {
       old.quartersOnly != quartersOnly;
 }
 
-/// Draws today as a dial, noon at the top and midnight at the bottom: the
-/// six parts of the day as arcs, a dot for every scheduled announcement
-/// (none in quiet hours, hollow when muted) and a coral dot at [now].
+/// Draws the current half of the day as a 12-hour clock face, twelve at
+/// the top, so the coral dot at [now] sits where a clock's hour hand would:
+/// the parts of the day in this half as arcs, and a dot for every scheduled
+/// announcement (none in quiet hours, hollow when muted, dimmed once made).
 class DayDialPainter extends CustomPainter {
   DayDialPainter({
     required this.now,
@@ -123,9 +124,13 @@ class DayDialPainter extends CustomPainter {
   final Color color;
   final Color background;
 
-  /// The angle of [minuteOfDay] on the dial.
-  static double angleOf(num minuteOfDay) =>
-      math.pi / 2 + minuteOfDay / (24 * 60) * 2 * math.pi;
+  /// The first minute of the half of the day the dial shows: midnight
+  /// before noon, noon after.
+  int get _start => now.hour < 12 ? 0 : 12 * 60;
+
+  /// The angle of [minuteOfDay] on the 12-hour face.
+  double angleOf(num minuteOfDay) =>
+      -math.pi / 2 + (minuteOfDay - _start) / (12 * 60) * 2 * math.pi;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -154,10 +159,10 @@ class DayDialPainter extends CustomPainter {
 
     // A fingertip dot for every announcement of the day, sized to its
     // spacing so neighbours never merge and each one can be counted.
-    final perDay = 24 * 60 ~/ schedule.intervalMinutes;
+    final perDay = 12 * 60 ~/ schedule.intervalMinutes;
     final pitch = 2 * math.pi * r * 0.76 / perDay;
     final dot = math.min(r * 0.022, pitch * 0.22);
-    for (var m = 0; m < 24 * 60; m++) {
+    for (var m = _start; m < _start + 12 * 60; m++) {
       final t = DateTime(now.year, now.month, now.day, m ~/ 60, m % 60);
       if (!schedule.announcesAt(t)) continue;
       final p = _at(c, r * 0.76, angleOf(m));
@@ -197,22 +202,17 @@ class DayDialPainter extends CustomPainter {
       ..drawCircle(nowAt, r * 0.042, Paint()..color = Sky.coral);
   }
 
-  /// Each part of the day as (start minute, end minute, zone), in order
-  /// round the dial from midnight. A part that spans midnight (রাত) is one
-  /// span running past 24:00.
+  /// Each part of the day in the half on show, as (start minute, end
+  /// minute, zone), cut at noon and midnight.
   List<(int, int, DayZone)> _zoneSpans() {
     final spans = <(int, int, DayZone)>[];
-    var start = 0;
-    for (var h = 1; h <= 24; h++) {
-      if (h == 24 || zones.forHour(h) != zones.forHour(start ~/ 60)) {
-        spans.add((start, h * 60, zones.forHour(start ~/ 60)));
-        start = h * 60;
+    final first = _start ~/ 60;
+    var start = first;
+    for (var h = first + 1; h <= first + 12; h++) {
+      if (h == first + 12 || zones.forHour(h) != zones.forHour(start)) {
+        spans.add((start * 60, h * 60, zones.forHour(start)));
+        start = h;
       }
-    }
-    if (spans.length > 1 && spans.first.$3 == spans.last.$3) {
-      final first = spans.removeAt(0);
-      final last = spans.removeLast();
-      spans.add((last.$1, first.$2 + 24 * 60, last.$3));
     }
     return spans;
   }

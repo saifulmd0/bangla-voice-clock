@@ -132,7 +132,7 @@ components:
 
 **Creative North Star: "Dot Dial on Clear Sky"**
 
-The day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding today as a 24-hour ring, noon at the top and midnight at the bottom, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.
+The day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding the current half of the day as a 12-hour clock face, twelve at the top, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.
 
 Density is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Hind Siliguri, so switching language never changes the voice of the page.
 
@@ -256,7 +256,7 @@ Native Cupertino forms, tinted sky blue. Switch tracks are sky blue when on and 
 The quiet-hours hour picker, built like a macOS pop-up menu rather than Material's underlined dropdown: an outlined 8pt box with the value and an up-down chevron, opening a 24-item menu with a check by the current hour.
 
 ### Day Dial (signature)
-Today as a ring of dots on the pale sky band. Noon at the top, midnight at the bottom. Six day-part arcs (ভোর to রাত) in sky blue at 45% opacity, with small gaps between them; their ink labels sit just outside the dot row, pushed out by half their own extent. One blue dot per scheduled announcement, sized to its spacing so neighbours never merge and each can be counted; dots on the hour are larger. Quiet hours are simply left unpainted. When muted, the dots turn to outlines and never disappear, and the centre says announcements are off. Announcements already made today are dimmed to 35%, so the ones still to come stand out. Now is a coral dot with a deep coral edge (#C7471F, so it holds 3:1 on the pale band), ringed in the band colour and haloed in coral while the clock speaks. The time and the next announcement sit in the open centre.
+The current half of the day (midnight to noon, or noon to midnight) as a 12-hour clock face of dots on the pale sky band, twelve at the top, so the now dot sits where a clock's hour hand would. An earlier 24-hour ring (noon at the top) put 10:20 near the 11 position and was replaced at the user's request. The day-part arcs of that half (ভোর to রাত, cut at noon and midnight) in sky blue at 45% opacity, with small gaps between them; their ink labels sit just outside the dot row, pushed out by half their own extent. One blue dot per scheduled announcement, sized to its spacing so neighbours never merge and each can be counted; dots on the hour are larger. Quiet hours are simply left unpainted. When muted, the dots turn to outlines and never disappear, and the centre says announcements are off. Announcements already made today are dimmed to 35%, so the ones still to come stand out. Now is a coral dot with a deep coral edge (#C7471F, so it holds 3:1 on the pale band), ringed in the band colour and haloed in coral while the clock speaks. The time and the next announcement sit in the open centre.
 
 ## Do's and Don'ts
 
@@ -278,3 +278,10 @@ Today as a ring of dots on the pale sky band. Noon at the top, midnight at the b
 - **Don't** shrink text to create hierarchy, or set any settings text below 14pt.
 - **Don't** use Material's underlined dropdowns or filled segmented buttons where a macOS form exists.
 - **Don't** open credits in a modal dialog.
+
+## Settings that shape the look
+
+- **Appearance:** Light (the default, the look the brand was designed in), Dark, or Match Mac. The window's title bar follows the same choice.
+- **Look group** sits first under Speak now: appearance, then what the menu bar shows (time or logo).
+- **A voice that only says quarter hours** (the classic voice) disables "মিনিট ধরে" and explains why in a note row (an info icon and one line of muted text inside the group). Style examples always show what the chosen voice really says.
+

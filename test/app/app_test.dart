@@ -42,6 +42,8 @@ class FakePlatform implements AppPlatform {
   @override
   Future<void> openUrl(String url) async => opened.add(url);
   @override
+  Future<void> setAppearance(Appearance appearance) async {}
+  @override
   Future<bool?> launchAtLogin() async => false;
   @override
   Future<bool> setLaunchAtLogin(bool enabled) async => true;
@@ -163,7 +165,10 @@ void main() {
     tallWindow(tester);
     final c = await tester.runAsync(controller);
     await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
-    expect(find.text('Areeba AI (ElevenLabs) - by Saiful'), findsOneWidget);
+    expect(
+      find.text('Areeba AI (ElevenLabs) - by Saiful Islam'),
+      findsOneWidget,
+    );
     expect(
       find.text('Classic (1998) - by Moshfekah Ferdaus Mahita'),
       findsOneWidget,
@@ -198,6 +203,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CreditsPage), findsNothing);
     c.dispose();
+  });
+
+  test('without বেজে the AI voice says দশটা সাত মিনিট in two takes', () async {
+    final c = await controller();
+    await c.update(c.settings.copyWith(sayBeje: false));
+    final tokens = c.announcementAt(
+      DateTime(2026, 1, 1, 10, 7),
+      style: AnnouncementStyle.exact,
+    );
+    expect(tokens.text, 'এখন সময় সকাল দশটা সাত মিনিট');
+    expect(c.voice.clipKeysFor(tokens), hasLength(2));
+  });
+
+  testWidgets('the classic voice offers no minute style', (tester) async {
+    tallWindow(tester);
+    final c = await tester.runAsync(controller);
+    await tester.runAsync(
+      () => c!.update(
+        c.settings.copyWith(
+          voiceId: 'bn_classic',
+          style: AnnouncementStyle.exact,
+        ),
+      ),
+    );
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+    expect(c.voiceSaysEveryMinute, isFalse);
+    expect(find.textContaining('শুধু ১৫ মিনিট পরপর'), findsOneWidget);
+    // The examples show what the classic voice really says.
+    expect(find.text('সকাল দশটা পনেরো মিনিট'), findsWidgets);
+    expect(find.text('"বেজে" বলুন'), findsNothing);
+  });
+
+  testWidgets('appearance follows the setting', (tester) async {
+    tallWindow(tester);
+    final c = await tester.runAsync(controller);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+    MaterialApp app() => tester.widget(find.byType(MaterialApp));
+    expect(app().themeMode, ThemeMode.light, reason: 'light by default');
+    await tester.runAsync(
+      () => c.update(c.settings.copyWith(appearance: Appearance.dark)),
+    );
+    await tester.pump();
+    expect(app().themeMode, ThemeMode.dark);
   });
 
   testWidgets('settings window', (tester) async {

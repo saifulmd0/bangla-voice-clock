@@ -53,11 +53,18 @@ class DayZones {
 ///
 /// For 10:15 in the morning it produces "এখন সময় সকাল সোয়া দশটা".
 class BanglaPhraseBuilder {
-  BanglaPhraseBuilder({DayZones? zones, this.includeStarter = true})
-    : zones = zones ?? DayZones.standard;
+  BanglaPhraseBuilder({
+    DayZones? zones,
+    this.includeStarter = true,
+    this.sayBeje = true,
+  }) : zones = zones ?? DayZones.standard;
 
   final DayZones zones;
   final bool includeStarter;
+
+  /// Whether the exact style says "দশটা বেজে সাত মিনিট" or, like the
+  /// original 1998 voice, "দশটা সাত মিনিট".
+  final bool sayBeje;
 
   /// Whether [style] can announce a time with this [minute].
   static bool supports(AnnouncementStyle style, int minute) =>
@@ -120,7 +127,10 @@ class BanglaPhraseBuilder {
   List<SpeechToken> _exact(int hour, int minute) => [
     _hour(_to12(hour)),
     if (minute > 0) ...[
-      const SpeechToken(ClipKeys.beje, bejeWord, optional: true),
+      if (sayBeje)
+        const SpeechToken(ClipKeys.beje, bejeWord, optional: true)
+      else
+        const SpeechToken(ClipKeys.open, '', optional: true),
       SpeechToken(ClipKeys.number(minute), numberWords[minute]),
       const SpeechToken(ClipKeys.minute, minuteWord),
     ],

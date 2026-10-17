@@ -15,6 +15,9 @@ enum AppLanguage {
 /// What the menu-bar item shows.
 enum MenuBarShows { time, logo }
 
+/// Light or dark, or following macOS.
+enum Appearance { system, light, dark }
+
 /// Everything the user can change, saved between launches.
 class AppSettings {
   const AppSettings({
@@ -30,6 +33,8 @@ class AppSettings {
     this.quietEndHour = 7,
     this.menuBarShows = MenuBarShows.time,
     this.language = AppLanguage.bn,
+    this.appearance = Appearance.light,
+    this.sayBeje = true,
     this.welcomed = false,
   });
 
@@ -61,6 +66,9 @@ class AppSettings {
               ? MenuBarShows.logo
               : d.menuBarShows),
       language: AppLanguage.values.asNameMap()[json['language']] ?? d.language,
+      appearance:
+          Appearance.values.asNameMap()[json['appearance']] ?? d.appearance,
+      sayBeje: read('sayBeje', d.sayBeje),
       welcomed: read('welcomed', d.welcomed),
     );
   }
@@ -82,6 +90,12 @@ class AppSettings {
   final int quietEndHour;
   final MenuBarShows menuBarShows;
   final AppLanguage language;
+
+  /// Light by default, the look the brand was designed in.
+  final Appearance appearance;
+
+  /// Whether exact times say "দশটা বেজে সাত মিনিট" or "দশটা সাত মিনিট".
+  final bool sayBeje;
 
   /// Whether the settings window has been shown once, on first launch.
   final bool welcomed;
@@ -106,6 +120,8 @@ class AppSettings {
     int? quietEndHour,
     MenuBarShows? menuBarShows,
     AppLanguage? language,
+    Appearance? appearance,
+    bool? sayBeje,
     bool? welcomed,
   }) => AppSettings(
     muted: muted ?? this.muted,
@@ -120,6 +136,8 @@ class AppSettings {
     quietEndHour: quietEndHour ?? this.quietEndHour,
     menuBarShows: menuBarShows ?? this.menuBarShows,
     language: language ?? this.language,
+    appearance: appearance ?? this.appearance,
+    sayBeje: sayBeje ?? this.sayBeje,
     welcomed: welcomed ?? this.welcomed,
   );
 
@@ -136,6 +154,8 @@ class AppSettings {
     'quietEndHour': quietEndHour,
     'menuBarShows': menuBarShows.name,
     'language': language.name,
+    'appearance': appearance.name,
+    'sayBeje': sayBeje,
     'welcomed': welcomed,
   };
 }

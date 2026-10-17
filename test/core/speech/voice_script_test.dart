@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
+import 'package:bangla_voice_clock/core/speech/speech_token.dart';
 import 'package:bangla_voice_clock/core/speech/voice_pack.dart';
 import 'package:bangla_voice_clock/core/speech/voice_script.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,9 +29,20 @@ void main() {
     expect(script.map((l) => l.key).toSet().length, script.length);
   });
 
-  test('records 85 words, 96 announcements and 24 + 59 exact parts', () {
+  test('records 85 words, 96 announcements and 48 + 59 exact parts', () {
     expect(banglaVoiceScript(phrases: false), hasLength(85));
-    expect(script, hasLength(85 + 96 + 24 + 59));
+    expect(script, hasLength(85 + 96 + 24 + 24 + 59));
+  });
+
+  test('without বেজে, exact minutes are still two takes', () {
+    final pack = _packOf(script);
+    final noBeje = BanglaPhraseBuilder(sayBeje: false);
+    final tokens = noBeje.build(10, 7, style: AnnouncementStyle.exact);
+    expect(tokens.text, 'এখন সময় সকাল দশটা সাত মিনিট');
+    expect(pack.clipKeysFor(tokens), [
+      'starter zone.sokal hour.10 exact.open',
+      'num.7 exact.minute',
+    ]);
   });
 
   test('announcement lines read as finished sentences', () {

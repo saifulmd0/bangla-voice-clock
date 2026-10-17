@@ -30,5 +30,5 @@ class SpeechToken {
 
 extension SpeechTokenText on List<SpeechToken> {
   /// The announcement as Bangla text, for display and tests.
-  String get text => map((t) => t.text).join(' ');
+  String get text => map((t) => t.text).where((t) => t.isNotEmpty).join(' ');
 }

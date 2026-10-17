@@ -20,6 +20,8 @@ void main() {
       quietEndHour: 6,
       menuBarShows: MenuBarShows.logo,
       language: AppLanguage.en,
+      appearance: Appearance.dark,
+      sayBeje: false,
       welcomed: true,
     );
     expect(AppSettings.fromJson(s.toJson()).toJson(), s.toJson());

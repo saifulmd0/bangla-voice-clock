@@ -24,10 +24,12 @@ class ScriptLine {
 ///
 /// * every quarter-hour announcement, whole ("এখন সময় সকাল সোয়া দশটা।");
 /// * for exact times, the opening for each hour ("এখন সময় সকাল দশটা বেজে")
-///   and the ending for each minute ("সাত মিনিট।"), so any minute is two
-///   natural takes joined, instead of six words.
+///   (also without বেজে: "এখন সময় সকাল দশটা", spoken to lead on) and the
+///   ending for each minute ("সাত মিনিট।"), so any minute is two natural
+///   takes joined, instead of six words.
 List<ScriptLine> banglaVoiceScript({bool phrases = true}) {
   final builder = BanglaPhraseBuilder();
+  final noBeje = BanglaPhraseBuilder(sayBeje: false);
   ScriptLine line(List<SpeechToken> tokens, {bool ends = false}) => ScriptLine(
     ClipKeys.phrase(tokens.map((t) => t.key)),
     ends ? '${tokens.text}।' : tokens.text,
@@ -53,6 +55,8 @@ List<ScriptLine> banglaVoiceScript({bool phrases = true}) {
           line(builder.build(h, m), ends: true),
       for (var h = 0; h < 24; h++)
         line(_exact(builder, h, 1).sublist(0, _exactOpeningLength)),
+      for (var h = 0; h < 24; h++)
+        line(_exact(noBeje, h, 1).sublist(0, _exactOpeningLength)),
       for (var m = 1; m <= 59; m++)
         line(_exact(builder, 0, m).sublist(_exactOpeningLength), ends: true),
     ],
@@ -62,5 +66,5 @@ List<ScriptLine> banglaVoiceScript({bool phrases = true}) {
 List<SpeechToken> _exact(BanglaPhraseBuilder builder, int hour, int minute) =>
     builder.build(hour, minute, style: AnnouncementStyle.exact);
 
-/// এখন সময় + zone + hour + বেজে.
+/// এখন সময় + zone + hour + বেজে (or its silent stand-in).
 const _exactOpeningLength = 4;

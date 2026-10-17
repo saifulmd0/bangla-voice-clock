@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'app/app_controller.dart';
 import 'app/error_log.dart';
 import 'app/platform.dart';
+import 'core/settings/app_settings.dart';
 import 'core/settings/settings_store.dart';
 import 'ui/settings_page.dart';
 import 'ui/theme.dart';
@@ -55,8 +56,18 @@ class _BanglaVoiceClockAppState extends State<BanglaVoiceClockApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.controller,
+    builder: (context, _) => _app(),
+  );
+
+  Widget _app() => MaterialApp(
     navigatorKey: _navigator,
+    themeMode: switch (widget.controller.settings.appearance) {
+      Appearance.system => ThemeMode.system,
+      Appearance.light => ThemeMode.light,
+      Appearance.dark => ThemeMode.dark,
+    },
     title: 'Bangla Voice Clock',
     debugShowCheckedModeBanner: false,
     theme: skyTheme(Brightness.light),

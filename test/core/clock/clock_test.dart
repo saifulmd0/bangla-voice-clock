@@ -1,6 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:bangla_voice_clock/core/audio/chime.dart';
 import 'package:bangla_voice_clock/core/clock/announcement_schedule.dart';
 import 'package:bangla_voice_clock/core/clock/bangla_clock.dart';
+import 'package:bangla_voice_clock/ui/brand.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -72,6 +76,28 @@ void main() {
         DateTime(2026, 1, 2, 7),
       );
     });
+  });
+
+  test('the dial is a 12-hour face for the half of the day on show', () {
+    DayDialPainter at(DateTime now) => DayDialPainter(
+      now: now,
+      schedule: const AnnouncementSchedule(intervalMinutes: 15),
+      muted: false,
+      zoneLabels: (z) => z.word,
+      labelStyle: const TextStyle(),
+      color: Sky.blue,
+      background: Sky.band,
+    );
+    const top = -math.pi / 2;
+    // Twelve at the top, three to the right, before and after noon alike.
+    expect(at(DateTime(2026, 1, 1, 10)).angleOf(0), closeTo(top, 1e-9));
+    expect(at(DateTime(2026, 1, 1, 10)).angleOf(3 * 60), closeTo(0, 1e-9));
+    expect(at(DateTime(2026, 1, 1, 22)).angleOf(15 * 60), closeTo(0, 1e-9));
+    // 10:20 sits where 10:20 is on a clock.
+    expect(
+      at(DateTime(2026, 1, 1, 10, 20)).angleOf(10 * 60 + 20),
+      closeTo(top + (620 / 720) * 2 * math.pi, 1e-9),
+    );
   });
 
   test('chime is a short, quiet, click-free bell', () {

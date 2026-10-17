@@ -20,7 +20,7 @@ OWN-WORLD: Clear-sky blue (#2F74D0; #8AB8F5 at night) for the dial, the logo and
 
 STORY: The user understands at a glance when the clock speaks today, trusts it to stay quiet when asked, and sets it once.
 
-FIRST VIEWPORT: A pale sky band (#E1EEFD) holds a 280pt dial box: a 24-hour ring with noon at the top, six day-part arcs labelled ভোর to রাত in ink, one blue dot per scheduled announcement, quiet hours left unpainted, a coral dot at now that glows while speaking; the time and next announcement sit inside in ink. Speak now sits under the band, then native grouped rows at one generous type size.
+FIRST VIEWPORT: A pale sky band (#E1EEFD) holds a 280pt dial box: a 12-hour clock face for the current half of the day with twelve at the top, the day-part arcs of that half labelled in ink, one blue dot per scheduled announcement, quiet hours left unpainted, a coral dot at now that glows while speaking; the time and next announcement sit inside in ink. Speak now sits under the band, then native grouped rows at one generous type size.
 
 FORM: Dot Dial on Clear Sky, chosen by the user from a variants page (logo C, theme 2) after the Alpona Dial round (seed a0750fff). Logo: twelve dots, quarter hours larger, coral twelve, hands at ten o'clock; small icons keep the quarter dots only.
 
