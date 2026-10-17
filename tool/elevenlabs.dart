@@ -4,6 +4,8 @@
 //       Designs three preview voices and saves them for listening.
 //   dart run tool/elevenlabs.dart save --id GENERATED_VOICE_ID [--name NAME]
 //       Keeps one preview in your ElevenLabs voice library.
+//   dart run tool/elevenlabs.dart sample --voice VOICE_ID [--text TEXT]
+//       Speaks one line, to try a voice before generating a whole pack.
 //   dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR
 //       [--model eleven_v3] [--pack-id ID] [--pack-name NAME] [--force]
 //       [--dry-run]
@@ -72,6 +74,17 @@ Future<void> _run(
         name: option('--name') ?? 'Bangla Voice Clock girl',
         description: option('--description') ?? _defaultDescription,
       );
+    case 'sample':
+      final voiceId = option('--voice') ?? _usage();
+      final out = option('--out') ?? 'voices_local/samples/$voiceId.wav';
+      final audio = await _speak(
+        voiceId,
+        option('--model') ?? 'eleven_v3',
+        option('--text') ?? 'এখন সময় রাত নয়টা বেজে সাতাশ মিনিট।',
+      );
+      await File(out).parent.create(recursive: true);
+      await File(out).writeAsBytes(encodeWav(audio));
+      stdout.writeln('Saved $out');
     case 'generate':
       await _generate(
         voiceId:
@@ -93,6 +106,7 @@ Never _usage() {
     'Usage:\n'
     '  dart run tool/elevenlabs.dart design [--description TEXT] [--text TEXT] [--out DIR]\n'
     '  dart run tool/elevenlabs.dart save --id GENERATED_VOICE_ID [--name NAME]\n'
+    '  dart run tool/elevenlabs.dart sample --voice VOICE_ID [--text TEXT] [--out FILE]\n'
     '  dart run tool/elevenlabs.dart generate --voice VOICE_ID --out DIR\n'
     '      [--model eleven_v3] [--pack-id ID] [--pack-name NAME] [--force] [--dry-run]',
   );
@@ -171,21 +185,7 @@ Future<void> _generate({
       continue;
     }
     try {
-      final pcm = await _api.post(
-        '/v1/text-to-speech/$voiceId',
-        {
-          'text': line.text,
-          'model_id': model,
-          // Same seed and settings for every line keeps the takes alike.
-          'seed': 1,
-          'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8},
-        },
-        query: {'output_format': 'pcm_$_sampleRate'},
-      );
-      final audio = PcmAudio(
-        pcm.buffer.asInt16List(pcm.offsetInBytes, pcm.lengthInBytes ~/ 2),
-        _sampleRate,
-      ).trimSilence().normalized();
+      final audio = await _speak(voiceId, model, line.text);
       await file.parent.create(recursive: true);
       await file.writeAsBytes(encodeWav(audio));
       clips[line.key] = path;
@@ -216,6 +216,25 @@ Future<void> _generate({
     );
     exit(1);
   }
+}
+
+/// Speaks [text], trimmed and level-normalised.
+Future<PcmAudio> _speak(String voiceId, String model, String text) async {
+  final pcm = await _api.post(
+    '/v1/text-to-speech/$voiceId',
+    {
+      'text': text,
+      'model_id': model,
+      // Same seed and settings for every line keeps the takes alike.
+      'seed': 1,
+      'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8},
+    },
+    query: {'output_format': 'pcm_$_sampleRate'},
+  );
+  return PcmAudio(
+    pcm.buffer.asInt16List(pcm.offsetInBytes, pcm.lengthInBytes ~/ 2),
+    _sampleRate,
+  ).trimSilence().normalized();
 }
 
 /// Words go in `clips/`, phrases in `phrases/`, named after their keys.
