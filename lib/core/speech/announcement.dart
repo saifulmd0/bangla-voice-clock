@@ -5,8 +5,10 @@ import 'voice_pack.dart';
 /// The words to announce [time] with [pack], in [style] where possible.
 ///
 /// Traditional style only covers quarter hours, so at other minutes (Speak
-/// now at 10:07) the exact style is used instead. A pack that can't say
-/// exact minutes (the classic voice) gives the quarter hour just passed.
+/// now at 10:07) the exact style is used instead. When the pack can't say
+/// [time] either way, it falls back to the quarter hour just passed, in
+/// whichever style the pack can say (the classic voice only has
+/// "পনেরো মিনিট", "ত্রিশ মিনিট" and "পঁয়তাল্লিশ মিনিট").
 List<SpeechToken> announcementFor(
   DateTime time,
   AnnouncementStyle style,
@@ -15,10 +17,14 @@ List<SpeechToken> announcementFor(
 }) {
   final b = builder ?? BanglaPhraseBuilder();
   final (h, m) = (time.hour, time.minute);
-  if (style == AnnouncementStyle.traditional && m % 15 == 0) {
-    return b.build(h, m);
-  }
-  final exact = b.build(h, m, style: AnnouncementStyle.exact);
-  if (pack.canSpeak(exact)) return exact;
-  return b.build(h, m - m % 15);
+  final other = style == AnnouncementStyle.traditional
+      ? AnnouncementStyle.exact
+      : AnnouncementStyle.traditional;
+  final candidates = [
+    for (final minute in {m, m - m % 15})
+      for (final s in [style, other])
+        if (BanglaPhraseBuilder.supports(s, minute))
+          b.build(h, minute, style: s),
+  ];
+  return candidates.firstWhere(pack.canSpeak, orElse: () => candidates.last);
 }

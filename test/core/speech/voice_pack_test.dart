@@ -120,13 +120,25 @@ void main() {
     expect(
       () => pack.clipKeysFor(tokens),
       throwsA(
+        // বেজে is optional, so it isn't missing.
         isA<MissingClipsException>().having((e) => e.keys, 'keys', [
-          ClipKeys.beje,
           ClipKeys.number(7),
           ClipKeys.minute,
         ]),
       ),
     );
+  });
+
+  test('skips an optional word the pack lacks', () async {
+    final ending = ClipKeys.phrase([ClipKeys.number(15), ClipKeys.minute]);
+    final pack = await writePack({...quarterPack, ending: 100});
+    final tokens = builder.build(1, 15, style: AnnouncementStyle.exact);
+    expect(pack.clipKeysFor(tokens), [
+      ClipKeys.starter,
+      ClipKeys.zone(DayZone.raat),
+      ClipKeys.hour(1),
+      ending,
+    ]);
   });
 
   test('a quarter-hour pack speaks every quarter of the day', () async {

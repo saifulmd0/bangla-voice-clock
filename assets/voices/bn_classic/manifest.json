@@ -1,8 +1,9 @@
 {
   "format": 1,
   "id": "bn_classic",
-  "name": "ক্লাসিক (১৯৯৮)",
+  "name": "Classic (1998)",
   "language": "bn",
+  "author": "Moshfekah Ferdaus Mahita",
   "credits": "Voice of Moshfekah Ferdaus Mahita, from Bangla Voice Clock (1998-2002) by Q A M Khaled Ferdaus. Used with permission.",
   "clips": {
     "starter": "clips/starter.wav",
@@ -18,9 +19,9 @@
     "hour.9": "clips/hour_9.wav",
     "hour.10": "clips/hour_10.wav",
     "hour.11": "clips/hour_11.wav",
-    "qtr.sowa": "clips/qtr_sowa.wav",
-    "qtr.sare": "clips/qtr_sare.wav",
-    "qtr.poune": "clips/qtr_poune.wav",
+    "num.15 exact.minute": "clips/num_15__exact_minute.wav",
+    "num.30 exact.minute": "clips/num_30__exact_minute.wav",
+    "num.45 exact.minute": "clips/num_45__exact_minute.wav",
     "zone.bhor": "clips/zone_bhor.wav",
     "zone.sokal": "clips/zone_sokal.wav",
     "zone.dupur": "clips/zone_dupur.wav",

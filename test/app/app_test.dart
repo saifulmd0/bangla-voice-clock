@@ -98,12 +98,16 @@ void main() {
       c.announcementAt(DateTime(2026, 1, 1, 21, 27)).text,
       'এখন সময় রাত নয়টা বেজে সাতাশ মিনিট',
     );
-    // The classic voice has no minute words, so it gives the quarter hour.
+    // The classic voice only says quarter hours, the original's way.
     await c.update(c.settings.copyWith(voiceId: 'bn_classic'));
-    expect(
-      c.announcementAt(DateTime(2026, 1, 1, 21, 27)).text,
-      'এখন সময় রাত সোয়া নয়টা',
-    );
+    final classic = c.announcementAt(DateTime(2026, 1, 1, 21, 27));
+    expect(classic.text, 'এখন সময় রাত নয়টা বেজে পনেরো মিনিট');
+    expect(c.voice.clipKeysFor(classic), [
+      'starter',
+      'zone.raat',
+      'hour.9',
+      'num.15 exact.minute',
+    ]);
   });
 
   test('menu changes are saved', () async {

@@ -120,7 +120,7 @@ class BanglaPhraseBuilder {
   List<SpeechToken> _exact(int hour, int minute) => [
     _hour(_to12(hour)),
     if (minute > 0) ...[
-      const SpeechToken(ClipKeys.beje, bejeWord),
+      const SpeechToken(ClipKeys.beje, bejeWord, optional: true),
       SpeechToken(ClipKeys.number(minute), numberWords[minute]),
       const SpeechToken(ClipKeys.minute, minuteWord),
     ],

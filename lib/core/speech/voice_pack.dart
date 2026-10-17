@@ -43,6 +43,7 @@ class VoicePackManifest {
     required this.name,
     required this.language,
     required this.clips,
+    this.author = '',
     this.credits = '',
   });
 
@@ -55,6 +56,7 @@ class VoicePackManifest {
       id: json['id'] as String,
       name: json['name'] as String,
       language: json['language'] as String,
+      author: json['author'] as String? ?? '',
       credits: json['credits'] as String? ?? '',
       clips: Map<String, String>.from(json['clips'] as Map),
     );
@@ -68,6 +70,9 @@ class VoicePackManifest {
 
   /// BCP 47 language code, such as `bn`.
   final String language;
+
+  /// Who the voice belongs to, shown after the name, as "— by" the author.
+  final String author;
   final String credits;
 
   /// Clip key → path of a WAV file, relative to the pack folder.
@@ -79,6 +84,7 @@ class VoicePackManifest {
     'id': id,
     'name': name,
     'language': language,
+    if (author.isNotEmpty) 'author': author,
     if (credits.isNotEmpty) 'credits': credits,
     'clips': clips,
   };
@@ -108,9 +114,13 @@ class VoicePack {
   /// The clip keys that will speak [tokens].
   ///
   /// At each point the longest recorded phrase wins, then the token's own
-  /// clip, then its fallback clips. Throws [MissingClipsException] when a
-  /// token can't be spoken at all.
+  /// clip, then its fallback clips; optional tokens without a clip are
+  /// skipped. Throws [MissingClipsException] when a token can't be spoken.
   List<String> clipKeysFor(List<SpeechToken> tokens) {
+    tokens = [
+      for (final t in tokens)
+        if (!t.optional || has(t.key)) t,
+    ];
     final keys = <String>[];
     final missing = <String>[];
     var i = 0;

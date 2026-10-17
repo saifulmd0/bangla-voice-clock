@@ -72,7 +72,7 @@ void main() {
   test('Bangla key map covers every entry of the original', () {
     expect(banglaLegacyKeyMap['hour[0]'], ClipKeys.hour(12));
     expect(banglaLegacyKeyMap['hour[11]'], ClipKeys.hour(11));
-    expect(banglaLegacyKeyMap['min[3]'], ClipKeys.poune);
+    expect(banglaLegacyKeyMap['min[3]'], 'num.45 exact.minute');
     expect(banglaLegacyKeyMap['zone[5]'], ClipKeys.zone(DayZone.raat));
     expect(banglaLegacyKeyMap, hasLength(1 + 12 + 3 + 6));
   });
@@ -100,7 +100,7 @@ void main() {
       ClipKeys.starter,
       ClipKeys.hour(12),
       ClipKeys.hour(1),
-      ClipKeys.sowa,
+      'num.15 exact.minute',
       ClipKeys.zone(DayZone.sokal),
     ]);
 

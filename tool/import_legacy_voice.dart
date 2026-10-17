@@ -29,7 +29,8 @@ Future<void> main(List<String> args) async {
     keyMap: banglaLegacyKeyMap,
     outDir: Directory(outPath),
     id: 'bn_classic',
-    name: 'ক্লাসিক (১৯৯৮)',
+    name: 'Classic (1998)',
+    author: 'Moshfekah Ferdaus Mahita',
     language: 'bn',
     credits:
         'Voice of Moshfekah Ferdaus Mahita, from Bangla Voice Clock '

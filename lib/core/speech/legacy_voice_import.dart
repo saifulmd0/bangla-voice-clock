@@ -84,16 +84,15 @@ List<LegacyVoiceBlock> parseLegacyVoiceDef(String text) {
 
 /// How the original's Bangla entries map onto this app's clip keys.
 ///
-/// The original's three quarter-hour clips are the prefix words
-/// সোয়া / সাড়ে / পৌনে. It had no দেড়টা or আড়াইটা, so those fall back to
-/// "সাড়ে একটা" and "সাড়ে দুইটা".
+/// The original's three minute clips say "পনেরো মিনিট", "ত্রিশ মিনিট" and
+/// "পঁয়তাল্লিশ মিনিট" after the hour ("একটা পনেরো মিনিট"), so they become
+/// exact-style minute endings; it had no বেজে, which is optional.
 final banglaLegacyKeyMap = <String, String>{
   'starter': ClipKeys.starter,
   'hour[0]': ClipKeys.hour(12),
   for (var h = 1; h <= 11; h++) 'hour[$h]': ClipKeys.hour(h),
-  'min[1]': ClipKeys.sowa,
-  'min[2]': ClipKeys.sare,
-  'min[3]': ClipKeys.poune,
+  for (final (i, m) in const [15, 30, 45].indexed)
+    'min[${i + 1}]': ClipKeys.phrase([ClipKeys.number(m), ClipKeys.minute]),
   for (final zone in DayZone.values) 'zone[${zone.index}]': ClipKeys.zone(zone),
 };
 
@@ -108,6 +107,7 @@ Future<VoicePackManifest> importLegacyVoice({
   required Directory outDir,
   required String id,
   required String name,
+  String author = '',
   required String language,
   String credits = '',
 }) async {
@@ -119,7 +119,7 @@ Future<VoicePackManifest> importLegacyVoice({
     final key = keyMap[entryName];
     if (key == null) continue;
     final clip = recording.slice(range.start, range.end).trimSilence();
-    final path = 'clips/${key.replaceAll('.', '_')}.wav';
+    final path = 'clips/${key.replaceAll('.', '_').replaceAll(' ', '__')}.wav';
     await File('${outDir.path}/$path').writeAsBytes(encodeWav(clip));
     clips[key] = path;
   }
@@ -127,6 +127,7 @@ Future<VoicePackManifest> importLegacyVoice({
   final manifest = VoicePackManifest(
     id: id,
     name: name,
+    author: author,
     language: language,
     credits: credits,
     clips: clips,

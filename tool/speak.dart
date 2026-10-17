@@ -3,12 +3,15 @@
 //   dart run tool/speak.dart --pack <dir> [--time HH:MM] [--exact]
 //                            [--out file.wav] [--no-play]
 //
-// Without --time it speaks the current time. Traditional style rounds down
-// to the quarter hour. Playback uses macOS `afplay`.
+// Without --time it speaks the current time. It picks the words as the app
+// does: exact minutes when traditional style can't say the time, and the
+// quarter hour just passed when the pack can't say it either. Playback uses
+// macOS `afplay`.
 import 'dart:io';
 
 import 'package:bangla_voice_clock/core/audio/pcm_audio.dart';
 import 'package:bangla_voice_clock/core/audio/wav.dart';
+import 'package:bangla_voice_clock/core/speech/announcement.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
 import 'package:bangla_voice_clock/core/speech/voice_pack.dart';
@@ -44,10 +47,12 @@ Future<void> main(List<String> args) async {
   final style = args.contains('--exact')
       ? AnnouncementStyle.exact
       : AnnouncementStyle.traditional;
-  if (style == AnnouncementStyle.traditional) minute -= minute % 15;
-
-  final tokens = BanglaPhraseBuilder().build(hour, minute, style: style);
   final pack = await VoicePack.loadDirectory(packPath);
+  final tokens = announcementFor(
+    DateTime(2000, 1, 1, hour, minute),
+    style,
+    pack,
+  );
   stdout.writeln(tokens.text);
 
   final PcmAudio audio;

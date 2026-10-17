@@ -2,7 +2,7 @@
 
 How each bundled voice pack was made, so it can be extended or remade the same way.
 
-## `bn_ai`: মিষ্টি কণ্ঠ (AI)
+## `bn_ai`: Areeba AI (ElevenLabs), by Saiful Islam
 
 A soft, cute young woman's voice with a Bangladeshi accent, designed and generated with
 ElevenLabs on 2026-10-17.
@@ -49,9 +49,14 @@ Existing clips are skipped; delete a clip file (or pass `--force`) to redo it.
   plan (pay-as-you-go is enough). The whole pack is about 4,100 characters.
 - Library voices tagged Bengali all have Kolkata or Indian accents (checked 2026-10-17).
 
-## `bn_classic`: ক্লাসিক (১৯৯৮)
+## `bn_classic`: Classic (1998), by Moshfekah Ferdaus Mahita
 
 The voice of Moshfekah Ferdaus Mahita from the original Bangla Voice Clock for Windows
 (1998–2002) by Q A M Khaled Ferdaus, used with permission. Imported from the original
-`VClock.def` + `vclock.wav` with `tool/import_legacy_voice.dart`. It has the quarter-hour words
-only, so it can't speak exact minutes, and it says সাড়ে একটা / সাড়ে দুইটা for দেড়টা / আড়াইটা.
+`VClock.def` + `vclock.wav` with `tool/import_legacy_voice.dart`.
+
+It speaks the original's way, quarter hours only: "এখন সময় রাত একটা পনেরো মিনিট". Its three
+minute clips are "পনেরো মিনিট", "ত্রিশ মিনিট" and "পঁয়তাল্লিশ মিনিট" (the `.def` file marks
+them `# 15 min` and so on), spoken after the hour, so the importer stores them as exact-style
+minute endings. It has no "বেজে", which is optional, and no সোয়া/সাড়ে/পৌনে, so the traditional
+style setting doesn't apply to it. At other minutes it says the quarter hour just passed.
