@@ -52,3 +52,6 @@ app.*.map.json
 
 # Voice packs built locally from material we may not redistribute
 /voices_local/
+
+# API keys for tool/elevenlabs.dart
+.env

@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
     language: 'bn',
     credits:
         'Voice of Moshfekah Ferdaus Mahita, from Bangla Voice Clock '
-        '(1998-2002) by Q A M Khaled Ferdaus.',
+        '(1998-2002) by Q A M Khaled Ferdaus. Used with permission.',
   );
   stdout.writeln('Wrote ${manifest.clips.length} clips to $outPath');
 }

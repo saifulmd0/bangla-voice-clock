@@ -3,6 +3,11 @@
 /// Each word maps to a clip key in a voice pack; see [ClipKeys].
 library;
 
+/// Names of voice-pack clips.
+///
+/// A clip usually speaks one word, but a pack may also record a run of
+/// words in one take, keyed by [phrase]. Whole phrases sound more natural
+/// than words joined together, so they're preferred when present.
 abstract final class ClipKeys {
   static const starter = 'starter';
   static String hour(int h12) => 'hour.$h12';
@@ -15,6 +20,12 @@ abstract final class ClipKeys {
   static const beje = 'exact.beje';
   static const minute = 'exact.minute';
   static String number(int n) => 'num.$n';
+
+  /// The key of a clip that speaks the words [keys] in one take.
+  static String phrase(Iterable<String> keys) => keys.join(' ');
+
+  /// How many words the clip [key] speaks.
+  static int wordCount(String key) => ' '.allMatches(key).length + 1;
 }
 
 /// Parts of the day, which a Bangla time announcement names before the hour.

@@ -164,6 +164,24 @@ void main() {
       expect(silent.trimSilence().length, 500);
     });
 
+    test('normalized brings quiet and loud clips to the same level', () {
+      PcmAudio square(int level) => PcmAudio(
+        Int16List.fromList([
+          for (var i = 0; i < 100; i++) i.isEven ? level : -level,
+        ]),
+        1000,
+      );
+      final quiet = square(500).normalized(rms: 0.25);
+      final loud = square(20000).normalized(rms: 0.25);
+      expect(quiet.samples.first, (0.25 * 32767).round());
+      expect(loud.samples.first, quiet.samples.first);
+    });
+
+    test('normalized never clips the loudest sample', () {
+      final spiky = PcmAudio(Int16List(100)..[50] = 1000, 1000).normalized();
+      expect(spiky.samples[50], (0.95 * 32767).round());
+    });
+
     test('withFades starts and ends at zero', () {
       final faded = tone(
         1000,

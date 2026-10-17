@@ -2,7 +2,8 @@
 
 A free talking clock that announces the time in Bangla. macOS first, other platforms later.
 
-Inspired by the original *Bangla Voice Clock* for Windows (1998–2002) by Q A M Khaled Ferdaus.
+Inspired by the original *Bangla Voice Clock* for Windows (1998–2002) by Q A M Khaled Ferdaus,
+and by [Schedule Voice Clock](https://github.com/HridoyVaraby/schedule-voice-clock) for Ubuntu.
 
 > **Status:** early development. See [docs/PLAN.md](docs/PLAN.md) for the full plan.
 
@@ -33,11 +34,30 @@ The engine runs from the command line, without the app:
 
 ```sh
 # Speak a time (24-hour) with a voice pack folder; macOS plays it with afplay
-dart run tool/speak.dart --pack <voice-pack-dir> --time 10:15
+dart run tool/speak.dart --pack assets/voices/bn_classic --time 10:15
+dart run tool/speak.dart --pack assets/voices/bn_ai_girl --time 21:27 --exact
 
 # Convert a voice made for the original Windows app (VClock.def + vclock.wav)
 dart run tool/import_legacy_voice.dart VClock.def vclock.wav <out-dir>
 ```
 
-Voice packs built from material we can't redistribute go in `voices_local/`,
-which git ignores.
+### Voices
+
+| Pack | Voice |
+|---|---|
+| `bn_classic` | Moshfekah Ferdaus Mahita, from the original Bangla Voice Clock (1998). Used with permission. |
+| `bn_ai_girl` | A young Bangladeshi girl, an AI voice designed with [ElevenLabs](https://elevenlabs.io). |
+
+A pack records single words, which can say any time, plus whole phrases, which sound more
+natural and are used whenever they match. `lib/core/speech/voice_script.dart` lists every line.
+
+To make an AI pack, put `ELEVENLABS_API_KEY=...` in a `.env` file (git ignores it), then:
+
+```sh
+dart run tool/elevenlabs.dart design          # three preview voices to listen to
+dart run tool/elevenlabs.dart save --id <generated_voice_id>
+dart run tool/elevenlabs.dart generate --voice <voice_id> --out assets/voices/bn_ai_girl
+```
+
+Add `--dry-run` to `generate` to list the lines and character count without calling the API.
+Packs built from material we can't redistribute go in `voices_local/`, which git ignores.

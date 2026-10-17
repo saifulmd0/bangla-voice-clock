@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "id": "bn_classic",
+  "name": "ক্লাসিক (১৯৯৮)",
+  "language": "bn",
+  "credits": "Voice of Moshfekah Ferdaus Mahita, from Bangla Voice Clock (1998-2002) by Q A M Khaled Ferdaus. Used with permission.",
+  "clips": {
+    "starter": "clips/starter.wav",
+    "hour.12": "clips/hour_12.wav",
+    "hour.1": "clips/hour_1.wav",
+    "hour.2": "clips/hour_2.wav",
+    "hour.3": "clips/hour_3.wav",
+    "hour.4": "clips/hour_4.wav",
+    "hour.5": "clips/hour_5.wav",
+    "hour.6": "clips/hour_6.wav",
+    "hour.7": "clips/hour_7.wav",
+    "hour.8": "clips/hour_8.wav",
+    "hour.9": "clips/hour_9.wav",
+    "hour.10": "clips/hour_10.wav",
+    "hour.11": "clips/hour_11.wav",
+    "qtr.sowa": "clips/qtr_sowa.wav",
+    "qtr.sare": "clips/qtr_sare.wav",
+    "qtr.poune": "clips/qtr_poune.wav",
+    "zone.bhor": "clips/zone_bhor.wav",
+    "zone.sokal": "clips/zone_sokal.wav",
+    "zone.dupur": "clips/zone_dupur.wav",
+    "zone.bikal": "clips/zone_bikal.wav",
+    "zone.sondha": "clips/zone_sondha.wav",
+    "zone.raat": "clips/zone_raat.wav"
+  }
+}

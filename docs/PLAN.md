@@ -58,6 +58,24 @@ file that maps each fragment to a millisecond range.**
   (announcement, alarm, aazan) with a clear priority.
 - **Corrupted DB** needed a repair tool. → Use SQLite with transactions plus schema migrations.
 
+### 1.4 Second reference: Schedule Voice Clock (Ubuntu, 2026)
+`Reference/schedule-voice-clock-main` (MIT, Hridoy Varaby) is a small Python/GTK tray app that
+announces the time every 15, 30 or 60 minutes in English or Bangla. What we take from it:
+- **Whole-phrase recordings.** It plays one ElevenLabs recording per quarter hour (96 per
+  language) instead of joining words, which sounds far more natural. Our voice packs now support
+  phrase clips too (see 3.1), and keep single words as the fallback for anything else.
+- **ElevenLabs `eleven_v3`** handles Bangla; it used stability 0.5 and a slightly slow pace.
+  Its generator script and `.env` API-key pattern inspired `tool/elevenlabs.dart`.
+- **Tray UX:** Mute toggle in the menu, a notification when the time is announced, and
+  autostart. All three go into M3.
+- **Debounce:** remembers the last announced hour:minute so a timer firing twice in the same
+  minute doesn't speak twice. Our scheduler needs the same guard (M3).
+- **Release on tag:** a GitHub Actions workflow builds the package and attaches it to a
+  GitHub Release when a `v*` tag is pushed. We'll do the same with the DMG in M7.
+
+It says "বেজে পনেরো মিনিট" rather than "সোয়া", and its ভোর runs 4–5 (ours follows the original:
+4–6). Our exact style already covers the minutes wording.
+
 ---
 
 ## 2. Stack choice
@@ -153,21 +171,32 @@ file that maps each fragment to a millisecond range.**
 ### 3.1 Voice-pack format
 
 ```
-voices/bn_default/
+assets/voices/bn_ai_girl/
   manifest.json
-  clips/starter.wav  clips/hour_01.wav … clips/zone_sokal.wav  clips/sowa.wav …
+  clips/starter.wav  clips/hour_10.wav  clips/zone_sokal.wav  clips/qtr_sowa.wav …
+  phrases/starter__zone_sokal__qtr_sowa__hour_10.wav …
 ```
 ```json
 {
-  "id": "bn_default",
-  "name": "বাংলা – ডিফল্ট",
+  "format": 1,
+  "id": "bn_ai_girl",
+  "name": "শিশু কণ্ঠ (AI)",
   "language": "bn",
-  "grammar": "bn_v1",
-  "sampleRate": 24000,
-  "clips": { "starter": "clips/starter.wav", "hour_10": "clips/hour_10.wav", "...": "..." }
+  "credits": "…",
+  "clips": {
+    "starter": "clips/starter.wav",
+    "hour.10": "clips/hour_10.wav",
+    "starter zone.sokal qtr.sowa hour.10": "phrases/starter__zone_sokal__qtr_sowa__hour_10.wav"
+  }
 }
 ```
-- Clip format: 16-bit PCM WAV, mono, 24 kHz, loudness-normalised (−16 LUFS), silence trimmed.
+- A key with spaces is a **phrase**: one take of several words. When speaking, the longest
+  recorded phrase wins, then single words, then each word's fallback (দেড়টা → সাড়ে একটা).
+- The AI pack records 85 words, the 96 quarter-hour announcements whole, and for exact times
+  an opening per hour ("এখন সময় সকাল দশটা বেজে") and an ending per minute ("সাত মিনিট"), so any
+  minute is at most two natural takes. The list lives in code (`voice_script.dart`).
+- Clip format: 16-bit PCM WAV, mono, any rate (one rate per pack), level-normalised, silence
+  trimmed.
 - A **legacy importer** reads a `VClock.def` + `vclock.wav` pair and turns it into a voice pack.
   Old custom voices keep working.
 - Users can add packs from a folder: "Add voice pack…".
@@ -248,8 +277,9 @@ The "compose to one WAV" decision in §3 makes this possible without new audio c
 | **B. AI TTS** (ElevenLabs multilingual, Azure `bn-BD-NabanitaNeural` / `PradeepNeural`, Google `bn-IN`) | Good, sometimes odd intonation | Minutes, low cost | Ideal as **placeholder during development**. Generated at build time, so the app stays fully offline |
 | **C. Original "Mahita" clips** | Nostalgic but 8-bit / 11 kHz, and only 15/30/45 | Free | **Requires permission from the original author** to redistribute. Could ship as a "Classic 1998" pack if granted |
 
-Plan: start development with **B** (an ElevenLabs connection is available in this environment),
-swap in **A** before release, and pursue **C** as an optional extra.
+Decided (2026-10-17): **C** ships as the "Classic (1998)" pack, used with permission. **B** is
+an ElevenLabs-designed voice of a young Bangladeshi girl, made with `tool/elevenlabs.dart`. **A**
+stays optional for later.
 
 ---
 
@@ -276,13 +306,14 @@ bangla_voice_clock/
 │  ├─ platform/            # method-channel wrappers (App Nap, wake events)
 │  └─ l10n/               # app_bn.arb, app_en.arb
 ├─ assets/
-│  ├─ voices/bn_default/   # manifest.json + clips/
+│  ├─ voices/bn_classic/   # 1998 voice: manifest.json + clips/
+│  ├─ voices/bn_ai_girl/   # ElevenLabs voice: manifest.json + clips/ + phrases/
 │  ├─ sounds/              # chimes, alarm tones, aazan
 │  └─ fonts/               # Noto Sans Bengali, Hind Siliguri
 ├─ tool/
-│  ├─ gen_voice.dart       # TTS generation from script (dev placeholder)
-│  ├─ process_clips.dart   # trim, normalise, rename recorded clips
-│  └─ voice_script_bn.md   # recording script for the voice artist
+│  ├─ elevenlabs.dart      # design a voice, generate a pack from the voice script
+│  ├─ import_legacy_voice.dart  # VClock.def + vclock.wav → voice pack
+│  └─ speak.dart           # hear any time with any pack
 ├─ test/                   # unit + widget + golden tests
 ├─ macos/  (later: windows/ linux/ android/ ios/)
 └─ docs/PLAN.md
@@ -296,8 +327,8 @@ bangla_voice_clock/
 |---|---|---|---|
 | **M0** | Setup | Install Xcode + Flutter. Create project, lints, folder skeleton, GitHub Actions macOS build | 0.5 day |
 | **M1** | Core engine | `PhraseBuilder` (bn traditional + exact), voice-pack loader, `AudioComposer`, legacy `.def` importer. **Tests cover all 1,440 minutes of a day** | 2 days |
-| **M2** | Placeholder voice | TTS-generated `bn_default` pack (~86 clips) + recording script | 1 day |
-| **M3** | macOS MVP | Menu-bar app: live Bangla clock, interval 15/30/60/off, Speak now, volume, quiet hours, chime, launch at login, App Nap and wake handling | 3 days |
+| **M2** | AI voice | ElevenLabs-generated `bn_ai_girl` pack (264 clips incl. whole phrases), voice script, bundled classic pack | 1 day |
+| **M3** | macOS MVP | Menu-bar app: live Bangla clock, interval 15/30/60/off, Speak now, Mute, voice picker, volume, quiet hours, chime, announcement notification, launch at login, App Nap and wake handling | 3 days |
 | **M4** | Alarms | Unlimited alarms, repeat days, custom sound, snooze, notification | 2 days |
 | **M5** | Prayer times | City search / manual lat-long, calculation method, Hanafi/Shafi, aazan playback (separate Fajr aazan), Jumma, per-prayer on/off and offset | 2–3 days |
 | **M6** | Events | Event reminders with "remind N min before" and "repeat every N min", optional recorded voice note | 2 days |

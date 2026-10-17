@@ -85,6 +85,27 @@ class PcmAudio {
     return PcmAudio(Int16List.fromList(samples.sublist(from, to)), sampleRate);
   }
 
+  /// Returns a copy scaled to an average (RMS) level of [rms], as a
+  /// fraction of full scale, so clips recorded separately play equally loud.
+  /// The gain is capped so no sample exceeds [maxPeak].
+  PcmAudio normalized({double rms = 0.1, double maxPeak = 0.95}) {
+    var sumSquares = 0.0;
+    var peak = 0;
+    for (final s in samples) {
+      sumSquares += s * s;
+      peak = math.max(peak, s.abs());
+    }
+    if (peak == 0) return this;
+    final current = math.sqrt(sumSquares / length);
+    final gain = math.min(rms * 32767 / current, maxPeak * 32767 / peak);
+    return PcmAudio(
+      Int16List.fromList([
+        for (final s in samples) (s * gain).round().clamp(-32768, 32767),
+      ]),
+      sampleRate,
+    );
+  }
+
   /// Returns a copy with a linear fade applied to both ends, which avoids
   /// audible clicks where clips are joined.
   PcmAudio withFades(Duration fade) {

@@ -73,6 +73,46 @@ void main() {
     expect(pack.clipKeysFor(builder.build(13, 30)).last, ClipKeys.der);
   });
 
+  group('phrases', () {
+    final sokal = ClipKeys.zone(DayZone.sokal);
+    final whole = ClipKeys.phrase([
+      ClipKeys.starter,
+      sokal,
+      ClipKeys.sowa,
+      ClipKeys.hour(10),
+    ]);
+    final opening = ClipKeys.phrase([ClipKeys.starter, sokal]);
+
+    test('a whole recorded announcement is one clip', () async {
+      final pack = await writePack({...quarterPack, opening: 100, whole: 100});
+      expect(pack.clipKeysFor(builder.build(10, 15)), [whole]);
+    });
+
+    test('a partial phrase is joined to single words', () async {
+      final pack = await writePack({...quarterPack, opening: 100});
+      expect(pack.clipKeysFor(builder.build(10, 15)), [
+        opening,
+        ClipKeys.sowa,
+        ClipKeys.hour(10),
+      ]);
+    });
+
+    test('phrases for other times are not used', () async {
+      final pack = await writePack({...quarterPack, whole: 100});
+      expect(pack.clipKeysFor(builder.build(10, 30)), [
+        ClipKeys.starter,
+        sokal,
+        ClipKeys.sare,
+        ClipKeys.hour(10),
+      ]);
+    });
+
+    test('wordCount counts the words of a key', () {
+      expect(ClipKeys.wordCount(ClipKeys.starter), 1);
+      expect(ClipKeys.wordCount(whole), 4);
+    });
+  });
+
   test('reports every missing clip', () async {
     final pack = await writePack(quarterPack);
     final tokens = builder.build(10, 7, style: AnnouncementStyle.exact);

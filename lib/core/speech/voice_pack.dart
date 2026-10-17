@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../audio/audio_composer.dart';
 import '../audio/pcm_audio.dart';
 import '../audio/wav.dart';
+import 'bangla_words.dart';
 import 'speech_token.dart';
 
 /// Where a voice pack's files come from: a folder on disk now, Flutter
@@ -69,6 +71,7 @@ class VoicePackManifest {
   final String credits;
 
   /// Clip key → path of a WAV file, relative to the pack folder.
+  /// Keys may name whole phrases; see [ClipKeys.phrase].
   final Map<String, String> clips;
 
   Map<String, dynamic> toJson() => {
@@ -102,17 +105,24 @@ class VoicePack {
 
   bool has(String key) => manifest.clips.containsKey(key);
 
-  /// The clip keys that will speak [tokens], using each token's fallback
-  /// when the pack lacks its own clip.
+  /// The clip keys that will speak [tokens].
   ///
-  /// Throws [MissingClipsException] when a token can't be spoken at all.
+  /// At each point the longest recorded phrase wins, then the token's own
+  /// clip, then its fallback clips. Throws [MissingClipsException] when a
+  /// token can't be spoken at all.
   List<String> clipKeysFor(List<SpeechToken> tokens) {
     final keys = <String>[];
     final missing = <String>[];
-    for (final token in tokens) {
-      if (has(token.key)) {
-        keys.add(token.key);
-      } else if (token.fallback.isNotEmpty && token.fallback.every(has)) {
+    var i = 0;
+    while (i < tokens.length) {
+      final phrase = _longestPhraseAt(tokens, i);
+      if (phrase != null) {
+        keys.add(phrase.key);
+        i += phrase.words;
+        continue;
+      }
+      final token = tokens[i++];
+      if (token.fallback.isNotEmpty && token.fallback.every(has)) {
         keys.addAll(token.fallback);
       } else {
         missing.add(token.key);
@@ -120,6 +130,23 @@ class VoicePack {
     }
     if (missing.isNotEmpty) throw MissingClipsException(id, missing);
     return keys;
+  }
+
+  late final int _longestPhrase = manifest.clips.keys.fold(
+    1,
+    (longest, key) => math.max(longest, ClipKeys.wordCount(key)),
+  );
+
+  ({String key, int words})? _longestPhraseAt(
+    List<SpeechToken> tokens,
+    int start,
+  ) {
+    final maxEnd = math.min(tokens.length, start + _longestPhrase);
+    for (var end = maxEnd; end > start; end--) {
+      final key = ClipKeys.phrase(tokens.sublist(start, end).map((t) => t.key));
+      if (has(key)) return (key: key, words: end - start);
+    }
+    return null;
   }
 
   bool canSpeak(List<SpeechToken> tokens) {
