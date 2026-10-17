@@ -67,6 +67,14 @@ void main() {
       expect((await store.load()).intervalMinutes, 60);
     });
 
+    test('overlapping saves keep the last one', () async {
+      final store = SettingsStore(File('${dir.path}/settings.json'));
+      await Future.wait([
+        for (var i = 1; i <= 20; i++) store.save(AppSettings(volume: i / 20)),
+      ]);
+      expect((await store.load()).volume, 1.0);
+    });
+
     test('a damaged file gives the defaults', () async {
       final file = File('${dir.path}/settings.json')..writeAsStringSync('{');
       expect((await SettingsStore(file).load()).voiceId, 'bn_ai');

@@ -32,7 +32,15 @@ class SettingsStore {
     return const AppSettings();
   }
 
-  Future<void> save(AppSettings settings) async {
+  Future<void> _queue = Future.value();
+
+  /// Saves [settings]. Saves run one at a time in the order called, so
+  /// rapid changes (dragging the volume slider) never overlap on the
+  /// temporary file and the last change always wins.
+  Future<void> save(AppSettings settings) =>
+      _queue = _queue.then((_) => _write(settings));
+
+  Future<void> _write(AppSettings settings) async {
     await file.parent.create(recursive: true);
     // Write then rename, so a crash mid-write can't leave a broken file.
     final temp = File('${file.path}.tmp');
