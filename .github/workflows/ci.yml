@@ -45,7 +45,7 @@ jobs:
       - name: Zip app bundle
         run: |
           cd build/macos/Build/Products/Release
-          ditto -c -k --keepParent bangla_voice_clock.app "$GITHUB_WORKSPACE/BanglaVoiceClock-macos.zip"
+          ditto -c -k --keepParent "Bangla Voice Clock.app" "$GITHUB_WORKSPACE/BanglaVoiceClock-macos.zip"
       - uses: actions/upload-artifact@v7
         with:
           name: BanglaVoiceClock-macos

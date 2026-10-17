@@ -398,7 +398,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.projuktiteam.banglaVoiceClock.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bangla_voice_clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/bangla_voice_clock";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bangla Voice Clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bangla Voice Clock";
 			};
 			name = Debug;
 		};
@@ -412,7 +412,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.projuktiteam.banglaVoiceClock.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bangla_voice_clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/bangla_voice_clock";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bangla Voice Clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bangla Voice Clock";
 			};
 			name = Release;
 		};
@@ -426,7 +426,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.projuktiteam.banglaVoiceClock.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/bangla_voice_clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/bangla_voice_clock";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bangla Voice Clock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bangla Voice Clock";
 			};
 			name = Profile;
 		};
