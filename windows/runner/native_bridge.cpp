@@ -2,7 +2,12 @@
 
 #include <dwmapi.h>
 #include <flutter/standard_method_codec.h>
+#include <mmdeviceapi.h>
 #include <mmsystem.h>
+#include <objbase.h>
+
+#include <algorithm>
+#include <cstring>
 
 #include "resource.h"
 
@@ -19,6 +24,18 @@ constexpr wchar_t kRunKey[] =
 // DWMWA_USE_IMMERSIVE_DARK_MODE, missing from older SDK headers.
 constexpr DWORD kDarkModeAttribute = 20;
 
+// From mmddk.h: a waveOut device's audio endpoint ID, which stays the same
+// across restarts, unlike its index.
+#ifndef DRV_QUERYFUNCTIONINSTANCEID
+#define DRV_QUERYFUNCTIONINSTANCEID (DRV_RESERVED + 17)
+#define DRV_QUERYFUNCTIONINSTANCEIDSIZE (DRV_RESERVED + 18)
+#endif
+
+// PKEY_Device_FriendlyName, such as "Headphones (Realtek Audio)".
+constexpr PROPERTYKEY kFriendlyName = {
+    {0xa45c254e, 0xdf1c, 0x4efd, {0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0}},
+    14};
+
 std::wstring Wide(const std::string& text) {
   if (text.empty()) return std::wstring();
   int length = MultiByteToWideChar(CP_UTF8, 0, text.data(),
@@ -27,6 +44,88 @@ std::wstring Wide(const std::string& text) {
   MultiByteToWideChar(CP_UTF8, 0, text.data(), static_cast<int>(text.size()),
                       wide.data(), length);
   return wide;
+}
+
+std::string Narrow(const std::wstring& text) {
+  if (text.empty()) return std::string();
+  int length = WideCharToMultiByte(CP_UTF8, 0, text.data(),
+                                   static_cast<int>(text.size()), nullptr, 0,
+                                   nullptr, nullptr);
+  std::string narrow(length, '\0');
+  WideCharToMultiByte(CP_UTF8, 0, text.data(), static_cast<int>(text.size()),
+                      narrow.data(), length, nullptr, nullptr);
+  return narrow;
+}
+
+struct OutputDevice {
+  UINT index;
+  std::wstring id;
+  std::wstring name;
+};
+
+std::wstring EndpointId(UINT index) {
+  auto device = reinterpret_cast<HWAVEOUT>(static_cast<UINT_PTR>(index));
+  ULONG bytes = 0;
+  if (waveOutMessage(device, DRV_QUERYFUNCTIONINSTANCEIDSIZE,
+                     reinterpret_cast<DWORD_PTR>(&bytes),
+                     0) != MMSYSERR_NOERROR ||
+      bytes == 0) {
+    return std::wstring();
+  }
+  std::wstring id(bytes / sizeof(wchar_t), L'\0');
+  if (waveOutMessage(device, DRV_QUERYFUNCTIONINSTANCEID,
+                     reinterpret_cast<DWORD_PTR>(id.data()),
+                     bytes) != MMSYSERR_NOERROR) {
+    return std::wstring();
+  }
+  id.resize(wcsnlen(id.c_str(), id.size()));
+  return id;
+}
+
+// The endpoint's full name; waveOut's own names stop at 31 characters.
+std::wstring FriendlyName(IMMDeviceEnumerator* devices,
+                          const std::wstring& id) {
+  std::wstring name;
+  IMMDevice* device = nullptr;
+  if (devices && SUCCEEDED(devices->GetDevice(id.c_str(), &device))) {
+    IPropertyStore* store = nullptr;
+    if (SUCCEEDED(device->OpenPropertyStore(STGM_READ, &store))) {
+      PROPVARIANT value;
+      PropVariantInit(&value);
+      if (SUCCEEDED(store->GetValue(kFriendlyName, &value)) &&
+          value.vt == VT_LPWSTR) {
+        name = value.pwszVal;
+      }
+      PropVariantClear(&value);
+      store->Release();
+    }
+    device->Release();
+  }
+  return name;
+}
+
+// Every device that can play sound.
+std::vector<OutputDevice> OutputDevices() {
+  std::vector<OutputDevice> result;
+  IMMDeviceEnumerator* devices = nullptr;
+  CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                   __uuidof(IMMDeviceEnumerator),
+                   reinterpret_cast<void**>(&devices));
+  UINT count = waveOutGetNumDevs();
+  for (UINT i = 0; i < count; ++i) {
+    std::wstring id = EndpointId(i);
+    if (id.empty()) continue;
+    std::wstring name = FriendlyName(devices, id);
+    if (name.empty()) {
+      WAVEOUTCAPSW caps = {};
+      if (waveOutGetDevCapsW(i, &caps, sizeof(caps)) == MMSYSERR_NOERROR) {
+        name = caps.szPname;
+      }
+    }
+    result.push_back({i, id, name.empty() ? id : name});
+  }
+  if (devices) devices->Release();
+  return result;
 }
 
 const flutter::EncodableValue* Field(const flutter::EncodableMap& map,
@@ -64,7 +163,7 @@ NativeBridge::NativeBridge(flutter::BinaryMessenger* messenger, HWND window)
 }
 
 NativeBridge::~NativeBridge() {
-  PlaySoundW(nullptr, nullptr, 0);
+  StopSound();
   Shell_NotifyIconW(NIM_DELETE, &tray_);
 }
 
@@ -97,14 +196,39 @@ void NativeBridge::HandleCall(
     if (!bytes) return result->Error("bad_arguments", "play needs wav bytes");
     const auto* volume = Field(*map, "volume");
     const auto* level = volume ? std::get_if<double>(volume) : nullptr;
+    double gain = level ? *level : 1.0;
+    std::wstring chosen = Wide(StringField(*map, "device"));
     // Stop any sound still playing before its buffer is replaced.
-    PlaySoundW(nullptr, nullptr, 0);
+    StopSound();
     sound_ = *bytes;
-    DWORD channel = static_cast<DWORD>((level ? *level : 1.0) * 0xFFFF);
-    waveOutSetVolume(nullptr, channel | (channel << 16));
-    PlaySoundW(reinterpret_cast<LPCWSTR>(sound_.data()), nullptr,
-               SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+    bool played = false;
+    if (!chosen.empty()) {
+      for (const auto& device : OutputDevices()) {
+        if (device.id == chosen) {
+          played = PlayOnDevice(device.index, gain);
+          break;
+        }
+      }
+    }
+    // The system default, also when the chosen device is unplugged.
+    if (!played) {
+      DWORD channel = static_cast<DWORD>(gain * 0xFFFF);
+      waveOutSetVolume(nullptr, channel | (channel << 16));
+      PlaySoundW(reinterpret_cast<LPCWSTR>(sound_.data()), nullptr,
+                 SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+    }
     result->Success();
+  } else if (method == "outputDevices") {
+    flutter::EncodableList list;
+    for (const auto& device : OutputDevices()) {
+      list.push_back(flutter::EncodableValue(flutter::EncodableMap{
+          {flutter::EncodableValue("id"),
+           flutter::EncodableValue(Narrow(device.id))},
+          {flutter::EncodableValue("name"),
+           flutter::EncodableValue(Narrow(device.name))},
+      }));
+    }
+    result->Success(flutter::EncodableValue(list));
   } else if (method == "setStatus") {
     // The tray shows only an icon, so the time goes in its tooltip.
     std::wstring title = map ? Wide(StringField(*map, "title")) : L"";
@@ -193,6 +317,13 @@ std::optional<LRESULT> NativeBridge::HandleMessage(HWND hwnd, UINT message,
     return 0;
   }
   switch (message) {
+    case MM_WOM_DONE:
+      // A stale notice from a sound StopSound already cut off is ignored.
+      if (reinterpret_cast<HWAVEOUT>(wparam) == wave_out_ &&
+          (wave_header_.dwFlags & WHDR_DONE)) {
+        CloseWaveOut();
+      }
+      return 0;
     case WM_POWERBROADCAST:
       if (wparam == PBT_APMRESUMEAUTOMATIC || wparam == PBT_APMRESUMESUSPEND) {
         channel_->InvokeMethod("clockDisturbed", nullptr);
@@ -279,4 +410,58 @@ void NativeBridge::SetAppearance(const std::string& appearance) {
     dark = light == 0;
   }
   DwmSetWindowAttribute(window_, kDarkModeAttribute, &dark, sizeof(dark));
+}
+
+bool NativeBridge::PlayOnDevice(UINT index, double volume) {
+  // The app's own WAVs: a "fmt " chunk, then the samples in "data".
+  WAVEFORMATEX format = {};
+  size_t data = 0, size = 0;
+  for (size_t at = 12; at + 8 <= sound_.size();) {
+    uint32_t length;
+    memcpy(&length, &sound_[at + 4], sizeof(length));
+    size_t body = at + 8;
+    if (memcmp(&sound_[at], "fmt ", 4) == 0 && body + 16 <= sound_.size()) {
+      memcpy(&format, &sound_[body], 16);
+    } else if (memcmp(&sound_[at], "data", 4) == 0) {
+      data = body;
+      size = std::min<size_t>(length, sound_.size() - body);
+      break;
+    }
+    at = body + length + (length & 1);
+  }
+  if (format.wFormatTag != WAVE_FORMAT_PCM || size == 0) return false;
+  if (waveOutOpen(&wave_out_, index, &format,
+                  reinterpret_cast<DWORD_PTR>(window_), 0,
+                  CALLBACK_WINDOW) != MMSYSERR_NOERROR) {
+    wave_out_ = nullptr;
+    return false;
+  }
+  DWORD channel = static_cast<DWORD>(volume * 0xFFFF);
+  waveOutSetVolume(wave_out_, channel | (channel << 16));
+  wave_header_ = {};
+  wave_header_.lpData = reinterpret_cast<LPSTR>(sound_.data() + data);
+  wave_header_.dwBufferLength = static_cast<DWORD>(size);
+  if (waveOutPrepareHeader(wave_out_, &wave_header_, sizeof(WAVEHDR)) !=
+          MMSYSERR_NOERROR ||
+      waveOutWrite(wave_out_, &wave_header_, sizeof(WAVEHDR)) !=
+          MMSYSERR_NOERROR) {
+    CloseWaveOut();
+    return false;
+  }
+  return true;
+}
+
+void NativeBridge::StopSound() {
+  PlaySoundW(nullptr, nullptr, 0);
+  if (wave_out_) {
+    waveOutReset(wave_out_);
+    CloseWaveOut();
+  }
+}
+
+void NativeBridge::CloseWaveOut() {
+  if (!wave_out_) return;
+  waveOutUnprepareHeader(wave_out_, &wave_header_, sizeof(WAVEHDR));
+  waveOutClose(wave_out_);
+  wave_out_ = nullptr;
 }

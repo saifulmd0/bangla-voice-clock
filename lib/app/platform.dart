@@ -39,6 +39,22 @@ class MenuEntry {
   };
 }
 
+/// A sound output, such as built-in speakers or headphones.
+class AudioDevice {
+  const AudioDevice(this.id, this.name);
+
+  /// Stable across launches: a Core Audio UID or a Windows endpoint ID.
+  final String id;
+  final String name;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AudioDevice && other.id == id && other.name == name;
+
+  @override
+  int get hashCode => Object.hash(id, name);
+}
+
 /// What the app needs from the operating system.
 abstract interface class AppPlatform {
   /// Menu-bar item clicks, by [MenuEntry.id].
@@ -47,7 +63,12 @@ abstract interface class AppPlatform {
   /// Fires after the computer wakes or the clock or time zone changes.
   Stream<void> get clockDisturbed;
 
-  Future<void> play(Uint8List wav, {double volume = 1});
+  /// Plays [wav] through [device] (an [AudioDevice.id]), or through the
+  /// system's default output when it is empty or not connected.
+  Future<void> play(Uint8List wav, {double volume = 1, String device = ''});
+
+  /// The sound outputs connected now.
+  Future<List<AudioDevice>> outputDevices();
 
   /// Sets the menu-bar item: [title] (the time, or empty) and whether to
   /// show the logo icon beside it.
@@ -94,8 +115,22 @@ class NativePlatform implements AppPlatform {
   Stream<void> get clockDisturbed => _clock.stream;
 
   @override
-  Future<void> play(Uint8List wav, {double volume = 1}) =>
-      _channel.invokeMethod('play', {'wav': wav, 'volume': volume});
+  Future<void> play(Uint8List wav, {double volume = 1, String device = ''}) =>
+      _channel.invokeMethod('play', {
+        'wav': wav,
+        'volume': volume,
+        'device': device,
+      });
+
+  @override
+  Future<List<AudioDevice>> outputDevices() async {
+    final list = await _channel.invokeListMethod<Map>('outputDevices') ?? [];
+    return [
+      for (final d in list)
+        if (d['id'] case final String id when id.isNotEmpty)
+          AudioDevice(id, d['name'] as String? ?? id),
+    ];
+  }
 
   @override
   Future<void> setStatus({required String title, required bool icon}) =>

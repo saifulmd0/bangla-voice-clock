@@ -10,7 +10,7 @@ void main() {
     const s = AppSettings(
       muted: true,
       intervalMinutes: 30,
-      style: AnnouncementStyle.exact,
+      style: AnnouncementStyle.traditional,
       voiceId: 'bn_classic',
       volume: 0.4,
       chime: false,
@@ -23,8 +23,20 @@ void main() {
       appearance: Appearance.dark,
       sayBeje: false,
       welcomed: true,
+      outputDeviceId: 'buds',
+      outputDeviceName: 'CMF Buds Pro 2',
+      checkUpdates: false,
+      skippedVersion: '0.4.0',
     );
     expect(AppSettings.fromJson(s.toJson()).toJson(), s.toJson());
+  });
+
+  test('new installs speak by the minute, in Bangla, with the AI voice', () {
+    const d = AppSettings();
+    expect(
+      (d.style, d.language, d.voiceId, d.outputDeviceId, d.checkUpdates),
+      (AnnouncementStyle.exact, AppLanguage.bn, 'bn_ai', '', true),
+    );
   });
 
   test('bad or missing values fall back to the defaults', () {

@@ -1,16 +1,18 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
+import '../app/platform.dart';
+import '../app/version.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/speech_token.dart';
 import '../core/speech/timer_phrases.dart';
 import 'brand.dart';
 import 'strings.dart';
+import 'update_dialog.dart';
 
 part 'timer_view.dart';
 
@@ -175,16 +177,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         ? s.style
                         : AnnouncementStyle.traditional,
                     onChanged: (v) => set(s.copyWith(style: v)),
-                    child: Column(
+                    child: _OptionGroup(
                       children: [
-                        _styleTile(
-                          AnnouncementStyle.traditional,
-                          t.traditional,
-                        ),
                         _styleTile(
                           AnnouncementStyle.exact,
                           t.exact,
                           enabled: controller.voiceSaysEveryMinute,
+                        ),
+                        _styleTile(
+                          AnnouncementStyle.traditional,
+                          t.traditional,
                         ),
                       ],
                     ),
@@ -208,11 +210,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   RadioGroup<String>(
                     groupValue: controller.voice.id,
                     onChanged: (id) => set(s.copyWith(voiceId: id)),
-                    child: Column(
+                    child: _OptionGroup(
                       children: [
                         for (final MapEntry(key: id, value: pack)
                             in controller.voices.entries)
-                          _RadioTile(
+                          _OptionTile(
                             value: id,
                             title: Text(
                               t.voiceLabel(
@@ -243,6 +245,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: s.chime,
                     onChanged: (v) => set(s.copyWith(chime: v)),
                   ),
+                  _ChoiceRow(
+                    title: t.output,
+                    child: _OutputPicker(controller: controller),
+                  ),
+                  if (s.outputDeviceId.isNotEmpty) _Note(t.outputHint),
                 ],
               ),
               _Section(
@@ -308,6 +315,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: enabled,
                       onChanged: controller.setLaunchAtLogin,
                     ),
+                  SwitchListTile.adaptive(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                    title: Text(t.checkUpdates),
+                    value: s.checkUpdates,
+                    onChanged: (v) => set(s.copyWith(checkUpdates: v)),
+                  ),
+                  ListTile(
+                    title: Text(t.version(appVersion)),
+                    trailing: _CheckNowButton(controller: controller),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -331,7 +349,7 @@ class _SettingsPageState extends State<SettingsPage> {
       DateTime(2000, 1, 1, 10, minute),
       style: style,
     );
-    return _RadioTile(
+    return _OptionTile(
       value: style,
       enabled: enabled,
       title: Text(label),
@@ -442,10 +460,32 @@ class _Note extends StatelessWidget {
   }
 }
 
-/// A macOS-style radio row inside a [RadioGroup]: sky blue when chosen,
-/// and a clear outline ring when not.
-class _RadioTile<T> extends StatelessWidget {
-  const _RadioTile({
+/// Options inside a [RadioGroup], each on its own card with a gap between,
+/// so neighbouring choices never run together.
+class _OptionGroup extends StatelessWidget {
+  const _OptionGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, child) in children.indexed) ...[
+          if (i > 0) const SizedBox(height: 8),
+          child,
+        ],
+      ],
+    ),
+  );
+}
+
+/// One option in an [_OptionGroup]: a card with a radio mark, tinted and
+/// outlined sky blue when chosen.
+class _OptionTile<T> extends StatelessWidget {
+  const _OptionTile({
     required this.value,
     required this.title,
     this.subtitle,
@@ -459,39 +499,213 @@ class _RadioTile<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final chosen = RadioGroup.maybeOf<T>(context)?.groupValue == value;
-    return ListTile(
-      leading: Stack(
-        alignment: Alignment.center,
-        children: [
-          CupertinoRadio<T>(
-            value: value,
-            enabled: enabled,
-            activeColor: scheme.primary,
-            inactiveColor: scheme.surfaceContainerLowest,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final group = RadioGroup.maybeOf<T>(context);
+    final chosen = group?.groupValue == value;
+    final light = scheme.brightness == Brightness.light;
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      checked: chosen,
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: Material(
+          color: chosen
+              ? scheme.primary.withValues(alpha: light ? 0.08 : 0.16)
+              : scheme.surfaceContainerLow,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: chosen
+                ? BorderSide(color: scheme.primary, width: 1.5)
+                : BorderSide(color: scheme.outlineVariant),
           ),
-          // Cupertino's own unchosen ring is too faint on these cards, and
-          // in dark mode it fills at low opacity, so draw a clear ring.
-          if (!chosen)
-            IgnorePointer(
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: scheme.outline, width: 1.5),
-                ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: enabled ? () => group?.onChanged(value) : null,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: _RadioMark(chosen: chosen),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DefaultTextStyle.merge(
+                          style: theme.listTileTheme.titleTextStyle,
+                          child: title,
+                        ),
+                        if (subtitle case final subtitle?) ...[
+                          const SizedBox(height: 2),
+                          DefaultTextStyle.merge(
+                            style: theme.listTileTheme.subtitleTextStyle,
+                            child: subtitle,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
+          ),
+        ),
       ),
-      enabled: enabled,
-      title: title,
-      subtitle: subtitle,
-      onTap: () => RadioGroup.maybeOf<T>(context)?.onChanged(value),
     );
   }
+}
+
+/// A 20pt radio mark: a sky-blue disc with a white centre when chosen, an
+/// outline ring when not.
+class _RadioMark extends StatelessWidget {
+  const _RadioMark({required this.chosen});
+
+  final bool chosen;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: chosen ? scheme.primary : scheme.surfaceContainerLowest,
+        border: chosen ? null : Border.all(color: scheme.outline, width: 1.5),
+      ),
+      child: chosen
+          ? Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: scheme.onPrimary,
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+/// A pop-up button choosing where announcements play: the system default
+/// or one of the outputs connected now, looked up each time it opens.
+class _OutputPicker extends StatelessWidget {
+  const _OutputPicker({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = controller.strings;
+    final s = controller.settings;
+    final theme = Theme.of(context);
+    final connected = controller.outputs.any((d) => d.id == s.outputDeviceId);
+    final label = s.outputDeviceId.isEmpty
+        ? t.systemOutput
+        : connected || controller.outputs.isEmpty
+        ? s.outputDeviceName
+        : t.notConnected(s.outputDeviceName);
+    Widget item(AudioDevice? device, String name) {
+      final chosen = (device?.id ?? '') == s.outputDeviceId;
+      return MenuItemButton(
+        leadingIcon: Icon(
+          Icons.check,
+          size: 18,
+          color: chosen ? theme.colorScheme.primary : Colors.transparent,
+        ),
+        onPressed: () => controller.chooseOutput(device),
+        child: Text(name),
+      );
+    }
+
+    return MenuAnchor(
+      onOpen: controller.refreshOutputs,
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          theme.colorScheme.surfaceContainerLowest,
+        ),
+        side: WidgetStatePropertyAll(
+          BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      menuChildren: [
+        item(null, t.systemOutput),
+        for (final device in controller.outputs) item(device, device.name),
+      ],
+      builder: (context, menu, _) => OutlinedButton(
+        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: theme.colorScheme.onSurface,
+          padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.speaker_outlined, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
+            const Icon(Icons.unfold_more, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Checks GitHub for a newer version on request, then offers it or says
+/// this one is the latest.
+class _CheckNowButton extends StatefulWidget {
+  const _CheckNowButton({required this.controller});
+
+  final AppController controller;
+
+  @override
+  State<_CheckNowButton> createState() => _CheckNowButtonState();
+}
+
+class _CheckNowButtonState extends State<_CheckNowButton> {
+  var _checking = false;
+
+  Future<void> _check() async {
+    final t = widget.controller.strings;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _checking = true);
+    try {
+      final release = await widget.controller.checkForUpdate();
+      if (!mounted) return;
+      if (release == null) {
+        messenger.showSnackBar(SnackBar(content: Text(t.upToDate)));
+      } else {
+        await showUpdateDialog(context, widget.controller, release);
+      }
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.checkFailed)));
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => _checking
+      ? const SizedBox.square(
+          dimension: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : TextButton(
+          onPressed: _check,
+          child: Text(widget.controller.strings.checkNow),
+        );
 }
 
 /// One option of a [_Segmented] control.

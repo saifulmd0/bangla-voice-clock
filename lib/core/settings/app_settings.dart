@@ -23,7 +23,7 @@ class AppSettings {
   const AppSettings({
     this.muted = false,
     this.intervalMinutes = 15,
-    this.style = AnnouncementStyle.traditional,
+    this.style = AnnouncementStyle.exact,
     this.voiceId = 'bn_ai',
     this.volume = 1.0,
     this.chime = true,
@@ -37,6 +37,10 @@ class AppSettings {
     this.sayBeje = true,
     this.timerMinutes = 25,
     this.welcomed = false,
+    this.outputDeviceId = '',
+    this.outputDeviceName = '',
+    this.checkUpdates = true,
+    this.skippedVersion = '',
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -78,6 +82,10 @@ class AppSettings {
       sayBeje: read('sayBeje', d.sayBeje),
       timerMinutes: read('timerMinutes', d.timerMinutes).clamp(1, 180),
       welcomed: read('welcomed', d.welcomed),
+      outputDeviceId: read('outputDeviceId', d.outputDeviceId),
+      outputDeviceName: read('outputDeviceName', d.outputDeviceName),
+      checkUpdates: read('checkUpdates', d.checkUpdates),
+      skippedVersion: read('skippedVersion', d.skippedVersion),
     );
   }
 
@@ -113,6 +121,17 @@ class AppSettings {
   /// Whether the settings window has been shown once, on first launch.
   final bool welcomed;
 
+  /// The sound output chosen for announcements, empty for the system's
+  /// default. The name is kept to show while the device is unplugged.
+  final String outputDeviceId;
+  final String outputDeviceName;
+
+  /// Whether to look for a newer version once a day.
+  final bool checkUpdates;
+
+  /// A version the user chose not to be told about again.
+  final String skippedVersion;
+
   AnnouncementSchedule get schedule => AnnouncementSchedule(
     intervalMinutes: intervalMinutes,
     quietHours: quietHoursEnabled
@@ -137,6 +156,10 @@ class AppSettings {
     bool? sayBeje,
     int? timerMinutes,
     bool? welcomed,
+    String? outputDeviceId,
+    String? outputDeviceName,
+    bool? checkUpdates,
+    String? skippedVersion,
   }) => AppSettings(
     muted: muted ?? this.muted,
     intervalMinutes: intervalMinutes ?? this.intervalMinutes,
@@ -154,6 +177,10 @@ class AppSettings {
     sayBeje: sayBeje ?? this.sayBeje,
     timerMinutes: timerMinutes ?? this.timerMinutes,
     welcomed: welcomed ?? this.welcomed,
+    outputDeviceId: outputDeviceId ?? this.outputDeviceId,
+    outputDeviceName: outputDeviceName ?? this.outputDeviceName,
+    checkUpdates: checkUpdates ?? this.checkUpdates,
+    skippedVersion: skippedVersion ?? this.skippedVersion,
   );
 
   Map<String, dynamic> toJson() => {
@@ -173,5 +200,9 @@ class AppSettings {
     'sayBeje': sayBeje,
     'timerMinutes': timerMinutes,
     'welcomed': welcomed,
+    'outputDeviceId': outputDeviceId,
+    'outputDeviceName': outputDeviceName,
+    'checkUpdates': checkUpdates,
+    'skippedVersion': skippedVersion,
   };
 }

@@ -1,5 +1,6 @@
 import AVFoundation
 import Cocoa
+import CoreAudio
 import FlutterMacOS
 import ServiceManagement
 import UserNotifications
@@ -33,8 +34,9 @@ class MainFlutterWindow: NSWindow, NSWindowDelegate {
   }
 }
 
-/// The macOS side of `lib/app/platform.dart`: menu-bar item, audio,
-/// notifications, launch at login, and wake/clock-change events.
+/// The macOS side of `lib/app/platform.dart`: menu-bar item, audio and its
+/// output device, notifications, launch at login, and wake/clock-change
+/// events.
 class NativeBridge: NSObject {
   private let window: NSWindow
   private let channel: FlutterMethodChannel
@@ -81,12 +83,20 @@ class NativeBridge: NSObject {
       do {
         let player = try AVAudioPlayer(data: wav.data)
         player.volume = Float(args["volume"] as? Double ?? 1)
+        // A device that isn't connected leaves the system default.
+        if let device = args["device"] as? String, !device.isEmpty,
+          outputDevices().contains(where: { $0["id"] == device })
+        {
+          player.currentDevice = device
+        }
         player.play()
         self.player = player
         result(nil)
       } catch {
         result(FlutterError(code: "play_failed", message: "\(error)", details: nil))
       }
+    case "outputDevices":
+      result(outputDevices())
     case "setStatus":
       let args = call.arguments as? [String: Any] ?? [:]
       let title = args["title"] as? String ?? ""
@@ -207,6 +217,48 @@ class NativeBridge: NSObject {
         if granted { send() }
       }
     }
+  }
+
+  /// Every device that can play sound, by Core Audio UID and name.
+  private func outputDevices() -> [[String: String]] {
+    let system = AudioObjectID(kAudioObjectSystemObject)
+    var address = AudioObjectPropertyAddress(
+      mSelector: kAudioHardwarePropertyDevices, mScope: kAudioObjectPropertyScopeGlobal,
+      mElement: kAudioObjectPropertyElementMain)
+    var size: UInt32 = 0
+    guard AudioObjectGetPropertyDataSize(system, &address, 0, nil, &size) == noErr else {
+      return []
+    }
+    var ids = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
+    guard AudioObjectGetPropertyData(system, &address, 0, nil, &size, &ids) == noErr else {
+      return []
+    }
+    return ids.compactMap { id in
+      var streams = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyStreams, mScope: kAudioDevicePropertyScopeOutput,
+        mElement: kAudioObjectPropertyElementMain)
+      var streamsSize: UInt32 = 0
+      guard AudioObjectGetPropertyDataSize(id, &streams, 0, nil, &streamsSize) == noErr,
+        streamsSize > 0,
+        let uid = stringProperty(of: id, kAudioDevicePropertyDeviceUID),
+        let name = stringProperty(of: id, kAudioObjectPropertyName)
+      else { return nil }
+      return ["id": uid, "name": name]
+    }
+  }
+
+  private func stringProperty(
+    of id: AudioObjectID, _ selector: AudioObjectPropertySelector
+  ) -> String? {
+    var address = AudioObjectPropertyAddress(
+      mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal,
+      mElement: kAudioObjectPropertyElementMain)
+    var value: Unmanaged<CFString>?
+    var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+    guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &value) == noErr,
+      let value
+    else { return nil }
+    return value.takeRetainedValue() as String
   }
 
   private func badArguments(_ call: FlutterMethodCall) -> FlutterError {

@@ -85,6 +85,14 @@ class Strings {
       author.isEmpty ? name : '$name - by $author';
   String get volume => _t('শব্দের মাত্রা', 'Volume');
   String get chime => _t('ঘোষণার আগে ঘণ্টাধ্বনি', 'Chime before announcing');
+  String get output => _t('কোথায় বাজবে', 'Play through');
+  String get systemOutput => _t('সিস্টেমের ডিফল্ট', 'System default');
+  String notConnected(String device) =>
+      _t('$device (সংযুক্ত নেই)', '$device (not connected)');
+  String get outputHint => _t(
+    'বেছে নেওয়া ডিভাইস সংযুক্ত না থাকলে সিস্টেমের ডিফল্টে বাজবে।',
+    'If the chosen device is not connected, the system default plays instead.',
+  );
 
   // Quiet hours.
   String get quietHours => _t('নীরব সময়', 'Quiet hours');
@@ -134,6 +142,38 @@ class Strings {
   String get notify => _t('ঘোষণার সাথে নোটিফিকেশন', 'Show a notification');
   String get launchAtLogin =>
       _t('কম্পিউটার চালু হলে নিজে থেকে চালু হবে', 'Open at login');
+
+  // Updates.
+  String get checkUpdates =>
+      _t('নতুন সংস্করণ এলে জানান', 'Tell me about new versions');
+  String version(String v) => _t('সংস্করণ ${banglaDigits(v)}', 'Version $v');
+  String get checkNow => _t('এখনই দেখুন', 'Check now');
+  String get upToDate =>
+      _t('এটিই সর্বশেষ সংস্করণ।', "You're on the latest version.");
+  String get checkFailed => _t(
+    'নতুন সংস্করণ খোঁজা গেল না। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।',
+    "Couldn't check for a new version. Check the internet connection and "
+        'try again.',
+  );
+  String get updateTitle => _t('নতুন সংস্করণ এসেছে', 'A new version is out');
+  String updateBody(String next, String current) => _t(
+    'সংস্করণ ${banglaDigits(next)} এসেছে, আপনার আছে ${banglaDigits(current)}।',
+    'Version $next is out; you have $current.',
+  );
+  String get updateNow => _t('এখনই আপডেট করুন', 'Update now');
+  String get openDownload => _t('ডাউনলোড পেজ খুলুন', 'Open download page');
+  String get later => _t('পরে', 'Later');
+  String get skipVersion => _t('এটি বাদ দিন', 'Skip this version');
+  String get downloading => _t('ডাউনলোড হচ্ছে…', 'Downloading…');
+  String get updateFailed => _t(
+    'আপডেট করা গেল না। ডাউনলোড পেজ থেকে নতুন সংস্করণ নামিয়ে নিন।',
+    "The update didn't work. Get the new version from the download page "
+        'instead.',
+  );
+  String get brewHint => _t(
+    'Homebrew দিয়ে ইনস্টল করে থাকলে টার্মিনালে লিখুন:',
+    'Installed with Homebrew? Run this in Terminal:',
+  );
 
   // Tabs and timer.
   String get clockTab => _t('ঘড়ি', 'Clock');

@@ -36,7 +36,8 @@ Dock or taskbar window. From its menu you can hear the time now, mute it, change
 speaks, or open the window, which has two tabs:
 
 - **ঘড়ি (Clock):** voice, traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording (বেজে optional),
-  volume, chime, quiet hours (to the minute), launch at login, light or dark look, and the interface language
+  volume, chime, which speaker or headphones it plays through, quiet hours (to the minute), launch at
+  login, update checks, light or dark look, and the interface language
   (বাংলা by default, or English). Today's schedule is drawn as a dial of dots; see
   [DESIGN.md](DESIGN.md) for the brand.
 - **টাইমার (Timer):** up to three hours; it says the time left every minute ("আর দশ মিনিট বাকি")

@@ -4,6 +4,7 @@
 //   flutter test tool/screenshot_test.dart
 //
 // Writes .impeccable/review/*.png (git ignores that folder).
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -12,7 +13,10 @@ import 'package:bangla_voice_clock/app/platform.dart';
 import 'package:bangla_voice_clock/core/settings/app_settings.dart';
 import 'package:bangla_voice_clock/core/settings/settings_store.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
+import 'package:bangla_voice_clock/core/update/release.dart';
 import 'package:bangla_voice_clock/main.dart';
+import 'package:bangla_voice_clock/ui/settings_page.dart';
+import 'package:bangla_voice_clock/ui/update_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -25,7 +29,16 @@ class _QuietPlatform implements AppPlatform {
   @override
   Stream<void> get clockDisturbed => const Stream.empty();
   @override
-  Future<void> play(Uint8List wav, {double volume = 1}) async {}
+  Future<void> play(
+    Uint8List wav, {
+    double volume = 1,
+    String device = '',
+  }) async {}
+  @override
+  Future<List<AudioDevice>> outputDevices() async => const [
+    AudioDevice('speakers', 'Mac mini Speakers'),
+    AudioDevice('buds', 'CMF Buds Pro 2'),
+  ];
   @override
   Future<void> setStatus({required String title, required bool icon}) async {}
   @override
@@ -69,7 +82,7 @@ void main() {
     // Render macOS controls (adaptive switches, sliders), as the app shows.
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     tester.view
-      ..physicalSize = const Size(960, 3300)
+      ..physicalSize = const Size(960, 4400)
       ..devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     final dir = Directory.systemTemp.createTempSync('shots');
@@ -153,7 +166,44 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.escape);
         await tester.pumpAndSettle();
       }
+      // The sound output picker, open.
+      if (name == 'en-dark') {
+        await tester.tap(find.text('System default'));
+        await tester.runAsync(() => pumpEventQueue());
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('.impeccable/review/en-dark-output.png')
+              .writeAsBytes(png!.buffer.asUint8List());
+        });
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pumpAndSettle();
+      }
       if (name == 'bn-light') {
+        unawaited(
+          showUpdateDialog(
+            tester.element(find.byType(SettingsPage)),
+            c,
+            Release(
+              version: Version.tryParse('0.4.0')!,
+              page: Uri.parse('https://example.com'),
+              notes:
+                  '## New\n\n- **Homebrew** on macOS.\n- Quiet hours to '
+                  'the minute.\n\n## Fixed\n\n- বেজে at noon.',
+              assets: const [],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('.impeccable/review/bn-update.png')
+              .writeAsBytes(png!.buffer.asUint8List());
+        });
+        await tester.tap(find.text('পরে'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('টাইমার'));
         await tester.pumpAndSettle();
         await tester.runAsync(() async {

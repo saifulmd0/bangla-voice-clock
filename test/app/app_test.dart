@@ -4,20 +4,27 @@ import 'dart:typed_data';
 
 import 'package:bangla_voice_clock/app/app_controller.dart';
 import 'package:bangla_voice_clock/app/platform.dart';
+import 'package:bangla_voice_clock/app/updater.dart';
+import 'package:bangla_voice_clock/app/version.dart';
 import 'package:bangla_voice_clock/core/audio/wav.dart';
 import 'package:bangla_voice_clock/core/settings/app_settings.dart';
 import 'package:bangla_voice_clock/core/settings/settings_store.dart';
 import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/speech/speech_token.dart';
 import 'package:bangla_voice_clock/core/speech/timer_phrases.dart';
+import 'package:bangla_voice_clock/core/update/release.dart';
 import 'package:bangla_voice_clock/main.dart';
 import 'package:bangla_voice_clock/ui/settings_page.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakePlatform implements AppPlatform {
   final menu = StreamController<String>.broadcast();
   final played = <Uint8List>[];
+  final playedOn = <String>[];
+  var outputs = const [AudioDevice('buds', 'CMF Buds Pro 2')];
+  var loginEnabled = <bool>[];
   final notifications = <String>[];
   final opened = <String>[];
   String title = '';
@@ -30,8 +37,17 @@ class FakePlatform implements AppPlatform {
   @override
   Stream<void> get clockDisturbed => const Stream.empty();
   @override
-  Future<void> play(Uint8List wav, {double volume = 1}) async =>
-      played.add(wav);
+  Future<void> play(
+    Uint8List wav, {
+    double volume = 1,
+    String device = '',
+  }) async {
+    played.add(wav);
+    playedOn.add(device);
+  }
+
+  @override
+  Future<List<AudioDevice>> outputDevices() async => outputs;
   @override
   Future<void> setStatus({required String title, required bool icon}) async {
     this.title = title;
@@ -52,9 +68,37 @@ class FakePlatform implements AppPlatform {
   @override
   Future<bool?> launchAtLogin() async => false;
   @override
-  Future<bool> setLaunchAtLogin(bool enabled) async => true;
+  Future<bool> setLaunchAtLogin(bool enabled) async {
+    loginEnabled.add(enabled);
+    return true;
+  }
+
   @override
   Future<void> quit() async {}
+}
+
+/// Stands in for GitHub, offering whatever [latestVersion] says.
+class FakeUpdates implements UpdateSource {
+  String latestVersion = '0.3.0';
+  var checks = 0;
+
+  @override
+  Future<Release?> latest() async {
+    checks++;
+    return Release(
+      version: Version.tryParse(latestVersion)!,
+      page: Uri.parse('https://example.com/v$latestVersion'),
+      notes: '',
+      assets: const [],
+    );
+  }
+
+  @override
+  bool get canInstall => false;
+
+  @override
+  Future<void> install(Release release, {void Function(double)? progress}) =>
+      throw UnimplementedError();
 }
 
 void main() {
@@ -63,10 +107,16 @@ void main() {
   late FakePlatform platform;
   final at1015 = DateTime(2026, 1, 1, 10, 15, 0, 100);
 
-  Future<AppController> controller({DateTime? now}) => AppController.create(
+  Future<AppController> controller({
+    DateTime? now,
+    UpdateSource? updates,
+    bool openAtLogin = false,
+  }) => AppController.create(
     platform: platform,
     store: SettingsStore(File('${dir.path}/settings.json')),
     now: () => now ?? at1015,
+    updates: updates,
+    openAtLoginOnFirstRun: openAtLogin,
   );
 
   setUp(() async {
@@ -96,13 +146,71 @@ void main() {
     again.dispose();
   });
 
+  test('first launch turns on opening at login, when asked', () async {
+    final c = await controller(openAtLogin: true);
+    await c.start();
+    expect(platform.loginEnabled, [true]);
+    expect(c.launchAtLogin, isTrue);
+    final again = await controller(openAtLogin: true);
+    await again.start();
+    expect(platform.loginEnabled, [true], reason: 'only on first launch');
+    c.dispose();
+    again.dispose();
+  });
+
+  test('announcements play through the chosen output', () async {
+    final c = await controller();
+    await c.speakNow();
+    expect(platform.playedOn.last, '', reason: 'the system default');
+    await c.refreshOutputs();
+    expect(c.outputs.single.name, 'CMF Buds Pro 2');
+    await c.chooseOutput(c.outputs.single);
+    expect(
+      (c.settings.outputDeviceId, c.settings.outputDeviceName),
+      ('buds', 'CMF Buds Pro 2'),
+    );
+    await c.speakNow();
+    expect(platform.playedOn.last, 'buds');
+    await c.chooseOutput(null);
+    await c.speakNow();
+    expect(platform.playedOn.last, '');
+  });
+
+  test('a check finds only versions newer than this one', () async {
+    final updates = FakeUpdates()..latestVersion = appVersion;
+    final c = await controller(updates: updates);
+    expect(await c.checkForUpdate(), isNull);
+    updates.latestVersion = '99.0.0';
+    expect((await c.checkForUpdate())!.version.toString(), '99.0.0');
+  });
+
+  test('the daily check offers a new version, but not a skipped one', () async {
+    await SettingsStore(File('${dir.path}/settings.json'))
+        .save(const AppSettings(welcomed: true, skippedVersion: '98.0.0'));
+    final updates = FakeUpdates()..latestVersion = '98.0.0';
+    final c = await controller(updates: updates);
+    final offered = <String>[];
+    fakeAsync((async) {
+      c.updateRequests.listen((r) => offered.add('${r.version}'));
+      c.start();
+      async.elapse(AppController.firstUpdateCheck);
+      expect(updates.checks, 1);
+      expect(offered, isEmpty, reason: '98.0.0 was skipped');
+      updates.latestVersion = '99.0.0';
+      async.elapse(AppController.updateCheckEvery);
+      expect(offered, ['99.0.0']);
+      expect(platform.windowShown, 1);
+      c.dispose();
+    });
+  });
+
   test('Speak now plays the chime and the announcement', () async {
     final c = await controller();
     await c.speakNow();
     expect(platform.played, hasLength(1));
     final audio = decodeWav(platform.played.single);
     expect(audio.duration.inMilliseconds, greaterThan(2000));
-    expect(platform.notifications.single, contains('সোয়া দশটা'));
+    expect(platform.notifications.single, contains('দশটা বেজে পনেরো মিনিট'));
   });
 
   test('off the quarter hour, Speak now says the exact minute', () async {
@@ -161,13 +269,16 @@ void main() {
     expect(platform.entries.map((e) => e.id), contains('credits'));
     await c.speakNow();
     // The announcement itself stays in Bangla.
-    expect(platform.notifications.single, '10:15 AM|এখন সময় সকাল সোয়া দশটা');
+    expect(
+      platform.notifications.single,
+      '10:15 AM|এখন সময় সকাল দশটা বেজে পনেরো মিনিট',
+    );
     c.dispose();
   });
 
   void tallWindow(WidgetTester tester) {
     tester.view
-      ..physicalSize = const Size(960, 3600)
+      ..physicalSize = const Size(960, 4800)
       ..devicePixelRatio = 2;
     addTearDown(tester.view.reset);
   }
@@ -288,9 +399,9 @@ void main() {
     expect(c.settings.intervalMinutes, 30);
     expect(find.text('পরের ঘোষণা সকাল\u00A0১০:৩০'), findsOneWidget);
 
-    await tester.tap(find.text('মিনিট ধরে'));
+    expect(const AppSettings().style, AnnouncementStyle.exact);
+    await tester.tap(find.text('প্রচলিত'));
     await tester.pump();
-    expect(c.settings.style, AnnouncementStyle.exact);
-    expect(const AppSettings().style, AnnouncementStyle.traditional);
+    expect(c.settings.style, AnnouncementStyle.traditional);
   });
 }

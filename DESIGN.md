@@ -144,7 +144,7 @@ The logo is the same dial idea reduced to a clock: twelve dots, the four quarter
 - Ink, not white, for every word on the band.
 - Fingertip dots are the only ornament: twelve on the logo, one per announcement on the dial.
 - One row size (16pt), ranked by weight.
-- Native macOS control forms (Cupertino switch, slider and radio, plus a macOS-style segmented control and pop-up button).
+- Native macOS control forms (Cupertino switch and slider, plus a macOS-style segmented control and pop-up button), and option cards for one-of-many choices.
 - Flat chrome: depth comes from hairline borders and tonal grounds, not shadows.
 
 ## Colors
@@ -152,7 +152,7 @@ The logo is the same dial idea reduced to a clock: twelve dots, the four quarter
 A clear-sky palette: one confident blue, one warm coral for now, deep blue-black ink on airy blue-white, and a night-sky counterpart for dark mode.
 
 ### Primary
-- **Clear Sky Blue** (sky-blue): the dial's arcs (at 45% opacity) and announcement dots, the logo's dots and hands, the Speak now fill, switch tracks when on, the chosen radio, the slider, footer links and the text cursor. White on it holds 4.6:1.
+- **Clear Sky Blue** (sky-blue): the dial's arcs (at 45% opacity) and announcement dots, the logo's dots and hands, the Speak now fill, switch tracks when on, the chosen option card and its radio, the slider, footer links and the text cursor. White on it holds 4.6:1.
 - **Night Sky Blue** (sky-blue-night): the same roles in dark mode, with deep navy ink (on-sky-night) on the filled button (7.4:1).
 
 ### Secondary
@@ -249,8 +249,11 @@ The logo (one painter, three uses) keeps its geometry and changes its drawing by
 ### Segmented Control
 A macOS sliding segmented control at full row width: a track-coloured track with 3pt padding, the chosen segment raised as a cloud-white thumb (night thumb in dark mode), labels at 600 15pt in ink, 6pt above and below. A segment may lead with an 18pt icon and a 6pt gap (the template logo for "Logo").
 
-### Switches, Radios, Slider
-Native Cupertino forms, tinted sky blue. Switch tracks are sky blue when on and the outline colour when off, so an off switch still reads as a switch. Radios are sky blue when chosen; when unchosen, the Cupertino radio fills with the card colour and a 14pt ring in the outline colour (1.5pt) is drawn over it, because Cupertino's own ring is too faint on these cards. The volume slider is the adaptive (macOS) slider behind an outlined speaker icon.
+### Switches, Slider
+Native Cupertino forms, tinted sky blue. Switch tracks are sky blue when on and the outline colour when off, so an off switch still reads as a switch. The volume slider is the adaptive (macOS) slider behind an outlined speaker icon.
+
+### Option Cards
+One-of-many choices (announcement style, voice) are cards, not bare radio rows: each option sits on its own 10pt-radius card, 8pt apart, inset 12pt in the section. Unchosen: Surface Low fill with a 1pt Outline Variant border and a 20pt radio ring (1.5pt Outline). Chosen: sky blue at 8% (16% at night) with a 1.5pt sky-blue border, and a sky-blue disc with an 8pt white centre. An option the voice can't speak is shown at half opacity.
 
 ### Pop-up Button
 The quiet-hours time picker, built like a macOS pop-up menu rather than Material's underlined dropdown: an outlined 8pt box with the time ("রাত ১১:৩০") and an up-down chevron. It opens a 12pt panel with a hairline border holding two short choices instead of one long list: the 24 hours in a scrolling column ("রাত ১১টা", opened on the chosen hour) and the minutes, five apart, in a 3-by-4 grid (":৩০"). The chosen hour and minute are filled sky blue. Picking an hour keeps the panel open for the minute; picking a minute closes it.
@@ -264,7 +267,7 @@ The current half of the day (midnight to noon, or noon to midnight) as a 12-hour
 - **Do** draw every brand mark from the dot-dial painter, choosing its variant by size: full colour above 64px, 1.25x weight at 64px and below, quarter dots only at 32px and below, template at 1.2x in the 2x menu bar and 1.45x with quarter dots only at 1x.
 - **Do** keep the logo's hands at 10:00, minute hand to twelve, hour hand to ten.
 - **Do** keep every settings row at 16pt and rank by weight: 700 for section titles, 500 for row titles, 400 for subtitles.
-- **Do** tint every control sky blue (#2F74D0 light, #8AB8F5 dark) and use native macOS forms: Cupertino switch, adaptive slider, sliding segmented control, Cupertino radio, pop-up button.
+- **Do** tint every control sky blue (#2F74D0 light, #8AB8F5 dark) and use native macOS forms: Cupertino switch, adaptive slider, sliding segmented control, option cards, pop-up button.
 - **Do** set every word on the band in ink, and draw only arcs and dots in blue.
 - **Do** make every dial dot a real announcement; muted turns dots to outlines, quiet hours leave the ring bare.
 - **Do** open secondary content such as credits as a pushed page with a back button.

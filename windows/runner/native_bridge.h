@@ -5,6 +5,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <windows.h>
+#include <mmsystem.h>
 #include <shellapi.h>
 
 #include <map>
@@ -14,7 +15,7 @@
 #include <vector>
 
 // The Windows side of lib/app/platform.dart: the system-tray icon and its
-// menu, sound, notifications, opening at login, the title bar's light or
+// menu, sound and its output device, notifications, opening at login, the title bar's light or
 // dark look, and wake and clock-change events.
 class NativeBridge {
  public:
@@ -36,6 +37,11 @@ class NativeBridge {
   void ShowWindowInFront();
   void SetAppearance(const std::string& appearance);
 
+  // Plays sound_ on the waveOut device [index]; false if it can't.
+  bool PlayOnDevice(UINT index, double volume);
+  void StopSound();
+  void CloseWaveOut();
+
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   HWND window_;
   NOTIFYICONDATAW tray_ = {};
@@ -43,6 +49,10 @@ class NativeBridge {
   flutter::EncodableList menu_entries_;
   std::map<UINT, std::string> menu_ids_;
   std::vector<uint8_t> sound_;
+  // Open only while a sound plays on a chosen device, so an idle handle
+  // never keeps the audio device (and the computer) awake.
+  HWAVEOUT wave_out_ = nullptr;
+  WAVEHDR wave_header_ = {};
 };
 
 #endif  // RUNNER_NATIVE_BRIDGE_H_

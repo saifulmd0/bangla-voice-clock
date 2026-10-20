@@ -14,10 +14,13 @@ import '../core/speech/speech_token.dart';
 import '../core/speech/voice_pack.dart';
 import '../ui/strings.dart';
 import '../core/speech/timer_phrases.dart';
+import '../core/update/release.dart';
 import 'announcer.dart';
 import 'countdown.dart';
 import 'asset_clip_source.dart';
 import 'platform.dart';
+import 'updater.dart';
+import 'version.dart';
 
 /// Voice packs bundled with the app, best first.
 const bundledVoices = {
@@ -33,6 +36,8 @@ class AppController extends ChangeNotifier {
     this._settings,
     this.voices, {
     DateTime Function()? now,
+    this._updates,
+    this._openAtLoginOnFirstRun = false,
   }) : _clock = now ?? DateTime.now {
     _now = _clock();
     _announcer = Announcer(
@@ -55,6 +60,8 @@ class AppController extends ChangeNotifier {
     required SettingsStore store,
     Map<String, ClipSource>? voiceSources,
     DateTime Function()? now,
+    UpdateSource? updates,
+    bool openAtLoginOnFirstRun = false,
   }) async {
     final sources =
         voiceSources ??
@@ -72,12 +79,23 @@ class AppController extends ChangeNotifier {
       await store.load(),
       voices,
       now: now,
+      updates: updates,
+      openAtLoginOnFirstRun: openAtLoginOnFirstRun,
     );
   }
+
+  /// How long after starting, and then how often, to look for a new version.
+  static const firstUpdateCheck = Duration(seconds: 30);
+  static const updateCheckEvery = Duration(hours: 24);
 
   final AppPlatform _platform;
   final SettingsStore _store;
   final DateTime Function() _clock;
+  final UpdateSource? _updates;
+
+  /// Whether the first launch turns on opening at login. On Windows the
+  /// setup's own (ticked) box decides instead.
+  final bool _openAtLoginOnFirstRun;
   late final Announcer _announcer;
   late final MinuteTicker _ticker;
 
@@ -111,6 +129,20 @@ class AppController extends ChangeNotifier {
   /// Fires when the menu bar asks for the credits page.
   Stream<void> get creditsRequests => _creditsRequests.stream;
 
+  final _updateRequests = StreamController<Release>.broadcast();
+
+  /// Fires when a daily check finds a version worth offering.
+  Stream<Release> get updateRequests => _updateRequests.stream;
+  Timer? _updateTimer;
+
+  /// Whether a found update can be installed from the app.
+  bool get canInstallUpdates => _updates?.canInstall ?? false;
+
+  List<AudioDevice> _outputs = const [];
+
+  /// The sound outputs found by the last [refreshOutputs].
+  List<AudioDevice> get outputs => _outputs;
+
   bool? _launchAtLogin;
 
   /// Null when the system can't launch the app at login.
@@ -131,10 +163,73 @@ class AppController extends ChangeNotifier {
     _ticker.start();
     await _refreshMenuBar();
     if (!_settings.welcomed) {
+      if (_openAtLoginOnFirstRun && _launchAtLogin == false) {
+        await setLaunchAtLogin(true);
+      }
       await _platform.showWindow();
       await update(_settings.copyWith(welcomed: true));
     }
+    if (_updates != null) {
+      _updateTimer = Timer(firstUpdateCheck, () {
+        unawaited(_offerUpdate());
+        _updateTimer = Timer.periodic(
+          updateCheckEvery,
+          (_) => unawaited(_offerUpdate()),
+        );
+      });
+    }
   }
+
+  /// The newest release if it is newer than this copy, else null. Throws
+  /// when GitHub can't be reached.
+  Future<Release?> checkForUpdate() async {
+    final latest = await _updates?.latest();
+    final current = Version.tryParse(appVersion)!;
+    return latest != null && latest.version > current ? latest : null;
+  }
+
+  /// The daily check: opens the window to offer a new version, unless
+  /// checks are off or the user skipped that version.
+  Future<void> _offerUpdate() async {
+    if (!_settings.checkUpdates) return;
+    try {
+      final release = await checkForUpdate();
+      if (release == null || '${release.version}' == _settings.skippedVersion) {
+        return;
+      }
+      await _platform.showWindow();
+      _updateRequests.add(release);
+    } on Object {
+      // Offline, or GitHub is busy; try again tomorrow.
+    }
+  }
+
+  /// Never offers [release] again; a later version is still offered.
+  Future<void> skipUpdate(Release release) =>
+      update(_settings.copyWith(skippedVersion: '${release.version}'));
+
+  /// Installs [release] and quits, leaving the setup to open the new copy.
+  Future<void> installUpdate(
+    Release release, {
+    void Function(double)? progress,
+  }) async {
+    await _updates!.install(release, progress: progress);
+    await _platform.quit();
+  }
+
+  /// Looks for the sound outputs connected now.
+  Future<void> refreshOutputs() async {
+    _outputs = await _platform.outputDevices();
+    notifyListeners();
+  }
+
+  /// Plays announcements through [device], or the system default if null.
+  Future<void> chooseOutput(AudioDevice? device) => update(
+    _settings.copyWith(
+      outputDeviceId: device?.id ?? '',
+      outputDeviceName: device?.name ?? '',
+    ),
+  );
 
   Future<void> update(AppSettings settings) async {
     final appearanceChanged = settings.appearance != _settings.appearance;
@@ -233,7 +328,11 @@ class AppController extends ChangeNotifier {
             speech,
           ])
         : speech;
-    await _platform.play(encodeWav(audio), volume: _settings.volume);
+    await _platform.play(
+      encodeWav(audio),
+      volume: _settings.volume,
+      device: _settings.outputDeviceId,
+    );
     _speaking = true;
     notifyListeners();
     _speakingTimer?.cancel();
@@ -320,7 +419,9 @@ class AppController extends ChangeNotifier {
     _ticker.stop();
     countdown.stop();
     _speakingTimer?.cancel();
+    _updateTimer?.cancel();
     unawaited(_creditsRequests.close());
+    unawaited(_updateRequests.close());
     for (final s in _subscriptions) {
       unawaited(s.cancel());
     }
