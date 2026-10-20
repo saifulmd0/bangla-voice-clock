@@ -90,7 +90,7 @@ modules:
   - name: bangla-voice-clock
     buildsystem: simple
     build-commands:
-      - tar -xzf BanglaVoiceClock-linux-x64.tar.gz
+      - tar --no-same-owner -xzf BanglaVoiceClock-linux-x64.tar.gz
       - mkdir -p "${FLATPAK_DEST}/lib" "${FLATPAK_DEST}/bin" "${FLATPAK_DEST}/share"
       - cp -a bangla-voice-clock/share/. "${FLATPAK_DEST}/share/"
       - rm -r bangla-voice-clock/share

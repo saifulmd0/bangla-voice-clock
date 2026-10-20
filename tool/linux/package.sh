@@ -22,7 +22,7 @@ cp -a "$bundle"/. "$app"/
 install -Dm644 "linux/packaging/$id.desktop" "$app/share/applications/$id.desktop"
 install -Dm644 "linux/packaging/$id.metainfo.xml" "$app/share/metainfo/$id.metainfo.xml"
 cp -a linux/packaging/icons "$app/share/"
-tar -C "$work" -czf "$out/BanglaVoiceClock-linux-x64.tar.gz" bangla-voice-clock
+tar -C "$work" --owner=0 --group=0 --numeric-owner -czf "$out/BanglaVoiceClock-linux-x64.tar.gz" bangla-voice-clock
 
 # The .deb: the app in /opt, a command in /usr/bin, the rest in /usr/share.
 deb="$work/deb"
