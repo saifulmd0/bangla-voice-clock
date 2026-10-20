@@ -134,3 +134,23 @@ jobs:
           gh release create "$TAG" BanglaVoiceClock-${TAG}-* \
             --title "Bangla Voice Clock ${TAG#v}" \
             --notes-file ".github/release-notes/${TAG}.md" $prerelease
+      - name: Update Homebrew cask
+        env:
+          TAG: ${{ github.ref_name }}
+          # A write deploy key for github.com/saifulmd0/homebrew-tap.
+          TAP_DEPLOY_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
+        run: |
+          if [ -z "$TAP_DEPLOY_KEY" ]; then echo "No TAP_DEPLOY_KEY, so the cask stays as it is."; exit 0; fi
+          mkdir -p ~/.ssh
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "$TAP_DEPLOY_KEY"
+          git clone --depth 1 git@github.com:saifulmd0/homebrew-tap.git tap
+          sha=$(sha256sum "BanglaVoiceClock-${TAG}-macos.dmg" | cut -d' ' -f1)
+          sed -e "s/^  version \".*\"/  version \"${TAG#v}\"/" -e "s/^  sha256 \".*\"/  sha256 \"$sha\"/" \
+            macos/homebrew/bangla-voice-clock.rb > tap/Casks/bangla-voice-clock.rb
+          cd tap
+          git add Casks/bangla-voice-clock.rb
+          git -c user.name=saifulmd0 -c user.email=mr.saiful.islam.saif@gmail.com \
+            commit -m "bangla-voice-clock ${TAG#v}"
+          git push

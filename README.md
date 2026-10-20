@@ -17,6 +17,15 @@ Get the latest version from [Releases](../../releases). The builds are not signe
   onto **Applications**. The first time, if macOS won't open it, go to **System Settings →
   Privacy & Security** and choose **Open Anyway** (on older macOS, right-click the app and
   choose **Open**).
+
+  Or install it with [Homebrew](https://brew.sh), which also skips the Open Anyway step:
+
+  ```sh
+  brew install --cask saifulmd0/tap/bangla-voice-clock
+  ```
+
+  `brew upgrade --cask bangla-voice-clock` updates it, and `brew uninstall --cask
+  bangla-voice-clock` removes it.
 - **Windows** (10 or later, 64-bit): run `BanglaVoiceClock-…-windows-setup.exe`. It installs for
   your account only, with no administrator prompt, adds a Start menu entry, and starts the clock
   when you sign in (untick that if you'd rather not). If SmartScreen warns, choose
