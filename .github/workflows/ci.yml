@@ -175,8 +175,7 @@ jobs:
           cache-key: flatpak-builder-${{ github.sha }}
       - name: Check every library is in the Flatpak
         run: |
-          flatpak-builder --disable-rofiles-fuse --run flatpak_app \
-              linux/flatpak/io.github.saifulmd0.BanglaVoiceClock.yml \
+          flatpak build flatpak_app \
               ldd /app/lib/bangla-voice-clock/bangla-voice-clock > ldd.txt
           cat ldd.txt
           grep -q libayatana-appindicator3 ldd.txt
