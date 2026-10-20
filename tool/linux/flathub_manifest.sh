@@ -11,7 +11,7 @@ asset="BanglaVoiceClock-$tag-linux-x64.tar.gz"
 url="https://github.com/saifulmd0/bangla-voice-clock/releases/download/$tag/$asset"
 sha=$(curl -fsSL "$url" | shasum -a 256 | cut -d' ' -f1)
 awk -v url="$url" -v sha="$sha" '
-  /^# / && !done { next }
+  /^#( |$)/ && !done { next }
   { done = 1 }
   /path: BanglaVoiceClock-linux-x64.tar.gz/ {
     sub(/path: .*/, "url: " url); print
