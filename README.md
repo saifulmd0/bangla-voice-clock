@@ -27,8 +27,8 @@ Get the latest version from [Releases](../../releases). The builds are not signe
   `brew upgrade --cask bangla-voice-clock` updates it, and `brew uninstall --cask
   bangla-voice-clock` removes it.
 - **Windows** (10 or later, 64-bit): run `BanglaVoiceClock-…-windows-setup.exe`. It installs for
-  your account only, with no administrator prompt, adds a Start menu entry, and starts the clock
-  when you sign in (untick that if you'd rather not). If SmartScreen warns, choose
+  your account only, with no administrator prompt, adds Start menu and desktop shortcuts, and
+  starts the clock when you sign in (untick either if you'd rather not). If SmartScreen warns, choose
   **More info → Run anyway**. Uninstall it from **Settings → Apps**. A portable zip is there too.
 
 The clock lives in the macOS menu bar (time, icon or both) or the Windows system tray, with no

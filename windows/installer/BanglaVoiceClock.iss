@@ -60,7 +60,7 @@ LaunchNow=Start Bangla Voice Clock now
 
 [Tasks]
 Name: "startup"; Description: "{cm:StartAtSignIn}"
-Name: "desktopicon"; Description: "{cm:DesktopShortcut}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:DesktopShortcut}"
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
