@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g fill="#bebebe">
+    <circle cx="8.000" cy="1.600" r="1.160"/>
+    <circle cx="14.400" cy="8.000" r="1.160"/>
+    <circle cx="8.000" cy="14.400" r="1.160"/>
+    <circle cx="1.600" cy="8.000" r="1.160"/>
+    <circle cx="8" cy="8" r="1.160"/>
+  </g>
+  <g stroke="#bebebe" stroke-width="1.392" stroke-linecap="round">
+    <line x1="8" y1="8" x2="8.000" y2="4.640"/>
+    <line x1="8" y1="8" x2="4.952" y2="6.240"/>
+  </g>
+</svg>

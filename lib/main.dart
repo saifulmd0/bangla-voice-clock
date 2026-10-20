@@ -21,10 +21,13 @@ void main() {
     final controller = await AppController.create(
       platform: NativePlatform(),
       store: SettingsStore.standard(),
-      updates: GitHubUpdates(),
+      // A Flatpak is updated by Flathub and the user's software centre.
+      updates: Platform.environment.containsKey('FLATPAK_ID')
+          ? null
+          : GitHubUpdates(),
       // On Windows the setup's start-at-sign-in box, ticked by default,
       // decides.
-      openAtLoginOnFirstRun: Platform.isMacOS,
+      openAtLoginOnFirstRun: !Platform.isWindows,
     );
     runApp(BanglaVoiceClockApp(controller: controller));
     await controller.start();

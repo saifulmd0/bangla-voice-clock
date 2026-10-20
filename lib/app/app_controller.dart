@@ -135,6 +135,9 @@ class AppController extends ChangeNotifier {
   Stream<Release> get updateRequests => _updateRequests.stream;
   Timer? _updateTimer;
 
+  /// Whether this copy looks for new versions itself; a Flatpak doesn't.
+  bool get checksForUpdates => _updates != null;
+
   /// Whether a found update can be installed from the app.
   bool get canInstallUpdates => _updates?.canInstall ?? false;
 

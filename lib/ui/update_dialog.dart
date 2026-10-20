@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
+import '../app/host_os.dart';
 import '../app/version.dart';
 import '../core/update/release.dart';
 
@@ -99,7 +98,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
                 ),
               ),
             ],
-            if (Platform.isMacOS) ...[
+            if (hostOs == HostOs.macos) ...[
               const SizedBox(height: 12),
               Text(t.brewHint, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 4),

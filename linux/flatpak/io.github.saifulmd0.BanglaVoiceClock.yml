@@ -1,0 +1,103 @@
+# The Flatpak, which repackages the Linux release tarball (the app folder
+# with its desktop entry, metainfo and icons) on the Freedesktop runtime.
+#
+# CI builds it from the tarball it just made, which it puts beside this file,
+# with flathub/shared-modules cloned to shared-modules/. For Flathub the
+# tarball comes from the release instead: tool/linux/flathub_manifest.sh
+# writes that version. See docs/FLATHUB.md.
+app-id: io.github.saifulmd0.BanglaVoiceClock
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.vala
+command: bangla-voice-clock
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --socket=pulseaudio
+  # The panel (tray) icon.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  # To hear when the computer wakes, and set the next announcement right.
+  - --system-talk-name=org.freedesktop.login1
+build-options:
+  append-path: /usr/lib/sdk/vala/bin
+  prepend-ld-library-path: /usr/lib/sdk/vala/lib
+modules:
+  - shared-modules/intltool/intltool-0.51.json
+
+  # The panel icon library, as LocalSend's Flathub manifest builds it.
+  - name: libayatana-appindicator
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DENABLE_BINDINGS_MONO=NO
+      - -DENABLE_BINDINGS_VALA=NO
+      - -DENABLE_GTKDOC=NO
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+    sources:
+      - type: git
+        url: https://github.com/AyatanaIndicators/libayatana-appindicator.git
+        tag: 0.6.0
+        commit: 27f9d9ddcf20be87c6cede65c89c5b098b16330d
+    modules:
+      - name: ayatana-ido
+        buildsystem: cmake-ninja
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+        sources:
+          - type: git
+            url: https://github.com/AyatanaIndicators/ayatana-ido.git
+            tag: 0.10.4
+            commit: f968079b09e2310fefc3fc307359025f1c74b3eb
+      - name: libayatana-indicator
+        buildsystem: cmake-ninja
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+        sources:
+          - type: git
+            url: https://github.com/AyatanaIndicators/libayatana-indicator.git
+            tag: 0.9.5
+            commit: 0db7877be8c61953b50540183d5932ab159181f1
+      - name: libdbusmenu-gtk3
+        buildsystem: autotools
+        build-options:
+          cflags: -Wno-error
+        config-opts:
+          - --with-gtk=3
+          - --disable-dumper
+          - --disable-static
+          - --enable-tests
+          - --disable-gtk-doc
+          - --enable-introspection=no
+          - --disable-vala
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - /share/gtk-doc
+          - /share/libdbusmenu
+        sources:
+          - type: archive
+            url: https://launchpad.net/libdbusmenu/16.04/16.04.0/+download/libdbusmenu-16.04.0.tar.gz
+            sha256: b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a
+
+  - name: bangla-voice-clock
+    buildsystem: simple
+    build-commands:
+      - tar -xzf BanglaVoiceClock-linux-x64.tar.gz
+      - mkdir -p "${FLATPAK_DEST}/lib" "${FLATPAK_DEST}/bin" "${FLATPAK_DEST}/share"
+      - cp -a bangla-voice-clock/share/. "${FLATPAK_DEST}/share/"
+      - rm -r bangla-voice-clock/share
+      - cp -a bangla-voice-clock "${FLATPAK_DEST}/lib/"
+      - ln -s ../lib/bangla-voice-clock/bangla-voice-clock "${FLATPAK_DEST}/bin/bangla-voice-clock"
+    sources:
+      - type: file
+        path: BanglaVoiceClock-linux-x64.tar.gz
+        only-arches:
+          - x86_64

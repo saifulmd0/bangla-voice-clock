@@ -110,10 +110,67 @@ jobs:
             BanglaVoiceClock-windows-portable.zip
           retention-days: 14
 
+  build-linux:
+    name: Build Linux app
+    needs: test
+    # The oldest supported Ubuntu, so the build runs on every newer one.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+              libgtk-3-dev libayatana-appindicator3-dev libpulse-dev \
+              desktop-file-utils
+      - run: desktop-file-validate linux/packaging/*.desktop
+      - run: flutter pub get
+      - run: flutter build linux --release
+      - name: Package tarball and .deb
+        run: tool/linux/package.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: BanglaVoiceClock-linux
+          path: |
+            BanglaVoiceClock-linux-x64.tar.gz
+            BanglaVoiceClock-linux-amd64.deb
+          retention-days: 14
+
+  build-flatpak:
+    name: Build Flatpak
+    needs: build-linux
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: BanglaVoiceClock-linux
+          path: linux/flatpak
+      - name: Get Flathub's shared modules
+        run: git clone --depth 1 https://github.com/flathub/shared-modules linux/flatpak/shared-modules
+      - name: Check the metainfo
+        run: |
+          if command -v appstreamcli >/dev/null; then
+            appstreamcli validate --no-net --explain linux/packaging/*.metainfo.xml
+          fi
+      - uses: flathub-infra/flatpak-github-actions/flatpak-builder@933e9e8ca36e85046ebca8e211f0785c6becac40
+        with:
+          bundle: BanglaVoiceClock-linux.flatpak
+          manifest-path: linux/flatpak/io.github.saifulmd0.BanglaVoiceClock.yml
+          cache-key: flatpak-builder-${{ github.sha }}
+
   release:
     name: Publish GitHub release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-macos, build-windows]
+    needs: [build-macos, build-windows, build-linux, build-flatpak]
     runs-on: ubuntu-latest
     permissions:
       contents: write

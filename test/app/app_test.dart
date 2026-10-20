@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bangla_voice_clock/app/app_controller.dart';
+import 'package:bangla_voice_clock/app/host_os.dart';
 import 'package:bangla_voice_clock/app/platform.dart';
 import 'package:bangla_voice_clock/app/updater.dart';
 import 'package:bangla_voice_clock/app/version.dart';
@@ -282,6 +283,24 @@ void main() {
       ..devicePixelRatio = 2;
     addTearDown(tester.view.reset);
   }
+
+  testWidgets('each desktop gets its own wording', (tester) async {
+    tallWindow(tester);
+    addTearDown(() => hostOs = HostOs.macos);
+    final c = await tester.runAsync(controller);
+    for (final (host, system, menuBar) in [
+      (HostOs.macos, 'ম্যাকের মতো', findsOneWidget),
+      (HostOs.windows, 'উইন্ডোজের মতো', findsNothing),
+      // A Linux panel always shows the icon, so there is nothing to choose.
+      (HostOs.linux, 'সিস্টেমের মতো', findsNothing),
+    ]) {
+      hostOs = host;
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+      expect(find.text(system), findsOneWidget);
+      expect(find.text('মেনু বারে দেখান'), menuBar);
+    }
+  });
 
   testWidgets('voice labels, footer and credits', (tester) async {
     tallWindow(tester);

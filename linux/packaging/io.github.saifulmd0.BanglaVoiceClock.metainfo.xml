@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- What software centres (GNOME Software, KDE Discover, Flathub) show. -->
+<component type="desktop-application">
+  <id>io.github.saifulmd0.BanglaVoiceClock</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <!-- Until the project picks an open-source licence. -->
+  <project_license>LicenseRef-proprietary</project_license>
+
+  <name>Bangla Voice Clock</name>
+  <name xml:lang="bn">বাংলা ভয়েস ক্লক</name>
+  <summary>Tells the time aloud in Bangla</summary>
+  <summary xml:lang="bn">বাংলায় সময় বলে দেয়</summary>
+
+  <developer id="io.github.saifulmd0">
+    <name>Saiful Islam</name>
+  </developer>
+
+  <description>
+    <p>
+      A free talking clock that announces the time in natural Bangla, the way it is said in
+      Bangladesh: “এখন সময় সকাল দশটা বেজে বিশ মিনিট”. It sits in the panel and speaks every
+      15, 30 or 60 minutes.
+    </p>
+    <ul>
+      <li>The part of the day (ভোর, সকাল, দুপুর, বিকাল, সন্ধ্যা, রাত), the exact minute, or the traditional quarters (সোয়া, সাড়ে, পৌনে)</li>
+      <li>Two voices: Areeba AI, with a Bangladeshi accent, and the voice of the original 1998 Bangla Voice Clock</li>
+      <li>Quiet hours to the minute, an optional chime and notification</li>
+      <li>A timer that says the time left every minute</li>
+      <li>Plays through the speakers or headphones you choose</li>
+      <li>A Bangla or English window, in light or dark</li>
+    </ul>
+    <p>
+      Announcements work offline. The successor of the Bangla Voice Clock for Windows (1998–2002)
+      by Q A M Khaled Ferdaus.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.saifulmd0.BanglaVoiceClock.desktop</launchable>
+  <provides>
+    <binary>bangla-voice-clock</binary>
+  </provides>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>The day's announcements on a dial</caption>
+      <image>https://raw.githubusercontent.com/saifulmd0/bangla-voice-clock/main/docs/media/window-clock.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Two voices, the volume and where it plays</caption>
+      <image>https://raw.githubusercontent.com/saifulmd0/bangla-voice-clock/main/docs/media/window-voices.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>In English and dark</caption>
+      <image>https://raw.githubusercontent.com/saifulmd0/bangla-voice-clock/main/docs/media/window-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>The talking timer</caption>
+      <image>https://raw.githubusercontent.com/saifulmd0/bangla-voice-clock/main/docs/media/window-timer.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/saifulmd0/bangla-voice-clock</url>
+  <url type="bugtracker">https://github.com/saifulmd0/bangla-voice-clock/issues</url>
+  <url type="vcs-browser">https://github.com/saifulmd0/bangla-voice-clock</url>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#DCEBFC</color>
+    <color type="primary" scheme_preference="dark">#1C3354</color>
+  </branding>
+
+  <content_rating type="oars-1.1"/>
+
+  <requires>
+    <display_length compare="ge">420</display_length>
+  </requires>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <keywords>
+    <keyword>Bangla</keyword>
+    <keyword>Bengali</keyword>
+    <keyword>clock</keyword>
+    <keyword>talking clock</keyword>
+    <keyword>time</keyword>
+  </keywords>
+
+  <releases>
+    <release version="0.4.0" date="2026-10-21">
+      <description>
+        <p>The first Linux version, with “Check for update now” on macOS and Windows.</p>
+      </description>
+    </release>
+  </releases>
+</component>

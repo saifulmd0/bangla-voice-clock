@@ -7,13 +7,17 @@ import 'app_settings.dart';
 class SettingsStore {
   SettingsStore(this.file);
 
-  /// `%APPDATA%\Bangla Voice Clock\settings.json` on Windows, and on macOS
+  /// `%APPDATA%\Bangla Voice Clock\settings.json` on Windows; on macOS
   /// `~/Library/Application Support/Bangla Voice Clock/settings.json`, which
-  /// for a sandboxed app is inside its own container.
+  /// for a sandboxed app is inside its own container; and on Linux
+  /// `~/.config/bangla-voice-clock/settings.json` (a Flatpak's own config
+  /// folder).
   factory SettingsStore.standard() => SettingsStore(
     File(
       Platform.isWindows
           ? '${Platform.environment['APPDATA']}\\Bangla Voice Clock\\settings.json'
+          : Platform.isLinux
+          ? '${linuxConfigHome()}/bangla-voice-clock/settings.json'
           : '${Platform.environment['HOME']}/Library/Application Support/'
                 'Bangla Voice Clock/settings.json',
     ),
@@ -50,4 +54,12 @@ class SettingsStore {
     await temp.writeAsString(jsonEncode(settings.toJson()));
     await temp.rename(file.path);
   }
+}
+
+/// `$XDG_CONFIG_HOME`, or `~/.config` when it isn't set.
+String linuxConfigHome() {
+  final config = Platform.environment['XDG_CONFIG_HOME'];
+  return config != null && config.isNotEmpty
+      ? config
+      : '${Platform.environment['HOME']}/.config';
 }

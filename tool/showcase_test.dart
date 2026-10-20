@@ -1,6 +1,7 @@
 // Renders the README's product media from the real app: scenes of the
 // settings window framed with a caption, the sounds the app plays in them,
-// and the GitHub social preview.
+// the GitHub social preview, and plain window screenshots for software
+// centres (docs/media/window-*.png, listed in the Linux metainfo).
 //
 //   flutter test tool/showcase_test.dart && tool/make_demo.sh
 //
@@ -12,6 +13,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bangla_voice_clock/app/app_controller.dart';
+import 'package:bangla_voice_clock/app/host_os.dart';
 import 'package:bangla_voice_clock/app/platform.dart';
 import 'package:bangla_voice_clock/core/audio/wav.dart';
 import 'package:bangla_voice_clock/core/settings/app_settings.dart';
@@ -72,21 +74,26 @@ Future<void> _loadFont(String family, List<String> files) async {
 const _width = 1280.0;
 const _height = 800.0;
 
-/// A macOS window around the app, as it sits on the desktop.
+/// A macOS window around the app, as it sits on the desktop, or a GNOME
+/// one for the Linux store screenshots.
 class _Window extends StatelessWidget {
-  const _Window({required this.dark, required this.child});
+  const _Window({required this.dark, required this.child, this.gnome = false});
 
   final bool dark;
+  final bool gnome;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) =>
+      RepaintBoundary(key: const ValueKey('window'), child: _frame());
+
+  Widget _frame() => Container(
     width: 480,
     height: 680,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       color: dark ? Sky.groundNight : Sky.ground,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(gnome ? 8 : 12),
       border: Border.all(
         color: dark ? const Color(0xFF34435C) : const Color(0x1F172338),
       ),
@@ -101,44 +108,83 @@ class _Window extends StatelessWidget {
     ),
     child: Column(
       children: [
-        Container(
-          height: 30,
-          color: dark ? const Color(0xFF1A2537) : const Color(0xFFEDF2F9),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              for (final c in const [
-                Color(0xFFFF5F57),
-                Color(0xFFFEBC2E),
-                Color(0xFF28C840),
-              ]) ...[
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Text(
-                  'বাংলা ভয়েস ক্লক',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'HindSiliguri',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: dark ? Sky.inkNight : Sky.ink,
+        if (gnome)
+          _gnomeBar()
+        else
+          Container(
+            height: 30,
+            color: dark ? const Color(0xFF1A2537) : const Color(0xFFEDF2F9),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                for (final c in const [
+                  Color(0xFFFF5F57),
+                  Color(0xFFFEBC2E),
+                  Color(0xFF28C840),
+                ]) ...[
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    'বাংলা ভয়েস ক্লক',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'HindSiliguri',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: dark ? Sky.inkNight : Sky.ink,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 60),
-            ],
+                const SizedBox(width: 60),
+              ],
+            ),
           ),
-        ),
         Expanded(child: child),
       ],
     ),
   );
+
+  /// Adwaita's header bar: the title centred, a round close button.
+  Widget _gnomeBar() {
+    final ink = dark ? const Color(0xFFFFFFFF) : const Color(0xFF2E3436);
+    return Container(
+      height: 46,
+      color: dark ? const Color(0xFF303030) : const Color(0xFFEBEBEB),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        children: [
+          const SizedBox(width: 24),
+          Expanded(
+            child: Text(
+              'বাংলা ভয়েস ক্লক',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'HindSiliguri',
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: ink,
+              ),
+            ),
+          ),
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: dark ? const Color(0x1FFFFFFF) : const Color(0x14000000),
+            ),
+            child: Icon(Icons.close, size: 14, color: ink),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// The logo on its tile, as the app icon shows it.
@@ -334,15 +380,16 @@ void main() {
     final media = Directory('docs/media')..createSync(recursive: true);
     final sounds = Directory('build/showcase')..createSync(recursive: true);
 
-    Future<void> save(String name) => tester.runAsync(() async {
+    Future<void> capture(String key, String path) => tester.runAsync(() async {
       final boundary = tester.renderObject<RenderRepaintBoundary>(
-        find.byKey(const ValueKey('canvas')),
+        find.byKey(ValueKey(key)),
       );
       final image = await boundary.toImage(pixelRatio: 2);
       final png = await image.toByteData(format: ui.ImageByteFormat.png);
-      await File('${sounds.path}/$name.png')
-          .writeAsBytes(png!.buffer.asUint8List());
+      await File(path).writeAsBytes(png!.buffer.asUint8List());
     });
+    Future<void> save(String name) =>
+        capture('canvas', '${sounds.path}/$name.png');
 
     Future<(AppController, _RecordingPlatform)> app(AppSettings s) async {
       final store = SettingsStore(File('${dir.path}/${s.hashCode}.json'));
@@ -379,27 +426,39 @@ void main() {
       AppSettings settings = const AppSettings(),
       required String headline,
       required String line,
+      String? windowShot,
       Future<void> Function(AppController, _RecordingPlatform)? then,
     }) async {
-      final (c, platform) = await app(settings);
-      final dark = settings.appearance == Appearance.dark;
-      tester.platformDispatcher.platformBrightnessTestValue = dark
-          ? Brightness.dark
-          : Brightness.light;
-      await show(
-        _scene(
-          dark: dark,
-          headline: headline,
-          line: line,
-          window: _Window(
+      // Once as on a Mac for the README, then as the Linux app looks in a
+      // GNOME window for the software centre's screenshot.
+      for (final linux in [false, if (windowShot != null) true]) {
+        hostOs = linux ? HostOs.linux : HostOs.macos;
+        final (c, platform) = await app(settings);
+        final dark = settings.appearance == Appearance.dark;
+        tester.platformDispatcher.platformBrightnessTestValue = dark
+            ? Brightness.dark
+            : Brightness.light;
+        await show(
+          _scene(
             dark: dark,
-            child: BanglaVoiceClockApp(controller: c),
+            headline: headline,
+            line: line,
+            window: _Window(
+              dark: dark,
+              gnome: linux,
+              child: BanglaVoiceClockApp(controller: c),
+            ),
           ),
-        ),
-      );
-      await then?.call(c, platform);
-      await save(name);
-      c.dispose();
+        );
+        await then?.call(c, platform);
+        if (linux) {
+          await capture('window', '${media.path}/window-$windowShot.png');
+        } else {
+          await save(name);
+        }
+        c.dispose();
+      }
+      hostOs = HostOs.macos;
     }
 
     Future<void> scrollTo(String text) async {
@@ -409,6 +468,7 @@ void main() {
 
     await scene(
       'scene-1-clock',
+      windowShot: 'clock',
       headline: 'সময় বলে দেয়,\nবাংলায়',
       line: 'A menu bar clock that tells\nthe time aloud, in Bangla.',
     );
@@ -428,6 +488,7 @@ void main() {
     );
     await scene(
       'scene-3-voices',
+      windowShot: 'voices',
       settings: const AppSettings(voiceId: 'bn_classic'),
       headline: 'দুটি কণ্ঠ',
       line:
@@ -445,6 +506,7 @@ void main() {
     );
     await scene(
       'scene-4-dark',
+      windowShot: 'dark',
       settings: const AppSettings(
         language: AppLanguage.en,
         appearance: Appearance.dark,
@@ -465,6 +527,7 @@ void main() {
     );
     await scene(
       'scene-6-timer',
+      windowShot: 'timer',
       headline: 'কথা বলা টাইমার',
       line: 'A timer that says the time left\nevery minute, then "সময় শেষ".',
       then: (c, _) async {

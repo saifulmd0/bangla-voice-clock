@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import '../app/host_os.dart';
 import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
 import '../core/speech/bangla_phrase_builder.dart';
@@ -130,9 +129,11 @@ class Strings {
   String get menuBar => _t('মেনু বার', 'Menu bar');
   String get look => _t('চেহারা', 'Look');
   String get appearance => _t('রং', 'Appearance');
-  String get appearanceSystem => Platform.isWindows
-      ? _t('উইন্ডোজের মতো', 'Match Windows')
-      : _t('ম্যাকের মতো', 'Match Mac');
+  String get appearanceSystem => switch (hostOs) {
+    HostOs.windows => _t('উইন্ডোজের মতো', 'Match Windows'),
+    HostOs.macos => _t('ম্যাকের মতো', 'Match Mac'),
+    HostOs.linux => _t('সিস্টেমের মতো', 'Match system'),
+  };
   String get appearanceLight => _t('হালকা', 'Light');
   String get appearanceDark => _t('গাঢ়', 'Dark');
   String get menuBarShows => _t('মেনু বারে দেখান', 'Menu bar shows');

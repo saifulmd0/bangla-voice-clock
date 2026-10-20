@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
+import '../app/host_os.dart';
 import '../app/platform.dart';
 import '../app/version.dart';
 import '../core/settings/app_settings.dart';
@@ -115,8 +115,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   // A Windows tray icon can't show text, so the time goes in
-                  // its tooltip and there is nothing to choose.
-                  if (!Platform.isWindows)
+                  // its tooltip; a Linux panel always shows the icon, with
+                  // the time beside it where the panel supports that.
+                  if (hostOs == HostOs.macos)
                     _ChoiceRow(
                       title: t.menuBarShows,
                       child: _Segmented<MenuBarShows>(
@@ -315,16 +316,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: enabled,
                       onChanged: controller.setLaunchAtLogin,
                     ),
-                  SwitchListTile.adaptive(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                    title: Text(t.checkUpdates),
-                    value: s.checkUpdates,
-                    onChanged: (v) => set(s.copyWith(checkUpdates: v)),
-                  ),
+                  // Flathub updates its apps itself.
+                  if (controller.checksForUpdates)
+                    SwitchListTile.adaptive(
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
+                      title: Text(t.checkUpdates),
+                      value: s.checkUpdates,
+                      onChanged: (v) => set(s.copyWith(checkUpdates: v)),
+                    ),
                   ListTile(
                     title: Text(t.version(appVersion)),
-                    trailing: _CheckNowButton(controller: controller),
+                    trailing: controller.checksForUpdates
+                        ? _CheckNowButton(controller: controller)
+                        : null,
                   ),
                 ],
               ),
