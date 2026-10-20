@@ -127,10 +127,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config \
               libgtk-3-dev libayatana-appindicator3-dev libpulse-dev \
-              desktop-file-utils
+              desktop-file-utils xvfb
       - run: desktop-file-validate linux/packaging/*.desktop
       - run: flutter pub get
       - run: flutter build linux --release
+      - name: Check the app starts
+        run: |
+          # Still running after 15 seconds (timeout's 124) means it started.
+          status=0
+          dbus-run-session -- xvfb-run -a timeout 15 \
+              build/linux/x64/release/bundle/bangla-voice-clock || status=$?
+          test $status -eq 124
       - name: Package tarball and .deb
         run: tool/linux/package.sh
       - uses: actions/upload-artifact@v7
@@ -166,6 +173,12 @@ jobs:
           bundle: BanglaVoiceClock-linux.flatpak
           manifest-path: linux/flatpak/io.github.saifulmd0.BanglaVoiceClock.yml
           cache-key: flatpak-builder-${{ github.sha }}
+      - name: Check every library is in the Flatpak
+        run: |
+          flatpak-builder --run flatpak_app \
+              linux/flatpak/io.github.saifulmd0.BanglaVoiceClock.yml \
+              ldd /app/lib/bangla-voice-clock/bangla-voice-clock | tee ldd.txt
+          ! grep "not found" ldd.txt
 
   release:
     name: Publish GitHub release
