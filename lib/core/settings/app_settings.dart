@@ -29,8 +29,8 @@ class AppSettings {
     this.chime = true,
     this.notify = true,
     this.quietHoursEnabled = false,
-    this.quietStartHour = 23,
-    this.quietEndHour = 7,
+    this.quietStart = 23 * 60,
+    this.quietEnd = 7 * 60,
     this.menuBarShows = MenuBarShows.time,
     this.language = AppLanguage.bn,
     this.appearance = Appearance.light,
@@ -47,6 +47,12 @@ class AppSettings {
     }
 
     final interval = read('intervalMinutes', d.intervalMinutes);
+    // Version 0.1 saved quiet hours as whole hours.
+    int quiet(String key, String hourKey, int fallback) {
+      final hour = json[hourKey];
+      return read(key, hour is int ? hour * 60 : fallback) % minutesPerDay;
+    }
+
     return AppSettings(
       muted: read('muted', d.muted),
       intervalMinutes: intervals.contains(interval)
@@ -58,8 +64,8 @@ class AppSettings {
       chime: read('chime', d.chime),
       notify: read('notify', d.notify),
       quietHoursEnabled: read('quietHoursEnabled', d.quietHoursEnabled),
-      quietStartHour: read('quietStartHour', d.quietStartHour) % 24,
-      quietEndHour: read('quietEndHour', d.quietEndHour) % 24,
+      quietStart: quiet('quietStart', 'quietStartHour', d.quietStart),
+      quietEnd: quiet('quietEnd', 'quietEndHour', d.quietEnd),
       menuBarShows:
           MenuBarShows.values.asNameMap()[json['menuBarShows']] ??
           // Before 1.1 this was a switch, off meaning the icon.
@@ -88,8 +94,10 @@ class AppSettings {
   final bool chime;
   final bool notify;
   final bool quietHoursEnabled;
-  final int quietStartHour;
-  final int quietEndHour;
+
+  /// When quiet hours begin and end, in minutes from midnight.
+  final int quietStart;
+  final int quietEnd;
   final MenuBarShows menuBarShows;
   final AppLanguage language;
 
@@ -108,7 +116,7 @@ class AppSettings {
   AnnouncementSchedule get schedule => AnnouncementSchedule(
     intervalMinutes: intervalMinutes,
     quietHours: quietHoursEnabled
-        ? QuietHours(startHour: quietStartHour, endHour: quietEndHour)
+        ? QuietHours(start: quietStart, end: quietEnd)
         : null,
   );
 
@@ -121,8 +129,8 @@ class AppSettings {
     bool? chime,
     bool? notify,
     bool? quietHoursEnabled,
-    int? quietStartHour,
-    int? quietEndHour,
+    int? quietStart,
+    int? quietEnd,
     MenuBarShows? menuBarShows,
     AppLanguage? language,
     Appearance? appearance,
@@ -138,8 +146,8 @@ class AppSettings {
     chime: chime ?? this.chime,
     notify: notify ?? this.notify,
     quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
-    quietStartHour: quietStartHour ?? this.quietStartHour,
-    quietEndHour: quietEndHour ?? this.quietEndHour,
+    quietStart: quietStart ?? this.quietStart,
+    quietEnd: quietEnd ?? this.quietEnd,
     menuBarShows: menuBarShows ?? this.menuBarShows,
     language: language ?? this.language,
     appearance: appearance ?? this.appearance,
@@ -157,8 +165,8 @@ class AppSettings {
     'chime': chime,
     'notify': notify,
     'quietHoursEnabled': quietHoursEnabled,
-    'quietStartHour': quietStartHour,
-    'quietEndHour': quietEndHour,
+    'quietStart': quietStart,
+    'quietEnd': quietEnd,
     'menuBarShows': menuBarShows.name,
     'language': language.name,
     'appearance': appearance.name,

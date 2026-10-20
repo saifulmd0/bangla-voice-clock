@@ -16,7 +16,9 @@ namespace {
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
 
-constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
+// Unique to this app, so a second launch and the installer can find the
+// running clock's window.
+constexpr const wchar_t kWindowClassName[] = L"BANGLA_VOICE_CLOCK_WINDOW";
 
 /// Registry key for app theme preference.
 ///

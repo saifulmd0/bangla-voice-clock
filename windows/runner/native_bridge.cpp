@@ -9,6 +9,8 @@
 namespace {
 
 constexpr UINT kTrayMessage = WM_APP + 1;
+// Also posted by the installer to close a running clock before it updates
+// or removes it; see windows/installer/BanglaVoiceClock.iss.
 constexpr UINT kQuitMessage = WM_APP + 2;
 constexpr UINT kFirstMenuId = 1000;
 constexpr wchar_t kAppName[] = L"Bangla Voice Clock";
@@ -199,6 +201,13 @@ std::optional<LRESULT> NativeBridge::HandleMessage(HWND hwnd, UINT message,
     case WM_TIMECHANGE:
       channel_->InvokeMethod("clockDisturbed", nullptr);
       break;
+    case WM_ENDSESSION:
+      // Signing out, or the installer closing the clock to update it.
+      if (wparam) {
+        Shell_NotifyIconW(NIM_DELETE, &tray_);
+        DestroyWindow(hwnd);
+      }
+      return 0;
   }
   return std::nullopt;
 }

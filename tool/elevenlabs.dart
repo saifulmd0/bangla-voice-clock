@@ -319,9 +319,16 @@ Future<PcmAudio> _speak(
 }
 
 /// Trims and levels a take. AI audio has no hiss, so a low threshold keeps
-/// soft word endings that the default (tuned for old recordings) would cut.
+/// soft word endings that the default (tuned for old recordings) would cut,
+/// and there's no noise floor to measure: in a take with little silence the
+/// quietest fifth is speech, and trimming above it cut soft endings such as
+/// the "জে" of "বেজে".
 PcmAudio _clean(PcmAudio take) => take
-    .trimSilence(threshold: 0.02, padding: const Duration(milliseconds: 60))
+    .trimSilence(
+      threshold: 0.02,
+      noiseFactor: 0,
+      padding: const Duration(milliseconds: 60),
+    )
     .normalized();
 
 /// Words go in `clips/`, phrases in `phrases/`, named after their keys.

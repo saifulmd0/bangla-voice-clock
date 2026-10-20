@@ -16,8 +16,8 @@ void main() {
       chime: false,
       notify: false,
       quietHoursEnabled: true,
-      quietStartHour: 22,
-      quietEndHour: 6,
+      quietStart: 22 * 60 + 30,
+      quietEnd: 6 * 60 + 15,
       menuBarShows: MenuBarShows.logo,
       language: AppLanguage.en,
       appearance: Appearance.dark,
@@ -47,6 +47,12 @@ void main() {
       MenuBarShows.logo,
     );
     expect(AppSettings.fromJson({}).language, AppLanguage.bn);
+  });
+
+  test('reads quiet hours saved as whole hours', () {
+    final s = AppSettings.fromJson({'quietStartHour': 22, 'quietEndHour': 6});
+    expect(s.quietStart, 22 * 60);
+    expect(s.quietEnd, 6 * 60);
   });
 
   test('quiet hours only apply when enabled', () {

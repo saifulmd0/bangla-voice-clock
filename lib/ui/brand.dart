@@ -244,8 +244,7 @@ class DayDialPainter extends CustomPainter {
       old.muted != muted ||
       old.speaking != speaking ||
       old.schedule.intervalMinutes != schedule.intervalMinutes ||
-      old.schedule.quietHours?.startHour != schedule.quietHours?.startHour ||
-      old.schedule.quietHours?.endHour != schedule.quietHours?.endHour ||
+      old.schedule.quietHours != schedule.quietHours ||
       old.labelStyle != labelStyle ||
       old.color != color ||
       old.background != background;

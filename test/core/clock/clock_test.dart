@@ -24,7 +24,7 @@ void main() {
 
   group('QuietHours', () {
     test('within a day', () {
-      const q = QuietHours(startHour: 13, endHour: 15);
+      const q = QuietHours(start: 13 * 60, end: 15 * 60);
       expect(q.contains(DateTime(2026, 1, 1, 12, 59)), isFalse);
       expect(q.contains(DateTime(2026, 1, 1, 13)), isTrue);
       expect(q.contains(DateTime(2026, 1, 1, 14, 59)), isTrue);
@@ -32,16 +32,24 @@ void main() {
     });
 
     test('past midnight', () {
-      const q = QuietHours(startHour: 23, endHour: 7);
+      const q = QuietHours(start: 23 * 60, end: 7 * 60);
       expect(q.contains(DateTime(2026, 1, 1, 22, 45)), isFalse);
       expect(q.contains(DateTime(2026, 1, 1, 23)), isTrue);
       expect(q.contains(DateTime(2026, 1, 1, 3)), isTrue);
       expect(q.contains(DateTime(2026, 1, 1, 7)), isFalse);
     });
 
-    test('equal hours mean none', () {
-      const q = QuietHours(startHour: 5, endHour: 5);
+    test('equal times mean none', () {
+      const q = QuietHours(start: 5 * 60, end: 5 * 60);
       expect(q.contains(DateTime(2026, 1, 1, 5)), isFalse);
+    });
+
+    test('to the minute', () {
+      const q = QuietHours(start: 22 * 60 + 30, end: 6 * 60 + 45);
+      expect(q.contains(DateTime(2026, 1, 1, 22, 29)), isFalse);
+      expect(q.contains(DateTime(2026, 1, 1, 22, 30)), isTrue);
+      expect(q.contains(DateTime(2026, 1, 1, 6, 44, 59)), isTrue);
+      expect(q.contains(DateTime(2026, 1, 1, 6, 45)), isFalse);
     });
   });
 
@@ -68,7 +76,7 @@ void main() {
     test('skips quiet hours', () {
       const s = AnnouncementSchedule(
         intervalMinutes: 60,
-        quietHours: QuietHours(startHour: 23, endHour: 7),
+        quietHours: QuietHours(start: 23 * 60, end: 7 * 60),
       );
       expect(s.announcesAt(DateTime(2026, 1, 1, 2)), isFalse);
       expect(

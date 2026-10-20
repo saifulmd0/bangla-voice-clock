@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../core/clock/bangla_clock.dart';
 import '../core/settings/app_settings.dart';
+import '../core/speech/bangla_phrase_builder.dart';
 import '../core/speech/bangla_words.dart';
 
 /// Every piece of interface text, in [language].
@@ -47,8 +48,8 @@ class Strings {
   String dialSummary(AppSettings s) {
     final quiet = s.quietHoursEnabled
         ? _t(
-            ', ${hour(s.quietStartHour)} থেকে ${hour(s.quietEndHour)} নীরব',
-            ', silent ${hour(s.quietStartHour)} to ${hour(s.quietEndHour)}',
+            ', ${timeOfDay(s.quietStart)} থেকে ${timeOfDay(s.quietEnd)} নীরব',
+            ', silent ${timeOfDay(s.quietStart)} to ${timeOfDay(s.quietEnd)}',
           )
         : '';
     return s.muted
@@ -90,13 +91,30 @@ class Strings {
   String get quietHoursOn =>
       _t('এই সময়ে ঘোষণা হবে না', 'Stay silent during these hours');
 
-  /// The words around the two hour pickers: "[from] … [to] … [until]".
+  /// The words around the two time pickers: "[from] … [to] … [until]".
   String get quietFrom => _t('', 'From');
   String get quietTo => _t('থেকে', 'to');
   String get quietUntil => _t('পর্যন্ত', '');
-  String hour(int h) => _bn
-      ? banglaClockWithZone(DateTime(2000, 1, 1, h))
-      : _englishClock(DateTime(2000, 1, 1, h));
+  String get hourHeading => _t('ঘণ্টা', 'Hour');
+  String get minuteHeading => _t('মিনিট', 'Minute');
+
+  /// A time of day given in minutes from midnight: "রাত ১১:৩০".
+  String timeOfDay(int minutes) =>
+      clock(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60));
+
+  /// An hour in the time picker: "রাত ১১টা", "11 PM".
+  String hourOfDay(int h) {
+    final h12 = h % 12 == 0 ? 12 : h % 12;
+    return _bn
+        ? '${DayZones.standard.forHour(h).word} ${banglaDigits(h12)}টা'
+        : '$h12 ${h < 12 ? 'AM' : 'PM'}';
+  }
+
+  /// A minute in the time picker: ":০৫".
+  String minuteOfHour(int m) => _t(
+    ':${banglaDigits(m.toString().padLeft(2, '0'))}',
+    ':${m.toString().padLeft(2, '0')}',
+  );
 
   // Other settings.
   String get other => _t('অন্যান্য', 'General');

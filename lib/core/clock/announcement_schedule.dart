@@ -1,21 +1,33 @@
-/// Hours of the day when the clock stays silent, such as 23:00 to 07:00.
-class QuietHours {
-  const QuietHours({required this.startHour, required this.endHour})
-    : assert(startHour >= 0 && startHour < 24),
-      assert(endHour >= 0 && endHour < 24);
+/// Minutes in a day; quiet hours are measured in minutes from midnight.
+const minutesPerDay = 24 * 60;
 
-  final int startHour;
-  final int endHour;
+/// The part of the day when the clock stays silent, such as 23:30 to 07:00,
+/// as minutes from midnight.
+class QuietHours {
+  const QuietHours({required this.start, required this.end})
+    : assert(start >= 0 && start < minutesPerDay),
+      assert(end >= 0 && end < minutesPerDay);
+
+  /// The first silent minute.
+  final int start;
+
+  /// The first minute that speaks again.
+  final int end;
 
   /// Whether [time] falls inside, wrapping past midnight. Equal start and
-  /// end hours mean no quiet time at all.
+  /// end mean no quiet time at all.
   bool contains(DateTime time) {
-    final h = time.hour;
-    if (startHour == endHour) return false;
-    return startHour < endHour
-        ? h >= startHour && h < endHour
-        : h >= startHour || h < endHour;
+    final m = time.hour * 60 + time.minute;
+    if (start == end) return false;
+    return start < end ? m >= start && m < end : m >= start || m < end;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is QuietHours && other.start == start && other.end == end;
+
+  @override
+  int get hashCode => Object.hash(start, end);
 }
 
 /// When the clock announces the time: every [intervalMinutes] from the top

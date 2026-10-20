@@ -11,20 +11,23 @@ and by [Schedule Voice Clock](https://github.com/HridoyVaraby/schedule-voice-clo
 
 ## Download
 
-Get the latest version from [Releases](../../releases): one zip for **macOS** (12 or later) and one
-for **Windows** (10 or later, 64-bit). The builds are not signed yet:
+Get the latest version from [Releases](../../releases). The builds are not signed yet:
 
-- **macOS:** unzip, move **Bangla Voice Clock** to Applications, then right-click it and choose
-  **Open** the first time.
-- **Windows:** unzip and run **BanglaVoiceClock.exe**. If SmartScreen warns, choose
-  **More info → Run anyway**.
+- **macOS** (12 or later): open `BanglaVoiceClock-…-macos.dmg` and drag **Bangla Voice Clock**
+  onto **Applications**. The first time, if macOS won't open it, go to **System Settings →
+  Privacy & Security** and choose **Open Anyway** (on older macOS, right-click the app and
+  choose **Open**).
+- **Windows** (10 or later, 64-bit): run `BanglaVoiceClock-…-windows-setup.exe`. It installs for
+  your account only, with no administrator prompt, adds a Start menu entry, and starts the clock
+  when you sign in (untick that if you'd rather not). If SmartScreen warns, choose
+  **More info → Run anyway**. Uninstall it from **Settings → Apps**. A portable zip is there too.
 
 The clock lives in the macOS menu bar (time, icon or both) or the Windows system tray, with no
 Dock or taskbar window. From its menu you can hear the time now, mute it, change how often it
 speaks, or open the window, which has two tabs:
 
 - **ঘড়ি (Clock):** voice, traditional (সোয়া/সাড়ে/পৌনে) or exact-minute wording (বেজে optional),
-  volume, chime, quiet hours, launch at login, light or dark look, and the interface language
+  volume, chime, quiet hours (to the minute), launch at login, light or dark look, and the interface language
   (বাংলা by default, or English). Today's schedule is drawn as a dial of dots; see
   [DESIGN.md](DESIGN.md) for the brand.
 - **টাইমার (Timer):** up to three hours; it says the time left every minute ("আর দশ মিনিট বাকি")

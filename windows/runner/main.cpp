@@ -13,6 +13,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     CreateAndAttachConsole();
   }
 
+  // One clock at a time: opening the app again, say from the Start menu
+  // while it already runs at sign-in, shows the running clock's window.
+  ::CreateMutexW(nullptr, TRUE, L"BanglaVoiceClock.SingleInstance");
+  if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+    if (HWND running = ::FindWindowW(L"BANGLA_VOICE_CLOCK_WINDOW", nullptr)) {
+      ::ShowWindow(running, SW_SHOWNORMAL);
+      ::SetForegroundWindow(running);
+    }
+    return EXIT_SUCCESS;
+  }
+
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);

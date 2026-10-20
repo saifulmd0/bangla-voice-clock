@@ -43,14 +43,28 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build macos --release
-      - name: Zip app bundle
+      - name: Make disk image
         run: |
-          cd build/macos/Build/Products/Release
-          ditto -c -k --keepParent "Bangla Voice Clock.app" "$GITHUB_WORKSPACE/BanglaVoiceClock-macos.zip"
+          # The app beside an Applications shortcut, to drag it onto.
+          mkdir dmg
+          cp -R "build/macos/Build/Products/Release/Bangla Voice Clock.app" dmg/
+          brew install --quiet create-dmg
+          # create-dmg lays out the window through Finder, which a CI
+          # machine sometimes refuses; a plain image works the same.
+          create-dmg --volname "Bangla Voice Clock" \
+              --window-size 540 360 --icon-size 112 \
+              --icon "Bangla Voice Clock.app" 140 170 \
+              --app-drop-link 400 170 --hide-extension "Bangla Voice Clock.app" \
+              --no-internet-enable \
+              BanglaVoiceClock-macos.dmg dmg/ \
+            || { rm -f BanglaVoiceClock-macos.dmg
+                 ln -s /Applications dmg/Applications
+                 hdiutil create -volname "Bangla Voice Clock" -srcfolder dmg \
+                     -format UDZO -ov BanglaVoiceClock-macos.dmg; }
       - uses: actions/upload-artifact@v7
         with:
           name: BanglaVoiceClock-macos
-          path: BanglaVoiceClock-macos.zip
+          path: BanglaVoiceClock-macos.dmg
           retention-days: 14
 
   build-windows:
@@ -77,11 +91,23 @@ jobs:
           foreach ($dll in "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll") {
             Copy-Item "$env:SystemRoot\System32\$dll" $app
           }
-          Compress-Archive -Path $app -DestinationPath BanglaVoiceClock-windows.zip
+          Compress-Archive -Path $app -DestinationPath BanglaVoiceClock-windows-portable.zip
+      - name: Make installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --yes --no-progress
+          }
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)').Matches[0].Groups[1].Value
+          & $iscc "/DAppVersion=$version" "/DSourceDir=$PWD\Bangla Voice Clock" "/DOutputDir=$PWD" windows\installer\BanglaVoiceClock.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v7
         with:
           name: BanglaVoiceClock-windows
-          path: BanglaVoiceClock-windows.zip
+          path: |
+            BanglaVoiceClock-windows-setup.exe
+            BanglaVoiceClock-windows-portable.zip
           retention-days: 14
 
   release:
@@ -101,11 +127,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          mv BanglaVoiceClock-macos.zip "BanglaVoiceClock-${TAG}-macos.zip"
-          mv BanglaVoiceClock-windows.zip "BanglaVoiceClock-${TAG}-windows.zip"
+          for f in BanglaVoiceClock-*; do mv "$f" "${f/BanglaVoiceClock-/BanglaVoiceClock-${TAG}-}"; done
           # 0.x versions are pre-releases.
           prerelease=""
           case "$TAG" in v0.*) prerelease="--prerelease" ;; esac
-          gh release create "$TAG" BanglaVoiceClock-${TAG}-*.zip \
+          gh release create "$TAG" BanglaVoiceClock-${TAG}-* \
             --title "Bangla Voice Clock ${TAG#v}" \
             --notes-file ".github/release-notes/${TAG}.md" $prerelease

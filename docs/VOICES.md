@@ -14,6 +14,7 @@ ElevenLabs on 2026-10-17.
 | Speech model | **`eleven_v4`** |
 | Voice settings | stability 0.5, similarity boost 0.8, seed 1 |
 | Output | PCM 24 kHz, trimmed and level-normalised by `tool/elevenlabs.dart` |
+| Wording | thirty is "তিরিশ", not "ত্রিশ", which the voice says clipped and short |
 
 Voice description used for the design:
 
@@ -48,6 +49,9 @@ Existing clips are skipped; delete a clip file (or pass `--force`) to redo it.
 - Only `eleven_v3` and `eleven_v4` support Bangla. Voice design and library voices need a paid
   plan (pay-as-you-go is enough). The whole pack is about 4,100 characters.
 - Library voices tagged Bengali all have Kolkata or Indian accents (checked 2026-10-17).
+- Trim AI takes on level alone (`noiseFactor: 0`). A take has almost no silence, so measuring a
+  noise floor from its quietest fifth measures speech, and trimming above it cut soft endings,
+  such as the "জে" of "দুপুর বারোটা বেজে".
 
 ## `bn_classic`: Classic (1998), by Moshfekah Ferdaus Mahita
 

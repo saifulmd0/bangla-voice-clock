@@ -77,7 +77,7 @@ void main() {
     for (final (name, settings, brightness) in [
       (
         'bn-light',
-        const AppSettings(quietHoursEnabled: true),
+        const AppSettings(quietHoursEnabled: true, quietStart: 23 * 60 + 30),
         Brightness.light,
       ),
       (
@@ -85,6 +85,7 @@ void main() {
         const AppSettings(
           language: AppLanguage.en,
           quietHoursEnabled: true,
+          quietEnd: 6 * 60 + 45,
           appearance: Appearance.dark,
           style: AnnouncementStyle.exact,
         ),
@@ -137,6 +138,21 @@ void main() {
         await File('.impeccable/review/$name.png')
             .writeAsBytes(png!.buffer.asUint8List());
       });
+      // The quiet-hours time picker, open.
+      if (name == 'bn-light' || name == 'en-dark') {
+        final picker = find.text(name == 'bn-light' ? 'রাত ১১:৩০' : '6:45 AM');
+        await tester.ensureVisible(picker);
+        await tester.tap(picker);
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('.impeccable/review/$name-quiet.png')
+              .writeAsBytes(png!.buffer.asUint8List());
+        });
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pumpAndSettle();
+      }
       if (name == 'bn-light') {
         await tester.tap(find.text('টাইমার'));
         await tester.pumpAndSettle();

@@ -262,17 +262,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         spacing: 12,
                         children: [
                           if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
-                          _HourPicker(
+                          _TimePicker(
                             strings: t,
-                            hour: s.quietStartHour,
-                            onChanged: (h) =>
-                                set(s.copyWith(quietStartHour: h)),
+                            minutes: s.quietStart,
+                            onChanged: (m) => set(s.copyWith(quietStart: m)),
                           ),
                           Text(t.quietTo),
-                          _HourPicker(
+                          _TimePicker(
                             strings: t,
-                            hour: s.quietEndHour,
-                            onChanged: (h) => set(s.copyWith(quietEndHour: h)),
+                            minutes: s.quietEnd,
+                            onChanged: (m) => set(s.copyWith(quietEnd: m)),
                           ),
                           if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
                         ],
@@ -653,48 +652,183 @@ class _Section extends StatelessWidget {
   );
 }
 
-class _HourPicker extends StatelessWidget {
-  const _HourPicker({
+/// A bordered pop-up button showing a time of day, like a macOS pop-up
+/// menu. It opens a panel with the hours in a list and the minutes, five
+/// apart, in a grid: two short choices rather than one long list of times.
+class _TimePicker extends StatefulWidget {
+  const _TimePicker({
     required this.strings,
-    required this.hour,
+    required this.minutes,
     required this.onChanged,
   });
 
   final Strings strings;
-  final int hour;
+
+  /// The time shown, in minutes from midnight.
+  final int minutes;
   final ValueChanged<int> onChanged;
 
-  // A bordered pop-up button showing the value and a chevron, like a
-  // macOS pop-up menu, rather than Material's underlined dropdown.
   @override
-  Widget build(BuildContext context) => MenuAnchor(
-    menuChildren: [
-      for (var h = 0; h < 24; h++)
-        MenuItemButton(
-          onPressed: () => onChanged(h),
-          leadingIcon: h == hour
-              ? const Icon(Icons.check, size: 18)
-              : const SizedBox(width: 18),
-          child: Text(strings.hour(h)),
+  State<_TimePicker> createState() => _TimePickerState();
+}
+
+class _TimePickerState extends State<_TimePicker> {
+  final _menu = MenuController();
+
+  static const _minuteStep = 5;
+  static const _hourExtent = 40.0;
+
+  int get _hour => widget.minutes ~/ 60;
+  int get _minute => widget.minutes % 60;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.strings;
+    final theme = Theme.of(context);
+    Widget heading(String text) => Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+      child: Text(
+        text,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
         ),
-    ],
-    builder: (context, menu, _) => OutlinedButton(
-      onPressed: () => menu.isOpen ? menu.close() : menu.open(),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(strings.hour(hour)),
-          const SizedBox(width: 4),
-          const Icon(Icons.unfold_more, size: 18),
-        ],
+    );
+
+    return MenuAnchor(
+      controller: _menu,
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          theme.colorScheme.surfaceContainerLowest,
+        ),
+        side: WidgetStatePropertyAll(
+          BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
-    ),
-  );
+      menuChildren: [
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 148,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    heading(t.hourHeading),
+                    SizedBox(
+                      height: _hourExtent * 6,
+                      child: ListView.builder(
+                        // Opens with the chosen hour in view.
+                        controller: ScrollController(
+                          initialScrollOffset:
+                              math.max(0, _hour - 2) * _hourExtent,
+                        ),
+                        itemExtent: _hourExtent,
+                        itemCount: 24,
+                        itemBuilder: (context, h) => _PickerChoice(
+                          label: t.hourOfDay(h),
+                          chosen: h == _hour,
+                          alignment: Alignment.centerLeft,
+                          // Stays open, so the minutes can be picked next.
+                          onPressed: () => widget.onChanged(h * 60 + _minute),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  heading(t.minuteHeading),
+                  for (var row = 0; row < 4; row++)
+                    Row(
+                      children: [
+                        for (var col = 0; col < 3; col++)
+                          SizedBox(
+                            width: 60,
+                            height: _hourExtent,
+                            child: _PickerChoice(
+                              label: t.minuteOfHour(
+                                (row * 3 + col) * _minuteStep,
+                              ),
+                              chosen: _minute == (row * 3 + col) * _minuteStep,
+                              onPressed: () {
+                                widget.onChanged(
+                                  _hour * 60 + (row * 3 + col) * _minuteStep,
+                                );
+                                _menu.close();
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+      builder: (context, menu, _) => OutlinedButton(
+        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: theme.colorScheme.onSurface,
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(t.timeOfDay(widget.minutes)),
+            const SizedBox(width: 4),
+            const Icon(Icons.unfold_more, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One hour or minute in a [_TimePicker]'s panel, filled sky blue when
+/// chosen.
+class _PickerChoice extends StatelessWidget {
+  const _PickerChoice({
+    required this.label,
+    required this.chosen,
+    required this.onPressed,
+    this.alignment = Alignment.center,
+  });
+
+  final String label;
+  final bool chosen;
+  final VoidCallback onPressed;
+  final AlignmentGeometry alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(2),
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          alignment: alignment,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: chosen ? scheme.primary : null,
+          foregroundColor: chosen ? scheme.onPrimary : scheme.onSurface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        child: Text(label, maxLines: 1),
+      ),
+    );
+  }
 }
 
 class _Footer extends StatelessWidget {
