@@ -6,8 +6,8 @@
 
 macos
 
-(A native macOS menu-bar app built with Flutter. Mobile apps are a future plan, so later work
-may move this to `adaptive`.)
+(A native macOS menu-bar app built with Flutter, also shipped for Windows as a system-tray app.
+Mobile apps are a future plan, so later work may move this to `adaptive`.)
 
 ## Users
 

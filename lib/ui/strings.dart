@@ -147,7 +147,7 @@ class Strings {
   String get checkUpdates =>
       _t('নতুন সংস্করণ এলে জানান', 'Tell me about new versions');
   String version(String v) => _t('সংস্করণ ${banglaDigits(v)}', 'Version $v');
-  String get checkNow => _t('এখনই দেখুন', 'Check now');
+  String get checkNow => _t('এখনই আপডেট খুঁজুন', 'Check for update now');
   String get upToDate =>
       _t('এটিই সর্বশেষ সংস্করণ।', "You're on the latest version.");
   String get checkFailed => _t(
