@@ -294,7 +294,7 @@ Widget _endCard() => Container(
       ),
       const SizedBox(height: 24),
       Text(
-        'Free for macOS and Windows',
+        'Free for macOS, Windows and Linux',
         style: _text(26, FontWeight.w500, const Color(0xFF4A5A73)),
       ),
       const SizedBox(height: 6),
@@ -332,7 +332,7 @@ Widget _socialPreview(Widget window) => Container(
             const SizedBox(height: 18),
             Text(
               'A free talking clock that tells the time aloud in Bangla.\n'
-              'macOS and Windows.',
+              'macOS, Windows and Linux.',
               style: _text(24, FontWeight.w500, const Color(0xFF4A5A73)),
             ),
           ],

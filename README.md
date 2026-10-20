@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Latest version" src="https://img.shields.io/github/v/release/saifulmd0/bangla-voice-clock?include_prereleases&label=version&color=2F74D0"></a>
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/saifulmd0/bangla-voice-clock/total?color=2F74D0"></a>
-  <img alt="macOS 12 or later, Windows 10 or later" src="https://img.shields.io/badge/platforms-macOS%2012%2B%20%7C%20Windows%2010%2B-2F74D0">
+  <img alt="macOS 12 or later, Windows 10 or later, Linux" src="https://img.shields.io/badge/platforms-macOS%2012%2B%20%7C%20Windows%2010%2B%20%7C%20Linux-2F74D0">
   <img alt="Free" src="https://img.shields.io/badge/price-free-FF8A65">
   <a href="https://github.com/saifulmd0/bangla-voice-clock/actions/workflows/ci.yml"><img alt="Build" src="https://github.com/saifulmd0/bangla-voice-clock/actions/workflows/ci.yml/badge.svg"></a>
 </p>
@@ -20,6 +20,7 @@
 <p align="center">
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS-2F74D0?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-2F74D0?style=for-the-badge&logo=windows&logoColor=white"></a>
+  <a href="#linux"><img alt="Get it for Linux" src="https://img.shields.io/badge/Get%20it-Linux-2F74D0?style=for-the-badge&logo=linux&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -28,13 +29,14 @@
 </p>
 
 > **এখন সময় সকাল দশটা বেজে বিশ মিনিট।**<br>
-> Every 15, 30 or 60 minutes, from the menu bar on a Mac or the system tray on Windows.
+> Every 15, 30 or 60 minutes, from the menu bar on a Mac, the system tray on Windows or the
+> panel on Linux.
 
 ## Contents
 
 - [Features](#features)
 - [Screenshots](#screenshots)
-- [Install](#install): [macOS](#macos) · [Windows](#windows) · [Updating](#updating) · [Uninstalling](#uninstalling)
+- [Install](#install): [macOS](#macos) · [Windows](#windows) · [Linux](#linux) · [Updating](#updating) · [Uninstalling](#uninstalling)
 - [Using it](#using-it)
 - [FAQ](#faq)
 - [Privacy](#privacy)
@@ -54,8 +56,8 @@
   বাকি") and "সময় শেষ" at the end.
 - **Plays where you want.** The system default, the built-in speakers, headphones or any other
   output.
-- **Stays out of the way.** It lives in the macOS menu bar (time, icon or both) or the Windows
-  system tray, opens at login, and has no Dock or taskbar window.
+- **Stays out of the way.** It lives in the macOS menu bar (time, icon or both), the Windows
+  system tray or the Linux panel, opens at login, and has no Dock or taskbar window.
 - **Bangla or English window**, in light or dark, with today's schedule drawn as a dial of dots.
 - **Free, with no ads and no account.** Announcements work offline. It checks GitHub once a
   day for a new version, and you can turn that off.
@@ -78,6 +80,9 @@ Each release has a file for each system:
 | `BanglaVoiceClock-…-macos.dmg` | macOS 12 Monterey or later, Apple Silicon and Intel |
 | `BanglaVoiceClock-…-windows-setup.exe` | Windows 10 or 11, 64-bit (recommended) |
 | `BanglaVoiceClock-…-windows-portable.zip` | Windows, without installing |
+| `BanglaVoiceClock-…-linux-amd64.deb` | Ubuntu 22.04 or later, Debian 12 or later, Linux Mint 21 or later (64-bit) |
+| `BanglaVoiceClock-…-linux.flatpak` | Any Linux with Flatpak, until it is on Flathub |
+| `BanglaVoiceClock-…-linux-x64.tar.gz` | Any 64-bit Linux, without installing |
 
 The apps are not code-signed yet, so macOS and Windows warn the first time. The steps below get
 past that.
@@ -111,6 +116,35 @@ brew install --cask saifulmd0/tap/bangla-voice-clock
 Prefer not to install? Unzip `BanglaVoiceClock-…-windows-portable.zip` anywhere and run
 `BanglaVoiceClock.exe`.
 
+### Linux
+
+**Ubuntu, Debian and Linux Mint:** download `BanglaVoiceClock-…-linux-amd64.deb`, then open it
+(App Center or the Software Manager installs it) or run:
+
+```sh
+sudo apt install ./BanglaVoiceClock-*-linux-amd64.deb
+```
+
+**Any distribution, with Flatpak:** download `BanglaVoiceClock-…-linux.flatpak`, then:
+
+```sh
+flatpak install --user ./BanglaVoiceClock-*-linux.flatpak
+```
+
+It needs the Flathub remote for its runtime, which most distributions have (if not:
+`flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo`).
+The app is on its way to [Flathub](https://flathub.org), after which it installs from GNOME
+Software or Discover with one click and updates on its own.
+
+**Without installing:** extract `BanglaVoiceClock-…-linux-x64.tar.gz` and run
+`bangla-voice-clock/bangla-voice-clock`. It needs `libayatana-appindicator3-1` and `libpulse0`,
+which Ubuntu and Mint have.
+
+Open **Bangla Voice Clock** from the app menu. The clock icon appears in the panel, with the time
+beside it on Ubuntu; click it for the menu. Plain GNOME (Fedora, for one) shows panel icons only
+with the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/);
+without it the window stays open instead, and closing it minimises the clock.
+
 ### Updating
 
 Once a day the clock looks for a new version and, when there is one, shows what changed.
@@ -120,6 +154,8 @@ Once a day the clock looks for a new version and, when there is one, shows what 
 - **macOS:** run `brew upgrade --cask bangla-voice-clock`, or choose **Open download page** and
   install the new disk image over the old app.
 - **Windows portable:** download the new zip and replace the old folder.
+- **Linux:** the `.deb` copy offers the new version's download page; install the new `.deb` over
+  the old one. The Flatpak leaves updates to Flathub (`flatpak update`) and doesn't check itself.
 
 You can also choose **Check for update now** under **General** (অন্যান্য) in the window.
 
@@ -129,10 +165,13 @@ You can also choose **Check for update now** under **General** (অন্যা�
   `brew uninstall --cask bangla-voice-clock` (add `--zap` to remove its settings too).
 - **Windows:** **Settings → Apps → Installed apps → Bangla Voice Clock → Uninstall**. For the
   portable copy, quit it from the tray and delete the folder.
+- **Linux:** turn off opening at login first, then quit it and run
+  `sudo apt remove bangla-voice-clock` or `flatpak uninstall io.github.saifulmd0.BanglaVoiceClock`,
+  or delete the extracted folder.
 
 ## Using it
 
-Click the time in the menu bar (or the tray icon on Windows) for the menu:
+Click the time in the menu bar (the tray icon on Windows, the panel icon on Linux) for the menu:
 
 - **এখনই সময় শুনুন** (Speak the time now)
 - **ঘোষণা বন্ধ** (Mute), and **কতক্ষণ পরপর** (Every) 15 minutes, 30 minutes or 1 hour
@@ -167,11 +206,20 @@ and the release page lists each file's SHA-256.
 The 1998 recordings only cover the quarter hours, so with that voice the clock speaks the
 traditional way. Areeba AI says any minute.
 
+**There's no clock icon in the Linux panel.**
+GNOME shows panel icons only with the
+[AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/), which
+Ubuntu includes and Fedora doesn't. Without it the window stays open and closing it minimises
+the clock. KDE, Cinnamon, MATE, Xfce and Budgie show the icon as they are.
+
 **Where are my settings?**
 macOS: `~/Library/Containers/com.projuktiteam.banglaVoiceClock/Data/Library/Application Support/Bangla Voice Clock/settings.json`.
-Windows: `%APPDATA%\Bangla Voice Clock\settings.json`. Updates keep them.
+Windows: `%APPDATA%\Bangla Voice Clock\settings.json`.
+Linux: `~/.config/bangla-voice-clock/settings.json`, or for the Flatpak
+`~/.var/app/io.github.saifulmd0.BanglaVoiceClock/config/bangla-voice-clock/settings.json`.
+Updates keep them.
 
-**Is there a Linux, Android or iPhone version?**
+**Is there an Android or iPhone version?**
 Not yet. A mobile app for blind and low-literacy users is planned.
 
 **Found a bug or have an idea?**
@@ -180,6 +228,7 @@ Not yet. A mobile app for blind and low-literacy users is planned.
 ## Privacy
 
 The app has no accounts, ads, analytics or tracking. Your settings stay on your computer. The
+Flatpak has no network access at all. The
 update check asks GitHub for the list of releases; GitHub sees the app's version and your IP
 address, as with any web request, and nothing else is sent.
 
@@ -206,8 +255,16 @@ flutter test      # runs without Xcode
 flutter analyze
 ```
 
-Building and running the apps locally needs Xcode (macOS) or Visual Studio (Windows).
-Without them, push to GitHub and let CI build both.
+Building and running the apps locally needs Xcode (macOS), Visual Studio (Windows) or, on Linux:
+
+```sh
+sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev \
+    libayatana-appindicator3-dev libpulse-dev
+flutter build linux --release && tool/linux/package.sh   # tarball and .deb
+```
+
+Without them, push to GitHub and let CI build them all, including the Flatpak. Publishing on
+Flathub is described in [docs/FLATHUB.md](docs/FLATHUB.md).
 
 ### Hearing the announcement engine
 

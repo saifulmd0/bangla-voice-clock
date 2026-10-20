@@ -12,4 +12,3 @@ Terminal=false
 Categories=Utility;Clock;
 Keywords=Bangla;Bengali;Bangladesh;clock;time;talking;voice;announce;বাংলা;ঘড়ি;সময়;
 StartupNotify=false
-SingleMainWindow=true
