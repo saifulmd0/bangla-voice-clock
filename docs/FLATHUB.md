@@ -21,8 +21,9 @@ verifies it through GitHub with no domain needed.
 
 - **Make the repository public.** The listing's screenshots load from
   `raw.githubusercontent.com`, and Flathub reviewers read the source.
-- **Choose a licence.** The metainfo says `LicenseRef-proprietary` until a `LICENSE` file is
-  added; change `<project_license>` to match (for example `MIT` or `GPL-3.0-or-later`).
+- **Licence:** the app is GPL-3.0-or-later, the fonts OFL-1.1, and the Classic voice is
+  included with permission (`LicenseRef-proprietary` in the metainfo); see `NOTICE.md`. Expect
+  reviewers to ask about that voice: the answer is the permission from its rights holders.
 - **Publish a release** with the Linux files (pushing a `v*` tag does it), and add it to the
   metainfo's `<releases>`.
 

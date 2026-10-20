@@ -273,7 +273,9 @@ List<Credit> creditsFor(Strings s) {
     ),
     Credit(
       bn ? 'ডেভেলপার: সাইফুল ইসলাম' : 'Developed by Saiful Islam',
-      bn ? 'বিনামূল্যের ওপেন সোর্স অ্যাপ।' : 'Free and open source.',
+      bn
+          ? 'বিনামূল্যের ওপেন সোর্স অ্যাপ, GPL-3.0 লাইসেন্সে।'
+          : 'Free and open source, under the GPL-3.0.',
       url: developerUrl,
     ),
   ];

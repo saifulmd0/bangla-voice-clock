@@ -3,8 +3,8 @@
 <component type="desktop-application">
   <id>io.github.saifulmd0.BanglaVoiceClock</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <!-- Until the project picks an open-source licence. -->
-  <project_license>LicenseRef-proprietary</project_license>
+  <!-- The Classic voice is included with permission, outside the GPL; see NOTICE.md. -->
+  <project_license>GPL-3.0-or-later AND OFL-1.1 AND LicenseRef-proprietary</project_license>
 
   <name>Bangla Voice Clock</name>
   <name xml:lang="bn">বাংলা ভয়েস ক্লক</name>

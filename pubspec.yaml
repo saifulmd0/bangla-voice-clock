@@ -70,6 +70,9 @@ flutter:
           weight: 700
 
   assets:
+    # Every copy carries its licence (GPL-3.0) and the exceptions.
+    - LICENSE
+    - NOTICE.md
     - assets/voices/bn_ai/
     - assets/voices/bn_ai/clips/
     - assets/voices/bn_ai/phrases/

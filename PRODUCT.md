@@ -49,7 +49,8 @@ Classic voice) and a fresh product in its own right.
 - Settings: interval, voice, volume, chime, notification, quiet hours, clock or logo in the menu
   bar, launch at login, light/dark appearance (light by default), and the interface language
   (Bangla by default, English optional).
-- Free and open source; announcements work fully offline.
+- Free and open source (GPL-3.0-or-later; the Classic voice is included with permission,
+  outside the GPL); announcements work fully offline.
 - Alarms and prayer times are planned but postponed.
 
 ## Brand Commitments

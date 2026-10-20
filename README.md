@@ -14,6 +14,7 @@
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/saifulmd0/bangla-voice-clock/total?color=2F74D0"></a>
   <img alt="macOS 12 or later, Windows 10 or later, Linux" src="https://img.shields.io/badge/platforms-macOS%2012%2B%20%7C%20Windows%2010%2B%20%7C%20Linux-2F74D0">
   <img alt="Free" src="https://img.shields.io/badge/price-free-FF8A65">
+  <a href="LICENSE"><img alt="Licence: GPL-3.0-or-later" src="https://img.shields.io/badge/licence-GPL--3.0--or--later-2F74D0"></a>
   <a href="https://github.com/saifulmd0/bangla-voice-clock/actions/workflows/ci.yml"><img alt="Build" src="https://github.com/saifulmd0/bangla-voice-clock/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
@@ -41,6 +42,7 @@
 - [FAQ](#faq)
 - [Privacy](#privacy)
 - [Credits](#credits)
+- [Licence](#licence)
 - [Development](#development)
 
 ## Features
@@ -59,7 +61,7 @@
 - **Stays out of the way.** It lives in the macOS menu bar (time, icon or both), the Windows
   system tray or the Linux panel, opens at login, and has no Dock or taskbar window.
 - **Bangla or English window**, in light or dark, with today's schedule drawn as a dial of dots.
-- **Free, with no ads and no account.** Announcements work offline. It checks GitHub once a
+- **Free and open source, with no ads and no account.** Announcements work offline. It checks GitHub once a
   day for a new version, and you can turn that off.
 
 ## Screenshots
@@ -244,6 +246,16 @@ address, as with any web request, and nothing else is sent.
 - Built with [Flutter](https://flutter.dev); [Hind Siliguri](https://fonts.google.com/specimen/Hind+Siliguri) for the text.
 
 Developed by **[Saiful Islam](https://github.com/saifulmd0)**.
+
+## Licence
+
+Bangla Voice Clock is free and open source under the
+[GNU General Public License, version 3 or later](LICENSE): you may use, study, share and change
+it, and anything you share that is built on it must keep the credit and stay open source under
+the same licence.
+
+The Classic (1998) voice is the exception: those recordings are included with permission and are
+not under the GPL. Hind Siliguri is under the SIL Open Font License. See [NOTICE.md](NOTICE.md).
 
 ## Development
 
