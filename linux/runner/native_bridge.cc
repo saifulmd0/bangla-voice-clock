@@ -88,8 +88,9 @@ bool ParseWav(const uint8_t* bytes, size_t size, double volume, Sound* sound) {
     return false;
   }
   // The volume slider scales the samples themselves.
+  volume = std::max(0.0, std::min(volume, 1.0));
   for (auto& sample : sound->samples) {
-    sample = static_cast<int16_t>(sample * std::clamp(volume, 0.0, 1.0));
+    sample = static_cast<int16_t>(sample * volume);
   }
   return true;
 }
