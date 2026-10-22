@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Microsoft Store package. CI fills in the version and builds the
+     .msix from the Windows app with tool/windows/make_msix.ps1; the Store
+     signs it. The identity comes from Partner Center (Product identity). -->
+<Package
+    xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+    xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+    xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+    xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+    IgnorableNamespaces="uap uap5 rescap">
+  <Identity
+      Name="16203SaifulIslam.BanglaVoiceClock"
+      Publisher="CN=B0AD2B0A-7573-4F5F-9114-235FDD41977C"
+      Version="@VERSION@"
+      ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Bangla Voice Clock</DisplayName>
+    <PublisherDisplayName>Saiful Islam</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0"
+                        MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="en-us" />
+    <Resource Language="bn-bd" />
+  </Resources>
+  <Applications>
+    <Application Id="BanglaVoiceClock" Executable="BanglaVoiceClock.exe"
+                 EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+          DisplayName="Bangla Voice Clock"
+          Description="Says the time aloud in Bangla."
+          BackgroundColor="transparent"
+          Square150x150Logo="Assets\Square150x150Logo.png"
+          Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <!-- Opening at sign-in; see kLoginTaskId in
+             windows/runner/native_bridge.cpp. -->
+        <uap5:Extension Category="windows.startupTask">
+          <uap5:StartupTask TaskId="BanglaVoiceClockAtLogin" Enabled="false"
+                            DisplayName="Bangla Voice Clock" />
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

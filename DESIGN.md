@@ -29,33 +29,33 @@ colors:
   outline-night: "#7E8DA6"
 typography:
   display:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "38pt"
     fontWeight: 600
     lineHeight: 1.2
   headline:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "22pt"
     fontWeight: 700
   title:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "16pt"
     fontWeight: 700
   row:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "16pt"
     fontWeight: 500
   body:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "16pt"
     fontWeight: 400
     lineHeight: 1.35
   label:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "15pt"
     fontWeight: 600
   dial-label:
-    fontFamily: "Hind Siliguri"
+    fontFamily: "Noto Sans Bengali"
     fontSize: "14pt"
     fontWeight: 600
 rounded:
@@ -134,7 +134,7 @@ components:
 
 The day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding the current half of the day as a 12-hour clock face, twelve at the top, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.
 
-Density is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Hind Siliguri, so switching language never changes the voice of the page.
+Density is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Noto Sans Bengali, so switching language never changes the voice of the page.
 
 The logo is the same dial idea reduced to a clock: twelve dots, the four quarter hours larger, the twelve in coral, two round-capped hands at ten o'clock. It was chosen by the user from four logos (logo C) together with this theme (theme 2 of four), replacing the earlier Alpona Dial world, which read too dark and earthy. One painter draws the logo in the app, the app icon and the menu-bar template, so the icons can never drift from the logo.
 
@@ -184,9 +184,9 @@ A clear-sky palette: one confident blue, one warm coral for now, deep blue-black
 
 ## Typography
 
-**Display Font:** Hind Siliguri (bundled; Regular, Medium 500, SemiBold 600, Bold 700)
-**Body Font:** Hind Siliguri
-**Label Font:** Hind Siliguri
+**Display Font:** Noto Sans Bengali (bundled; Regular, Medium 500, SemiBold 600, Bold 700)
+**Body Font:** Noto Sans Bengali
+**Label Font:** Noto Sans Bengali
 
 **Character:** One family for Bangla and Latin alike, with a clear Bangla matra and open Latin forms, so a mixed line such as a voice name never changes voice mid-row.
 

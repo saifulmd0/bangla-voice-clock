@@ -95,9 +95,9 @@ const _panes = {
 void main() {
   testWidgets('screenshots', (tester) async {
     await tester.runAsync(() async {
-      await _loadFont('HindSiliguri', [
+      await _loadFont('NotoSansBengali', [
         for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold'])
-          'assets/fonts/hind_siliguri/HindSiliguri-$w.ttf',
+          'assets/fonts/noto_sans_bengali/NotoSansBengali-$w.ttf',
       ]);
       await _loadFont('MaterialIcons', [
         '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/'

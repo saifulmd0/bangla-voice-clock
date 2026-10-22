@@ -36,6 +36,11 @@ class NativeBridge {
   HMENU BuildMenu(const flutter::EncodableList& entries);
   void ShowWindowInFront();
   void SetAppearance(const std::string& appearance);
+  // Reads, or with [enable] first changes, the Store package's StartupTask,
+  // then answers [result] from the window's thread.
+  void UseLoginTask(
+      std::optional<bool> enable,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
   // Plays sound_ on the waveOut device [index]; false if it can't.
   bool PlayOnDevice(UINT index, double volume);

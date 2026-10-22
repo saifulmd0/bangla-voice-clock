@@ -526,7 +526,7 @@
       "refersTo": "button-speak",
       "description": "The one filled button, centred under the dial band.",
       "html": "<button class=\"ds-btn-speak\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6\"/><path d=\"M16 5.5c1 .9 1 2.6 0 3.5M18.5 3.5c2.1 2 2.1 5.5 0 7.5\"/></svg>এখনই সময় শুনুন</button>",
-      "css": ".ds-btn-speak{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:8px;background:#2F74D0;color:#FFFFFF;border:none;border-radius:9999px;padding:14px 22px;font-size:16px;font-weight:600;cursor:pointer;transition:filter .15s}.ds-btn-speak:hover{filter:brightness(1.08)}.ds-btn-speak:active{filter:brightness(.92)}.ds-btn-speak:focus-visible{outline:2px solid #2F74D0;outline-offset:3px}@media (prefers-color-scheme:dark){.ds-btn-speak{background:#8AB8F5;color:#08264D}}"
+      "css": ".ds-btn-speak{font-family:'Noto Sans Bengali',sans-serif;display:inline-flex;align-items:center;gap:8px;background:#2F74D0;color:#FFFFFF;border:none;border-radius:9999px;padding:14px 22px;font-size:16px;font-weight:600;cursor:pointer;transition:filter .15s}.ds-btn-speak:hover{filter:brightness(1.08)}.ds-btn-speak:active{filter:brightness(.92)}.ds-btn-speak:focus-visible{outline:2px solid #2F74D0;outline-offset:3px}@media (prefers-color-scheme:dark){.ds-btn-speak{background:#8AB8F5;color:#08264D}}"
     },
     {
       "name": "Day Dial Band",
@@ -534,7 +534,7 @@
       "refersTo": "dial-band",
       "description": "Pale sky band holding today's dial of announcement dots, coral now dot, ink time at the centre.",
       "html": "<div class=\"ds-dial-band\"><svg viewBox=\"0 0 280 280\" width=\"280\" height=\"280\"><g fill=\"none\" stroke=\"rgba(47,116,208,.45)\" stroke-width=\"3\" stroke-linecap=\"round\"><path d=\"M58.4 183.4 A92.4 92.4 0 0 1 47.7 143.2\"/><path d=\"M47.7 136.8 A92.4 92.4 0 0 1 136.8 47.7\"/><path d=\"M143.2 47.7 A92.4 92.4 0 0 1 203.0 72.4\"/><path d=\"M207.6 77.0 A92.4 92.4 0 0 1 232.3 136.8\"/><path d=\"M232.3 143.2 A92.4 92.4 0 0 1 221.6 183.4\"/><path d=\"M218.4 189.0 A92.4 92.4 0 0 1 61.6 189.0\"/></g><g fill=\"#2F74D0\"><circle cx=\"37.2\" cy=\"112.5\" r=\"4\"/><circle cx=\"47.9\" cy=\"86.8\" r=\"4\"/><circle cx=\"64.8\" cy=\"64.8\" r=\"4\"/><circle cx=\"86.8\" cy=\"47.9\" r=\"4\"/><circle cx=\"112.5\" cy=\"37.2\" r=\"4\"/><circle cx=\"140.0\" cy=\"33.6\" r=\"4\"/><circle cx=\"167.5\" cy=\"37.2\" r=\"4\"/><circle cx=\"193.2\" cy=\"47.9\" r=\"4\"/><circle cx=\"215.2\" cy=\"64.8\" r=\"4\"/><circle cx=\"232.1\" cy=\"86.8\" r=\"4\"/><circle cx=\"242.8\" cy=\"112.5\" r=\"4\"/><circle cx=\"246.4\" cy=\"140.0\" r=\"4\"/><circle cx=\"242.8\" cy=\"167.5\" r=\"4\"/><circle cx=\"232.1\" cy=\"193.2\" r=\"4\"/><circle cx=\"215.2\" cy=\"215.2\" r=\"4\"/><circle cx=\"193.2\" cy=\"232.1\" r=\"4\"/></g><circle cx=\"95.0\" cy=\"43.6\" r=\"9.1\" fill=\"#E1EEFD\"/><circle cx=\"95.0\" cy=\"43.6\" r=\"7\" fill=\"#FF8A65\"/><text x=\"140\" y=\"146\" text-anchor=\"middle\" class=\"ds-dial-time\">সকাল ১০:২০</text></svg></div>",
-      "css": ".ds-dial-band{background:#E1EEFD;padding:20px 0;display:flex;justify-content:center}.ds-dial-time{font-family:'Hind Siliguri',sans-serif;fill:#172338;font-size:30px;font-weight:600}@media (prefers-color-scheme:dark){.ds-dial-band{background:#172A45}.ds-dial-time{fill:#E8EFFA}}"
+      "css": ".ds-dial-band{background:#E1EEFD;padding:20px 0;display:flex;justify-content:center}.ds-dial-time{font-family:'Noto Sans Bengali',sans-serif;fill:#172338;font-size:30px;font-weight:600}@media (prefers-color-scheme:dark){.ds-dial-band{background:#172A45}.ds-dial-time{fill:#E8EFFA}}"
     },
     {
       "name": "Grouped Section Card",
@@ -542,7 +542,7 @@
       "refersTo": "group-card",
       "description": "Section-blue title over a white, outlined, shadowless card of 16pt rows.",
       "html": "<section class=\"ds-section\"><h3 class=\"ds-section-title\">ঘোষণা</h3><div class=\"ds-card\"><div class=\"ds-row\">সময় ঘোষণা চালু</div><div class=\"ds-row\">কতক্ষণ পরপর</div></div></section>",
-      "css": ".ds-section{font-family:'Hind Siliguri',sans-serif;}.ds-section-title{margin:0 0 4px 8px;font-size:16px;font-weight:700;color:#2B5A9E}.ds-card{background:#FFFFFF;border:1px solid #DCE5F1;border-radius:14px;overflow:hidden}.ds-row{padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-row:hover{background:#EFF5FD}"
+      "css": ".ds-section{font-family:'Noto Sans Bengali',sans-serif;}.ds-section-title{margin:0 0 4px 8px;font-size:16px;font-weight:700;color:#2B5A9E}.ds-card{background:#FFFFFF;border:1px solid #DCE5F1;border-radius:14px;overflow:hidden}.ds-row{padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-row:hover{background:#EFF5FD}"
     },
     {
       "name": "Segmented Control",
@@ -550,7 +550,7 @@
       "refersTo": "segmented-track",
       "description": "macOS sliding segmented control at full row width.",
       "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button class=\"ds-seg-opt ds-seg-on\" role=\"radio\" aria-checked=\"true\">১৫ মিনিট</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">৩০ মিনিট</button><button class=\"ds-seg-opt\" role=\"radio\" aria-checked=\"false\">১ ঘণ্টা</button></div>",
-      "css": ".ds-seg{display:flex;background:#E3EBF6;padding:3px;border-radius:9px;width:100%}.ds-seg-opt{font-family:'Hind Siliguri',sans-serif;flex:1;border:none;background:transparent;padding:6px 0;font-size:15px;font-weight:600;color:#172338;border-radius:7px;cursor:pointer;transition:background .2s}.ds-seg-on{background:#FFFFFF;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}.ds-seg-opt:focus-visible{outline:2px solid #2F74D0;outline-offset:1px}"
+      "css": ".ds-seg{display:flex;background:#E3EBF6;padding:3px;border-radius:9px;width:100%}.ds-seg-opt{font-family:'Noto Sans Bengali',sans-serif;flex:1;border:none;background:transparent;padding:6px 0;font-size:15px;font-weight:600;color:#172338;border-radius:7px;cursor:pointer;transition:background .2s}.ds-seg-on{background:#FFFFFF;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}.ds-seg-opt:focus-visible{outline:2px solid #2F74D0;outline-offset:1px}"
     },
     {
       "name": "Switch Row",
@@ -558,7 +558,7 @@
       "refersTo": "group-card",
       "description": "Cupertino switch, sky blue when on, outline colour when off.",
       "html": "<label class=\"ds-switch-row\">সময় ঘোষণা চালু<input type=\"checkbox\" class=\"ds-switch\" checked></label>",
-      "css": ".ds-switch-row{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-switch{appearance:none;width:51px;height:31px;border-radius:9999px;background:#7B8BA4;position:relative;cursor:pointer;transition:background .2s}.ds-switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .2s}.ds-switch:checked{background:#2F74D0}.ds-switch:checked::after{transform:translateX(20px)}.ds-switch:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
+      "css": ".ds-switch-row{font-family:'Noto Sans Bengali',sans-serif;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:16px;font-weight:500;color:#172338}.ds-switch{appearance:none;width:51px;height:31px;border-radius:9999px;background:#7B8BA4;position:relative;cursor:pointer;transition:background .2s}.ds-switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .2s}.ds-switch:checked{background:#2F74D0}.ds-switch:checked::after{transform:translateX(20px)}.ds-switch:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
     },
     {
       "name": "Radio Row",
@@ -566,7 +566,7 @@
       "refersTo": "group-card",
       "description": "Cupertino radio with title and example subtitle; the unchosen ring is drawn in the outline colour so it stays visible.",
       "html": "<label class=\"ds-radio-row\"><input type=\"radio\" name=\"ds-style\" class=\"ds-radio\" checked><span><span class=\"ds-radio-title\">প্রচলিত</span><span class=\"ds-radio-sub\">সকাল সোয়া দশটা</span></span></label><label class=\"ds-radio-row\"><input type=\"radio\" name=\"ds-style\" class=\"ds-radio\"><span><span class=\"ds-radio-title\">মিনিট ধরে</span><span class=\"ds-radio-sub\">সকাল দশটা বেজে পনেরো মিনিট</span></span></label>",
-      "css": ".ds-radio-row{font-family:'Hind Siliguri',sans-serif;display:flex;gap:24px;align-items:center;padding:10px 16px;cursor:pointer}.ds-radio{appearance:none;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:1.5px solid #7B8BA4;margin:0;flex:none}.ds-radio:checked{width:18px;height:18px;background:#fff;border:5px solid #2F74D0}.ds-radio:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}.ds-radio-title{display:block;font-size:16px;font-weight:500;color:#172338}.ds-radio-sub{display:block;font-size:16px;line-height:1.35;color:#4A5A73}"
+      "css": ".ds-radio-row{font-family:'Noto Sans Bengali',sans-serif;display:flex;gap:24px;align-items:center;padding:10px 16px;cursor:pointer}.ds-radio{appearance:none;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:1.5px solid #7B8BA4;margin:0;flex:none}.ds-radio:checked{width:18px;height:18px;background:#fff;border:5px solid #2F74D0}.ds-radio:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}.ds-radio-title{display:block;font-size:16px;font-weight:500;color:#172338}.ds-radio-sub{display:block;font-size:16px;line-height:1.35;color:#4A5A73}"
     },
     {
       "name": "Hour Pop-up Button",
@@ -574,7 +574,7 @@
       "refersTo": "popup-button",
       "description": "macOS-style pop-up for quiet hours, not an underlined dropdown.",
       "html": "<button class=\"ds-popup\">রাত ১১:০০<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 9l4-4 4 4M8 15l4 4 4-4\"/></svg></button>",
-      "css": ".ds-popup{font-family:'Hind Siliguri',sans-serif;display:inline-flex;align-items:center;gap:4px;padding:8px 8px 8px 14px;border:1px solid #7B8BA4;border-radius:8px;background:transparent;color:#172338;font-size:15px;font-weight:600;cursor:pointer}.ds-popup:hover{background:rgba(23,35,56,.06)}.ds-popup:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
+      "css": ".ds-popup{font-family:'Noto Sans Bengali',sans-serif;display:inline-flex;align-items:center;gap:4px;padding:8px 8px 8px 14px;border:1px solid #7B8BA4;border-radius:8px;background:transparent;color:#172338;font-size:15px;font-weight:600;cursor:pointer}.ds-popup:hover{background:rgba(23,35,56,.06)}.ds-popup:focus-visible{outline:2px solid #2F74D0;outline-offset:2px}"
     },
     {
       "name": "Footer Text Link",
@@ -582,7 +582,7 @@
       "refersTo": "text-link",
       "description": "Sky-blue text links to the developer and the credits page.",
       "html": "<nav class=\"ds-footer\"><a href=\"#\" class=\"ds-link\">ডেভেলপ করেছেন সাইফুল ইসলাম</a><span>·</span><a href=\"#\" class=\"ds-link\">কৃতজ্ঞতা</a></nav>",
-      "css": ".ds-footer{font-family:'Hind Siliguri',sans-serif;display:flex;justify-content:center;align-items:center;gap:4px;color:#172338}.ds-link{color:#2F74D0;font-size:15px;font-weight:600;text-decoration:none;padding:8px 12px;border-radius:9999px}.ds-link:hover{background:rgba(47,116,208,.08)}.ds-link:focus-visible{outline:2px solid #2F74D0}"
+      "css": ".ds-footer{font-family:'Noto Sans Bengali',sans-serif;display:flex;justify-content:center;align-items:center;gap:4px;color:#172338}.ds-link{color:#2F74D0;font-size:15px;font-weight:600;text-decoration:none;padding:8px 12px;border-radius:9999px}.ds-link:hover{background:rgba(47,116,208,.08)}.ds-link:focus-visible{outline:2px solid #2F74D0}"
     },
     {
       "name": "Logo Tile",
@@ -595,7 +595,7 @@
   ],
   "narrative": {
     "northStar": "Dot Dial on Clear Sky",
-    "overview": "**Creative North Star: \"Dot Dial on Clear Sky\"**\n\nThe day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding today as a 24-hour ring, noon at the top and midnight at the bottom, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.\n\nDensity is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Hind Siliguri, so switching language never changes the voice of the page.\n\nThe logo is the same dial idea reduced to a clock: twelve dots, the four quarter hours larger, the twelve in coral, two round-capped hands at ten o'clock. It was chosen by the user from four logos (logo C) together with this theme (theme 2 of four), replacing the earlier Alpona Dial world, which read too dark and earthy. One painter draws the logo in the app, the app icon and the menu-bar template, so the icons can never drift from the logo.",
+    "overview": "**Creative North Star: \"Dot Dial on Clear Sky\"**\n\nThe day is a dial of dots on a clear morning sky. The settings window opens on a pale sky band holding today as a 24-hour ring, noon at the top and midnight at the bottom, with one blue fingertip dot for every announcement the clock will make and a coral dot for now. The day is drawn, not listed. Below the band the window turns quiet and native: an airy blue-white ground, white outlined cards, macOS controls tinted sky blue. The dial is the one loud thing; everything under it stays out of its way.\n\nDensity is low and type is large, because the users include elders and low-vision people. Every row uses the same generous 16pt and is ranked by weight. Bangla leads and English follows, both set in Noto Sans Bengali, so switching language never changes the voice of the page.\n\nThe logo is the same dial idea reduced to a clock: twelve dots, the four quarter hours larger, the twelve in coral, two round-capped hands at ten o'clock. It was chosen by the user from four logos (logo C) together with this theme (theme 2 of four), replacing the earlier Alpona Dial world, which read too dark and earthy. One painter draws the logo in the app, the app icon and the menu-bar template, so the icons can never drift from the logo.",
     "keyCharacteristics": [
       "A pale sky band holding a 280pt day dial, and nothing else.",
       "Sky blue for the dial, the logo and every control; coral only for now and the logo's twelve.",

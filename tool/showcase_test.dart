@@ -145,7 +145,7 @@ class _Window extends StatelessWidget {
                     'বাংলা ভয়েস ক্লক',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'HindSiliguri',
+                      fontFamily: 'NotoSansBengali',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: dark ? Sky.inkNight : Sky.ink,
@@ -176,7 +176,7 @@ class _Window extends StatelessWidget {
               'বাংলা ভয়েস ক্লক',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'HindSiliguri',
+                fontFamily: 'NotoSansBengali',
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: ink,
@@ -215,7 +215,7 @@ Widget _logo(double size) => SizedBox.square(
 );
 
 TextStyle _text(double size, FontWeight weight, Color color) => TextStyle(
-  fontFamily: 'HindSiliguri',
+  fontFamily: 'NotoSansBengali',
   fontSize: size,
   fontWeight: weight,
   color: color,
@@ -359,9 +359,9 @@ Widget _socialPreview(Widget window) => Container(
 void main() {
   testWidgets('product media', (tester) async {
     await tester.runAsync(() async {
-      await _loadFont('HindSiliguri', [
+      await _loadFont('NotoSansBengali', [
         for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold'])
-          'assets/fonts/hind_siliguri/HindSiliguri-$w.ttf',
+          'assets/fonts/noto_sans_bengali/NotoSansBengali-$w.ttf',
       ]);
       await _loadFont('MaterialIcons', [
         '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/'

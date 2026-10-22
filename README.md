@@ -253,7 +253,7 @@ address, as with any web request, and nothing else is sent.
 - **Areeba AI** voice by Saiful Islam, designed and generated with [ElevenLabs](https://elevenlabs.io).
 - [Schedule Voice Clock](https://github.com/HridoyVaraby/schedule-voice-clock) by Hridoy
   Varaby, which inspired recording whole phrases.
-- Built with [Flutter](https://flutter.dev); [Hind Siliguri](https://fonts.google.com/specimen/Hind+Siliguri) for the text.
+- Built with [Flutter](https://flutter.dev); [Noto Sans Bengali](https://fonts.google.com/noto/specimen/Noto+Sans+Bengali) by Google for the text.
 
 Developed by **[Saiful Islam](https://github.com/saifulmd0)**.
 
@@ -265,7 +265,7 @@ it, and anything you share that is built on it must keep the credit and stay ope
 the same licence.
 
 The Classic (1998) voice is the exception: those recordings are included with permission and are
-not under the GPL. Hind Siliguri is under the SIL Open Font License. See [NOTICE.md](NOTICE.md).
+not under the GPL. Noto Sans Bengali is under the SIL Open Font License. See [NOTICE.md](NOTICE.md).
 
 ## Development
 

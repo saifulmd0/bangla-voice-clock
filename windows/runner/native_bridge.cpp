@@ -1,13 +1,18 @@
 #include "native_bridge.h"
 
+#include <appmodel.h>
 #include <dwmapi.h>
 #include <flutter/standard_method_codec.h>
 #include <mmdeviceapi.h>
 #include <mmsystem.h>
 #include <objbase.h>
 
+#include <winrt/Windows.ApplicationModel.h>
+#include <winrt/Windows.Foundation.h>
+
 #include <algorithm>
 #include <cstring>
+#include <thread>
 
 #include "resource.h"
 
@@ -17,10 +22,14 @@ constexpr UINT kTrayMessage = WM_APP + 1;
 // Also posted by the installer to close a running clock before it updates
 // or removes it; see windows/installer/BanglaVoiceClock.iss.
 constexpr UINT kQuitMessage = WM_APP + 2;
+// Carries a StartupTask answer from its worker thread back to the window.
+constexpr UINT kLoginTaskMessage = WM_APP + 3;
 constexpr UINT kFirstMenuId = 1000;
 constexpr wchar_t kAppName[] = L"Bangla Voice Clock";
 constexpr wchar_t kRunKey[] =
     L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+// windows/msix/AppxManifest.xml declares this task.
+constexpr wchar_t kLoginTaskId[] = L"BanglaVoiceClockAtLogin";
 // DWMWA_USE_IMMERSIVE_DARK_MODE, missing from older SDK headers.
 constexpr DWORD kDarkModeAttribute = 20;
 
@@ -35,6 +44,15 @@ constexpr DWORD kDarkModeAttribute = 20;
 constexpr PROPERTYKEY kFriendlyName = {
     {0xa45c254e, 0xdf1c, 0x4efd, {0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0}},
     14};
+
+// Whether this copy runs from the Microsoft Store's MSIX package. Windows
+// keeps a packaged app's registry apart, so the Run key can't open it at
+// login; its StartupTask does.
+bool Packaged() {
+  UINT32 length = 0;
+  return GetCurrentPackageFullName(&length, nullptr) !=
+         APPMODEL_ERROR_NO_PACKAGE;
+}
 
 std::wstring Wide(const std::string& text) {
   if (text.empty()) return std::wstring();
@@ -263,6 +281,11 @@ void NativeBridge::HandleCall(
   } else if (method == "setAppearance") {
     SetAppearance(text ? *text : "system");
     result->Success();
+  } else if (method == "launchAtLogin" && Packaged()) {
+    UseLoginTask(std::nullopt, std::move(result));
+  } else if (method == "setLaunchAtLogin" && Packaged()) {
+    const auto* on = args ? std::get_if<bool>(args) : nullptr;
+    UseLoginTask(on && *on, std::move(result));
   } else if (method == "launchAtLogin") {
     bool enabled = RegGetValueW(HKEY_CURRENT_USER, kRunKey, kAppName,
                                 RRF_RT_REG_SZ, nullptr, nullptr,
@@ -292,9 +315,48 @@ void NativeBridge::HandleCall(
   }
 }
 
+void NativeBridge::UseLoginTask(
+    std::optional<bool> enable,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  // StartupTask answers asynchronously, so wait for it on a worker thread
+  // rather than block the window.
+  auto* pending = result.release();
+  HWND window = window_;
+  std::thread([window, enable, pending] {
+    using winrt::Windows::ApplicationModel::StartupTask;
+    using winrt::Windows::ApplicationModel::StartupTaskState;
+    bool on = false;
+    winrt::init_apartment();
+    try {
+      StartupTask task = StartupTask::GetAsync(kLoginTaskId).get();
+      if (enable == true) {
+        task.RequestEnableAsync().get();
+      } else if (enable == false) {
+        task.Disable();
+      }
+      StartupTaskState state = task.State();
+      on = state == StartupTaskState::Enabled ||
+           state == StartupTaskState::EnabledByPolicy;
+    } catch (const winrt::hresult_error&) {
+    }
+    winrt::uninit_apartment();
+    // A change answers whether it took effect, a read whether it's on.
+    bool answer = enable ? on == *enable : on;
+    PostMessageW(window, kLoginTaskMessage, answer,
+                 reinterpret_cast<LPARAM>(pending));
+  }).detach();
+}
+
 std::optional<LRESULT> NativeBridge::HandleMessage(HWND hwnd, UINT message,
                                                    WPARAM wparam,
                                                    LPARAM lparam) {
+  if (message == kLoginTaskMessage) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result(
+        reinterpret_cast<flutter::MethodResult<flutter::EncodableValue>*>(
+            lparam));
+    result->Success(flutter::EncodableValue(wparam != 0));
+    return 0;
+  }
   if (message == kTrayMessage) {
     switch (LOWORD(lparam)) {
       case WM_LBUTTONUP:

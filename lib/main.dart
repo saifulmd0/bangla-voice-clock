@@ -13,6 +13,12 @@ import 'ui/settings_page.dart';
 import 'ui/theme.dart';
 import 'ui/update_dialog.dart';
 
+/// Whether this copy came from the Microsoft Store, which installs its
+/// packages under WindowsApps.
+final fromStore =
+    Platform.isWindows &&
+    Platform.resolvedExecutable.toLowerCase().contains(r'\windowsapps\');
+
 void main() {
   final log = ErrorLog.standard();
   log.guard(() async {
@@ -21,13 +27,13 @@ void main() {
     final controller = await AppController.create(
       platform: NativePlatform(),
       store: SettingsStore.standard(),
-      // A Flatpak is updated by Flathub and the user's software centre.
-      updates: Platform.environment.containsKey('FLATPAK_ID')
+      // Flathub and the Microsoft Store update their own copies.
+      updates: Platform.environment.containsKey('FLATPAK_ID') || fromStore
           ? null
           : GitHubUpdates(),
-      // On Windows the setup's start-at-sign-in box, ticked by default,
-      // decides.
-      openAtLoginOnFirstRun: !Platform.isWindows,
+      // The Windows setup's start-at-sign-in box, ticked by default,
+      // decides for the copies it installs.
+      openAtLoginOnFirstRun: !Platform.isWindows || fromStore,
     );
     runApp(BanglaVoiceClockApp(controller: controller));
     await controller.start();

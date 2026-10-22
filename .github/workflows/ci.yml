@@ -118,6 +118,18 @@ jobs:
             BanglaVoiceClock-windows-setup.exe
             BanglaVoiceClock-windows-portable.zip
           retention-days: 14
+      - name: Make Microsoft Store package
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)').Matches[0].Groups[1].Value
+          tool/windows/make_msix.ps1 -App "Bangla Voice Clock" -Version $version -Out BanglaVoiceClock.msix
+      # For uploading to Partner Center by hand, not for the GitHub release:
+      # only the Store can sign it.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: msstore-package
+          path: BanglaVoiceClock.msix
+          retention-days: 30
 
   build-linux:
     name: Build Linux app
@@ -201,6 +213,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
+          pattern: BanglaVoiceClock-*
           merge-multiple: true
       - name: Create release
         env:

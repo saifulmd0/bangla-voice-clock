@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'brand.dart';
 
-/// The app theme: clear sky blue on airy white, coral for now, and Hind
-/// Siliguri for Bangla and Latin alike.
+/// The app theme: clear sky blue on airy white, coral for now, and Noto
+/// Sans Bengali for Bangla and Latin alike.
 ThemeData skyTheme(Brightness brightness) {
   final light = brightness == Brightness.light;
   final scheme = light
@@ -62,7 +62,7 @@ ThemeData skyTheme(Brightness brightness) {
   const rowSize = 16.0;
   final base = ThemeData(
     colorScheme: scheme,
-    fontFamily: 'HindSiliguri',
+    fontFamily: 'NotoSansBengali',
   ).textTheme;
   final text = base.copyWith(
     displaySmall: base.displaySmall?.copyWith(
@@ -89,7 +89,7 @@ ThemeData skyTheme(Brightness brightness) {
 
   return ThemeData(
     colorScheme: scheme,
-    fontFamily: 'HindSiliguri',
+    fontFamily: 'NotoSansBengali',
     textTheme: text,
     scaffoldBackgroundColor: scheme.surface,
     listTileTheme: ListTileThemeData(
