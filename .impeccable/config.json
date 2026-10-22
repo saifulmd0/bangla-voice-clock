@@ -23,6 +23,15 @@
         ],
         "createdAt": "2026-10-22T21:29:39.621Z",
         "reason": "Claude: the only glow is the moon's light in the quiet-hours night scene, a literal light source"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "tool/promo/index.html"
+        ],
+        "createdAt": "2026-10-22T21:39:42.850Z",
+        "reason": "Claude: the tight insets are the recreated macOS menu bar item and menu rows, matching the real system UI; rendered frames reviewed"
       }
     ]
   }
