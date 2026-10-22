@@ -60,7 +60,9 @@
   output.
 - **Stays out of the way.** It lives in the macOS menu bar (time, icon or both), the Windows
   system tray or the Linux panel, opens at login, and has no Dock or taskbar window.
-- **Bangla or English window**, in light or dark, with today's schedule drawn as a dial of dots.
+- **Everything on one screen.** The clock and its dial of the day stay on the left; the five
+  sections (announcements, voice and sound, quiet hours, timer, general) open beside it, with
+  nothing to scroll. In Bangla or English, light or dark.
 - **Free and open source, with no ads and no account.** Announcements work offline. It checks GitHub once a
   day for a new version, and you can turn that off.
 
@@ -70,7 +72,7 @@
 |---|---|
 | ![The clock speaking: the now dot glows on the dial](docs/media/scene-2-speak.png) | ![The two voices as option cards](docs/media/scene-3-voices.png) |
 | ![The window in English and dark mode](docs/media/scene-4-dark.png) | ![Choosing a quiet hours time: hours in a list, minutes in a grid](docs/media/scene-5-quiet.png) |
-| ![The timer counting down from ten minutes](docs/media/scene-6-timer.png) | ![The clock tab with the dial of the day](docs/media/scene-1-clock.png) |
+| ![The timer counting down from ten minutes](docs/media/scene-6-timer.png) | ![The window: the dial of the day and the sections in a sidebar](docs/media/scene-1-clock.png) |
 
 ## Install
 
@@ -79,7 +81,7 @@ Each release has a file for each system:
 
 | File | For |
 |---|---|
-| `BanglaVoiceClock-…-macos.dmg` | macOS 12 Monterey or later, Apple Silicon and Intel |
+| `BanglaVoiceClock-…-macos.dmg` | macOS 12 Monterey or later. One universal app for Apple Silicon and Intel |
 | `BanglaVoiceClock-…-windows-setup.exe` | Windows 10 or 11, 64-bit (recommended) |
 | `BanglaVoiceClock-…-windows-portable.zip` | Windows, without installing |
 | `BanglaVoiceClock-…-linux-amd64.deb` | Ubuntu 22.04 or later, Debian 12 or later, Linux Mint 21 or later (64-bit) |
@@ -143,9 +145,11 @@ Software or Discover with one click and updates on its own.
 which Ubuntu and Mint have.
 
 Open **Bangla Voice Clock** from the app menu. The clock icon appears in the panel, with the time
-beside it on Ubuntu; click it for the menu. Plain GNOME (Fedora, for one) shows panel icons only
-with the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/);
-without it the window stays open instead, and closing it minimises the clock.
+beside it on Ubuntu and GNOME; click it for the menu. Plain GNOME (Debian, Fedora) shows panel
+icons only with the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/):
+the `.deb` installs it, and **সাধারণ** (General) in the window offers to turn it on, after which
+the icon and time sit in the top bar as in the Mac menu bar. Until then, closing the window keeps
+the clock running out of sight; open the app again to bring the window back.
 
 ### Updating
 
@@ -159,7 +163,7 @@ Once a day the clock looks for a new version and, when there is one, shows what 
 - **Linux:** the `.deb` copy offers the new version's download page; install the new `.deb` over
   the old one. The Flatpak leaves updates to Flathub (`flatpak update`) and doesn't check itself.
 
-You can also choose **Check for update now** under **General** (অন্যান্য) in the window.
+You can also choose **Check for update now** under **General** (সাধারণ) in the window.
 
 ### Uninstalling
 
@@ -179,13 +183,16 @@ Click the time in the menu bar (the tray icon on Windows, the panel icon on Linu
 - **ঘোষণা বন্ধ** (Mute), and **কতক্ষণ পরপর** (Every) 15 minutes, 30 minutes or 1 hour
 - **সেটিংস…** (Settings…), **কৃতজ্ঞতা…** (Credits…) and **বন্ধ করুন** (Quit)
 
-The window has two tabs:
+The window shows the dial of the day and **এখনই সময় শুনুন** on the left, above five sections:
 
-- **ঘড়ি (Clock):** the dial of the day, then the look (light, dark or matching the system;
-  what the menu bar shows), announcements (on or off, how often, by the minute or traditional,
-  বেজে), voice, volume, chime, the output device, quiet hours, the language, notifications,
-  opening at login and update checks.
+- **ঘোষণা (Announcements):** on or off, how often, by the minute or traditional, and বেজে.
+- **কণ্ঠ ও শব্দ (Voice & sound):** the voice, volume, chime and the output device.
+- **নীরব সময় (Quiet hours):** when to stay silent, to the minute.
 - **টাইমার (Timer):** pick the minutes and start; it speaks the time left every minute.
+- **সাধারণ (General):** the language, light or dark, what the menu bar or panel shows,
+  notifications, opening at login and update checks.
+
+In a narrow window the sections become tabs along the top.
 
 ## FAQ
 
@@ -211,8 +218,11 @@ traditional way. Areeba AI says any minute.
 **There's no clock icon in the Linux panel.**
 GNOME shows panel icons only with the
 [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/), which
-Ubuntu includes and Fedora doesn't. Without it the window stays open and closing it minimises
-the clock. KDE, Cinnamon, MATE, Xfce and Budgie show the icon as they are.
+Ubuntu includes and turns on. On Debian, Fedora and other plain GNOME, open **সাধারণ** (General)
+in the window: it turns the extension on, or shows the command that installs it
+(`sudo apt install gnome-shell-extension-appindicator` on Debian). An extension installed after
+you logged in starts at the next login. The Flatpak can't do this itself; install the extension
+with the Extension Manager app. KDE, Cinnamon, MATE, Xfce and Budgie show the icon as they are.
 
 **Where are my settings?**
 macOS: `~/Library/Containers/com.projuktiteam.banglaVoiceClock/Data/Library/Application Support/Bangla Voice Clock/settings.json`.

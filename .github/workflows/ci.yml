@@ -43,6 +43,15 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build macos --release
+      # One app for both Apple Silicon and Intel Macs.
+      - run: |
+          for binary in "MacOS/Bangla Voice Clock" \
+              Frameworks/App.framework/App \
+              Frameworks/FlutterMacOS.framework/FlutterMacOS; do
+            archs=$(lipo -archs "build/macos/Build/Products/Release/Bangla Voice Clock.app/Contents/$binary")
+            echo "$binary: $archs"
+            case "$archs" in *x86_64*arm64*|*arm64*x86_64*) ;; *) exit 1 ;; esac
+          done
       - name: Make disk image
         run: |
           # The app beside an Applications shortcut, to drag it onto.

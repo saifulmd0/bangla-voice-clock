@@ -87,6 +87,11 @@
   </keywords>
 
   <releases>
+    <release version="0.5.0" date="2026-10-22">
+      <description>
+        <p>All settings on one screen, beside the clock. On GNOME, the icon and time can sit in the top bar, and closing the window keeps the clock running.</p>
+      </description>
+    </release>
     <release version="0.4.0" date="2026-10-21">
       <description>
         <p>The first Linux version, with “Check for update now” on macOS and Windows.</p>

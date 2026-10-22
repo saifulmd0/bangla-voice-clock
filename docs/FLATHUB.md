@@ -36,7 +36,7 @@ In short:
 2. Add the manifest for the release, written by:
 
    ```sh
-   tool/linux/flathub_manifest.sh v0.4.0 > io.github.saifulmd0.BanglaVoiceClock.yml
+   tool/linux/flathub_manifest.sh v0.5.0 > io.github.saifulmd0.BanglaVoiceClock.yml
    ```
 
 3. Add Flathub's shared modules, which the manifest uses:
