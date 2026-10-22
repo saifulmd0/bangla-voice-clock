@@ -102,8 +102,10 @@ class _UpdateDialogState extends State<_UpdateDialog> {
               const SizedBox(height: 12),
               Text(t.brewHint, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 4),
+              // Homebrew refreshes taps about once a day on its own, so a
+              // plain upgrade soon after a release still sees the old one.
               const SelectableText(
-                'brew upgrade --cask bangla-voice-clock',
+                'brew update && brew upgrade --cask bangla-voice-clock',
                 style: TextStyle(fontFamily: 'Menlo', fontSize: 13),
               ),
             ],

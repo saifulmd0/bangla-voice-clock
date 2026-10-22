@@ -157,7 +157,7 @@ Once a day the clock looks for a new version and, when there is one, shows what 
 
 - **Windows (installed with the setup):** choose **Update now**. It downloads the new version,
   checks it, installs it and reopens the clock, keeping your settings.
-- **macOS:** run `brew upgrade --cask bangla-voice-clock`, or choose **Open download page** and
+- **macOS:** run `brew update && brew upgrade --cask bangla-voice-clock`, or choose **Open download page** and
   install the new disk image over the old app.
 - **Windows portable:** download the new zip and replace the old folder.
 - **Linux:** the `.deb` copy offers the new version's download page; install the new `.deb` over
