@@ -12,8 +12,10 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$kit = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64" |
-  Sort-Object Name -Descending | Select-Object -First 1
+# The newest Windows SDK that has the packaging tools.
+$kit = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64\makeappx.exe" |
+  Sort-Object { [version]$_.Directory.Parent.Name } -Descending |
+  Select-Object -First 1 | ForEach-Object Directory
 $makepri = Join-Path $kit.FullName 'makepri.exe'
 $makeappx = Join-Path $kit.FullName 'makeappx.exe'
 
