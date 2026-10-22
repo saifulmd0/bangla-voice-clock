@@ -1,0 +1,29 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "display",
+        "createdAt": "2026-10-22T21:29:39.581Z",
+        "reason": "Claude: Inter Display is the launch video's English display type only (tool/promo), not app UI"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "text",
+        "createdAt": "2026-10-22T21:29:39.603Z",
+        "reason": "Claude: Inter text face for the launch video's English captions only (tool/promo), not app UI"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "tool/promo/index.html"
+        ],
+        "createdAt": "2026-10-22T21:29:39.621Z",
+        "reason": "Claude: the only glow is the moon's light in the quiet-hours night scene, a literal light source"
+      }
+    ]
+  }
+}

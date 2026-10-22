@@ -427,15 +427,17 @@ void main() {
     final media = Directory('docs/media')..createSync(recursive: true);
     final sounds = Directory('build/showcase')..createSync(recursive: true);
     final store = Directory('build/store')..createSync(recursive: true);
+    final promo = Directory('build/promo/ui')..createSync(recursive: true);
 
-    Future<void> capture(String key, String path) => tester.runAsync(() async {
-      final boundary = tester.renderObject<RenderRepaintBoundary>(
-        find.byKey(ValueKey(key)),
-      );
-      final image = await boundary.toImage(pixelRatio: 2);
-      final png = await image.toByteData(format: ui.ImageByteFormat.png);
-      await File(path).writeAsBytes(png!.buffer.asUint8List());
-    });
+    Future<void> capture(String key, String path, {double ratio = 2}) =>
+        tester.runAsync(() async {
+          final boundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(ValueKey(key)),
+          );
+          final image = await boundary.toImage(pixelRatio: ratio);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File(path).writeAsBytes(png!.buffer.asUint8List());
+        });
     Future<void> save(String name) =>
         capture('canvas', '${sounds.path}/$name.png');
 
@@ -512,6 +514,12 @@ void main() {
           ),
         );
         await then?.call(c, platform);
+        // Each window alone, sharp enough for the launch video.
+        await capture(
+          'window',
+          '${promo.path}/${frame.name}-$name.png',
+          ratio: 3,
+        );
         switch (frame) {
           case _Frame.mac:
             await save(name);

@@ -1,0 +1,13 @@
+{
+  "name": "bangla-voice-clock-promo",
+  "private": true,
+  "type": "module",
+  "description": "Renders the launch video from index.html; see render.mjs.",
+  "scripts": {
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "puppeteer-core": "^23.11.1"
+  }
+}

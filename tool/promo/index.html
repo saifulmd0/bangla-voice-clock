@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>Bangla Voice Clock launch</title>
+<!-- The launch video, one frame per seek: render.mjs serves the repository,
+     opens this page at ?f=landscape or ?f=vertical, and calls
+     window.seek(t) for every frame. Open it in a browser and add &play to
+     watch it run. -->
+<style>
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 400; src: url(/build/promo/fonts/NotoSansBengali-Regular.ttf); }
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 500; src: url(/build/promo/fonts/NotoSansBengali-Medium.ttf); }
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 600; src: url(/build/promo/fonts/NotoSansBengali-SemiBold.ttf); }
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 700; src: url(/build/promo/fonts/NotoSansBengali-Bold.ttf); }
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 800; src: url(/build/promo/fonts/NotoSansBengali-ExtraBold.ttf); }
+@font-face { font-family: 'Noto Sans Bengali'; font-weight: 900; src: url(/build/promo/fonts/NotoSansBengali-Black.ttf); }
+@font-face { font-family: Display; font-weight: 500; src: url(/build/promo/fonts/inter/web/InterDisplay-Medium.woff2); }
+@font-face { font-family: Display; font-weight: 600; src: url(/build/promo/fonts/inter/web/InterDisplay-SemiBold.woff2); }
+@font-face { font-family: Display; font-weight: 700; src: url(/build/promo/fonts/inter/web/InterDisplay-Bold.woff2); }
+@font-face { font-family: Display; font-weight: 800; src: url(/build/promo/fonts/inter/web/InterDisplay-ExtraBold.woff2); }
+@font-face { font-family: Display; font-weight: 900; src: url(/build/promo/fonts/inter/web/InterDisplay-Black.woff2); }
+@font-face { font-family: Text; font-weight: 400; src: url(/build/promo/fonts/inter/web/Inter-Regular.woff2); }
+@font-face { font-family: Text; font-weight: 500; src: url(/build/promo/fonts/inter/web/Inter-Medium.woff2); }
+@font-face { font-family: Text; font-weight: 600; src: url(/build/promo/fonts/inter/web/Inter-SemiBold.woff2); }
+
+:root {
+  --blue: #2F74D0; --blue-night: #8AB8F5; --coral: #FF8A65; --ink: #172338;
+  --ink-soft: #4A5A73; --ground: #F5F9FF; --tile: #EEF5FF; --night: #0B1424;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #000; overflow: hidden; }
+#stage {
+  position: relative; overflow: hidden; background: var(--ground);
+  font-family: Display, 'Noto Sans Bengali', sans-serif; color: var(--ink);
+  -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+}
+.L #stage { width: 1920px; height: 1080px; }
+.V #stage { width: 1080px; height: 1920px; }
+.layer, .scene { position: absolute; inset: 0; }
+.scene { visibility: hidden; }
+
+/* Background: a morning sky, a night that fades over it, and black. */
+#sky { background: linear-gradient(160deg, #E4F0FF 0%, #F6FAFF 55%, #FFF3EE 100%); }
+.blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; }
+#b1 { width: 900px; height: 900px; background: #BFD9FF; left: -250px; top: -300px; }
+#b2 { width: 700px; height: 700px; background: #FFD6C7; right: -200px; bottom: -260px; }
+#b3 { width: 600px; height: 600px; background: #D5E6FF; right: 20%; top: 30%; opacity: .4; }
+#night { background: radial-gradient(120% 90% at 70% 10%, #1D3561 0%, #0E1A31 45%, #070D19 100%); opacity: 0; }
+.star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; }
+#black { background: #05080F; }
+#grain {
+  opacity: .05; mix-blend-mode: multiply; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+}
+
+/* Type. Bangla leads, English follows. */
+.kicker { font-family: Text, 'Noto Sans Bengali'; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); }
+.head { font-weight: 900; line-height: 1.12; letter-spacing: -0.01em; }
+.sub { font-family: Text, 'Noto Sans Bengali'; font-weight: 500; color: var(--ink-soft); line-height: 1.35; }
+.L .kicker { font-size: 24px; } .V .kicker { font-size: 30px; }
+.L .head { font-size: 92px; } .V .head { font-size: 104px; }
+.L .sub { font-size: 34px; } .V .sub { font-size: 40px; }
+.night .head { color: #F2F6FF; } .night .sub { color: #A9B8D3; } .night .kicker { color: var(--blue-night); }
+.line { display: block; overflow: hidden; padding-bottom: .06em; }
+.line > span { display: inline-block; }
+
+/* Copy beside the picture in landscape, above it in portrait. */
+.copy { position: absolute; }
+.L .copy { left: 120px; top: 50%; width: 760px; transform: translateY(-50%); }
+.V .copy { left: 90px; right: 90px; top: 210px; }
+.copy > * + * { margin-top: 26px; }
+.visual { position: absolute; }
+.L .visual { right: 90px; top: 50%; width: 900px; height: 900px; margin-top: -450px; }
+.V .visual { left: 60px; right: 60px; bottom: 170px; height: 1100px; }
+.center { display: flex; align-items: center; justify-content: center; }
+
+/* A window from the app, at 3x. */
+.win { position: absolute; left: 50%; top: 50%; transform-style: preserve-3d; }
+.win img { display: block; width: 100%; filter: drop-shadow(0 50px 70px rgba(11,26,51,.28)) drop-shadow(0 6px 14px rgba(11,26,51,.12)); }
+.L .win { width: 860px; margin-left: -430px; margin-top: -368px; }
+.V .win { width: 920px; margin-left: -460px; margin-top: -394px; }
+.persp { perspective: 2200px; }
+
+/* Captions that light up with the voice. */
+.say { font-weight: 800; line-height: 1.25; text-align: center; }
+.say .w { display: inline-block; margin: 0 .12em; opacity: .22; }
+.L .say { font-size: 76px; } .V .say { font-size: 80px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 14px; padding: 14px 28px; border-radius: 999px;
+  background: rgba(255,255,255,.75); border: 1px solid rgba(47,116,208,.18);
+  box-shadow: 0 10px 30px rgba(11,26,51,.10); font-family: Text, 'Noto Sans Bengali'; font-weight: 600; font-size: 28px; color: var(--ink);
+  backdrop-filter: blur(20px);
+}
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--coral); }
+
+/* 1. Cold open. */
+#intro .dial { position: absolute; left: 50%; top: 46%; width: 420px; height: 420px; margin: -210px 0 0 -210px; }
+#intro .copy2 { position: absolute; left: 0; right: 0; text-align: center; }
+.L #intro .copy2 { top: 74%; } .V #intro .copy2 { top: 64%; }
+#intro .head { color: #F2F6FF; }
+#intro .sub { color: #A9B8D3; }
+
+/* 2. Menu bar. */
+#desk { position: absolute; inset: 0; background: linear-gradient(135deg, #6FA8F5 0%, #A7C8F7 40%, #F7C7B4 100%); transform-origin: 0 0; }
+#desk::after { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 30% 70%, rgba(255,255,255,.35), transparent 70%); }
+#menubar {
+  position: absolute; left: 0; right: 0; top: 0; height: 38px; display: flex; align-items: center; gap: 26px; padding: 0 22px;
+  background: rgba(240,245,252,.62); backdrop-filter: blur(30px); font-family: Text; font-size: 17px; font-weight: 500; color: #1d1d1f; z-index: 2;
+}
+#menubar .sp { flex: 1; }
+#menubar span { white-space: nowrap; }
+.L #menubar .tail { width: 31vw; } .V #menubar .tail { width: 20vw; }
+#menubar .item { display: flex; align-items: center; gap: 8px; padding: 3px 8px; border-radius: 6px; font-family: 'Noto Sans Bengali'; font-weight: 600; font-size: 18px; }
+#menubar .item.on { background: rgba(0,0,0,.12); }
+#dropdown {
+  position: absolute; top: 44px; width: 300px; padding: 8px; border-radius: 14px; z-index: 3;
+  background: rgba(246,248,252,.86); backdrop-filter: blur(30px); box-shadow: 0 24px 60px rgba(11,26,51,.28), 0 0 0 1px rgba(0,0,0,.06);
+  font-family: 'Noto Sans Bengali'; font-size: 17px; font-weight: 500; transform-origin: 80% 0;
+}
+#dropdown div { padding: 6px 12px; border-radius: 7px; }
+#dropdown .dim { color: #8a94a6; }
+#dropdown hr { border: 0; height: 1px; background: rgba(0,0,0,.1); margin: 5px 10px; }
+#dropdown .hl { background: var(--blue); color: #fff; }
+#cursor { position: absolute; width: 30px; z-index: 5; left: 0; top: 0; }
+#speak { }
+#speak .dial { position: absolute; left: 50%; width: 300px; height: 300px; margin-left: -150px; }
+.L #speak .dial { top: 170px; } .V #speak .dial { top: 430px; }
+.ring { position: absolute; left: 50%; top: 50%; border-radius: 50%; border: 3px solid var(--blue); }
+#speak .say { position: absolute; left: 0; right: 0; }
+.L #speak .say { top: 560px; padding: 0 160px; } .V #speak .say { top: 900px; padding: 0 70px; }
+#speak .tag { position: absolute; left: 0; right: 0; text-align: center; }
+.L #speak .tag { top: 820px; } .V #speak .tag { top: 1320px; }
+#speak .en { position: absolute; left: 0; right: 0; text-align: center; font-family: Text; font-weight: 500; color: var(--ink-soft); }
+.L #speak .en { top: 730px; font-size: 32px; } .V #speak .en { top: 1210px; font-size: 38px; }
+
+/* 3. Title. */
+#title .tile { position: absolute; left: 50%; border-radius: 26%; background: var(--tile); box-shadow: 0 40px 80px rgba(11,26,51,.18), inset 0 0 0 2px rgba(255,255,255,.8); }
+.L #title .tile { top: 150px; width: 260px; height: 260px; margin-left: -130px; }
+.V #title .tile { top: 600px; width: 300px; height: 300px; margin-left: -150px; }
+#title .tile svg { position: absolute; inset: 15%; width: 70%; height: 70%; }
+#title .names { position: absolute; left: 0; right: 0; text-align: center; }
+.L #title .names { top: 460px; } .V #title .names { top: 980px; }
+#title .en { font-weight: 800; letter-spacing: -0.03em; }
+.L #title .en { font-size: 120px; } .V #title .en { font-size: 112px; }
+#title .bn { font-weight: 800; color: var(--blue); }
+.L #title .bn { font-size: 72px; } .V #title .bn { font-size: 84px; }
+#title .tagline { margin-top: 30px; }
+
+/* 4. Every 15, 30 or 60 minutes. */
+.seg { position: relative; display: inline-flex; padding: 8px; border-radius: 999px; background: rgba(47,116,208,.10); font-family: 'Noto Sans Bengali'; font-weight: 700; }
+.seg span { position: relative; z-index: 1; text-align: center; color: var(--ink-soft); }
+.L .seg span { width: 200px; padding: 16px 0; font-size: 34px; } .V .seg span { width: 270px; padding: 20px 0; font-size: 42px; }
+.seg .knob { position: absolute; top: 8px; bottom: 8px; left: 8px; border-radius: 999px; background: #fff; box-shadow: 0 8px 20px rgba(11,26,51,.12); }
+.L .seg .knob { width: 200px; } .V .seg .knob { width: 270px; }
+
+/* 5. Two ways to say it. */
+#styles .cards { position: absolute; display: flex; gap: 40px; }
+.L #styles .cards { left: 120px; right: 120px; top: 430px; }
+.V #styles .cards { left: 80px; right: 80px; top: 640px; flex-direction: column; }
+.card {
+  flex: 1; padding: 44px 48px; border-radius: 36px; background: rgba(255,255,255,.72); backdrop-filter: blur(24px);
+  border: 1px solid rgba(47,116,208,.14); box-shadow: 0 30px 70px rgba(11,26,51,.12);
+}
+.card .label { font-family: Text, 'Noto Sans Bengali'; font-weight: 700; font-size: 28px; color: var(--blue); }
+.card .say { text-align: left; margin-top: 18px; }
+.L .card .say { font-size: 64px; } .V .card .say { font-size: 72px; }
+.card .say .w { margin: 0 .2em 0 0; }
+#styles .top { position: absolute; left: 0; right: 0; text-align: center; }
+.L #styles .top { top: 130px; } .V #styles .top { top: 250px; padding: 0 60px; }
+
+/* 6. Two voices. */
+.chip {
+  position: absolute; display: flex; align-items: center; gap: 18px; padding: 22px 30px; border-radius: 26px;
+  background: rgba(255,255,255,.88); backdrop-filter: blur(20px); box-shadow: 0 24px 60px rgba(11,26,51,.18);
+  font-family: Text, 'Noto Sans Bengali'; font-weight: 700; font-size: 30px; white-space: nowrap;
+}
+.chip small { display: block; font-weight: 500; font-size: 22px; color: var(--ink-soft); margin-top: 4px; }
+.chip .ic { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--blue); color: #fff; font-size: 28px; }
+.chip .ic.coral { background: var(--coral); }
+.bars { display: flex; align-items: center; gap: 5px; height: 40px; }
+.bars i { display: block; width: 6px; border-radius: 3px; background: currentColor; height: 20%; }
+#voices .say { position: absolute; left: 0; right: 0; }
+.L #voices .say { left: 120px; width: 760px; top: 700px; font-size: 52px; text-align: left; }
+.L #voices .say .w { margin: 0 .2em 0 0; }
+.V #voices .say { top: 640px; font-size: 60px; padding: 0 60px; }
+.V #voices .visual { bottom: 60px; }
+
+/* 7. Quiet hours. */
+#moon { position: absolute; width: 220px; height: 220px; border-radius: 50%; box-shadow: -38px 22px 0 0 #F4E7C8; filter: drop-shadow(0 0 40px rgba(244,231,200,.35)); }
+.range { display: inline-flex; gap: 18px; align-items: center; padding: 18px 30px; border-radius: 22px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); font-family: 'Noto Sans Bengali'; font-weight: 700; font-size: 36px; color: #F2F6FF; }
+.range i { font-style: normal; color: var(--blue-night); }
+
+/* 8. Timer. */
+#timer .ringbox { position: absolute; left: 50%; }
+.L #timer .ringbox { top: 50%; width: 600px; height: 600px; margin: -300px 0 0 -300px; left: auto; right: 210px; }
+.V #timer .ringbox { top: 760px; width: 680px; height: 680px; margin-left: -340px; }
+#timer .digits { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Noto Sans Bengali'; font-weight: 800; }
+.L #timer .digits { font-size: 130px; } .V #timer .digits { font-size: 150px; }
+#timer .say { position: absolute; left: 0; right: 0; }
+.L #timer .say { top: 850px; left: 1110px; right: auto; width: 600px; font-size: 56px; } .V #timer .say { top: 1520px; font-size: 64px; }
+.spark { position: absolute; width: 18px; height: 18px; border-radius: 50%; left: 50%; top: 50%; margin: -9px; }
+
+/* 9. Bangla or English, light or dark. */
+#look .split { position: absolute; inset: 0; background: #0E1A31; clip-path: polygon(64% 24%, 100% 24%, 100% 100%, 40% 100%); }
+.V #look .split { clip-path: polygon(100% 33%, 100% 100%, 0 100%, 0 52%); }
+#look .top { position: absolute; left: 0; right: 0; text-align: center; }
+.L #look .top { top: 70px; } .V #look .top { top: 200px; padding: 0 50px; }
+#look .flip { position: absolute; left: 50%; perspective: 2400px; }
+.L #look .flip { top: 300px; width: 860px; height: 736px; margin-left: -430px; }
+.V #look .flip { top: 760px; width: 920px; height: 788px; margin-left: -460px; }
+#look .card3d { position: absolute; inset: 0; transform-style: preserve-3d; }
+#look .face { position: absolute; inset: 0; backface-visibility: hidden; }
+#look .face img { width: 100%; filter: drop-shadow(0 50px 70px rgba(0,0,0,.35)); }
+#look .back { transform: rotateY(180deg); }
+
+/* 10. Everywhere. */
+#everywhere .top { position: absolute; left: 0; right: 0; text-align: center; }
+.L #everywhere .top { top: 70px; } .V #everywhere .top { top: 200px; padding: 0 50px; }
+#everywhere .fan { position: absolute; left: 50%; perspective: 2400px; }
+.L #everywhere .fan { top: 330px; } .V #everywhere .fan { top: 820px; }
+#everywhere .w3 { position: absolute; width: 640px; margin-left: -320px; transform-origin: 50% 120%; }
+.V #everywhere .w3 { width: 560px; margin-left: -280px; }
+#everywhere .w3 img { width: 100%; filter: drop-shadow(0 40px 60px rgba(11,26,51,.28)); }
+#everywhere .w3 .cap { margin-top: 26px; text-align: center; font-family: Text, 'Noto Sans Bengali'; font-weight: 700; font-size: 30px; }
+#everywhere .w3 .cap small { display: block; font-weight: 500; font-size: 24px; color: var(--ink-soft); margin-top: 4px; }
+
+/* 11. End card. */
+#end .stack { position: absolute; left: 0; right: 0; text-align: center; }
+.L #end .stack { top: 120px; } .V #end .stack { top: 520px; }
+#end .tile { margin: 0 auto; border-radius: 26%; background: var(--tile); box-shadow: 0 40px 80px rgba(11,26,51,.18), inset 0 0 0 2px rgba(255,255,255,.8); position: relative; }
+.L #end .tile { width: 200px; height: 200px; } .V #end .tile { width: 260px; height: 260px; }
+#end .tile svg { position: absolute; inset: 15%; width: 70%; height: 70%; }
+#end .bn { font-weight: 900; margin-top: 36px; }
+.L #end .bn { font-size: 104px; } .V #end .bn { font-size: 110px; }
+#end .en { font-weight: 700; color: var(--blue); letter-spacing: -0.02em; }
+.L #end .en { font-size: 52px; } .V #end .en { font-size: 58px; }
+#end .free { margin-top: 34px; }
+#end .where { display: flex; justify-content: center; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
+.V #end .where { padding: 0 60px; }
+#end .where .pill { font-size: 26px; padding: 12px 26px; }
+#end .url { margin-top: 34px; font-family: Text; font-weight: 600; color: var(--blue); }
+.L #end .url { font-size: 30px; } .V #end .url { font-size: 34px; }
+#end .by { margin-top: 14px; font-family: 'Noto Sans Bengali'; font-weight: 600; color: var(--ink-soft); }
+.L #end .by { font-size: 24px; } .V #end .by { font-size: 30px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="layer">
+    <div id="sky" class="layer"></div>
+    <div id="b1" class="blob"></div><div id="b2" class="blob"></div><div id="b3" class="blob"></div>
+    <div id="night" class="layer"></div>
+    <div id="black" class="layer"></div>
+  </div>
+
+  <!-- 1. Cold open: the logo's dots arrive on the beat. -->
+  <section id="intro" class="scene">
+    <svg class="dial" data-dial="intro" viewBox="0 0 200 200"></svg>
+    <div class="copy2">
+      <div class="head"><span class="line"><span>সময় শুনুন, বাংলায়</span></span></div>
+      <div class="sub" style="margin-top:18px">Hear the time, in Bangla.</div>
+    </div>
+  </section>
+
+  <!-- 2. The menu bar: one click, and the clock speaks. -->
+  <section id="menu" class="scene">
+    <div id="desk">
+      <div id="menubar">
+        <span style="font-weight:700">●</span><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span>
+        <span class="sp"></span>
+        <svg width="26" height="14" viewBox="0 0 26 14"><rect x="1" y="1" width="21" height="12" rx="3" fill="none" stroke="#1d1d1f" stroke-width="1.4"/><rect x="3" y="3" width="15" height="8" rx="1.5" fill="#1d1d1f"/><rect x="23" y="5" width="2" height="4" rx="1" fill="#1d1d1f"/></svg>
+        <svg width="20" height="16" viewBox="0 0 20 16"><path d="M10 14.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0zM4.6 8.6a8 8 0 0 1 10.8 0l1.5-1.8a10.4 10.4 0 0 0-13.8 0zM1.5 4.9a12.6 12.6 0 0 1 17 0L20 3.1a15 15 0 0 0-20 0z" fill="#1d1d1f"/></svg>
+        <span class="item" id="mbItem"><svg width="20" height="20" viewBox="0 0 200 200" data-dial="template"></svg><span>১০:২০</span></span>
+        <svg width="22" height="18" viewBox="0 0 22 18"><rect x="1" y="1" width="20" height="7" rx="3.5" fill="none" stroke="#1d1d1f" stroke-width="1.4"/><circle cx="5.5" cy="4.5" r="2" fill="#1d1d1f"/><rect x="1" y="10" width="20" height="7" rx="3.5" fill="none" stroke="#1d1d1f" stroke-width="1.4"/><circle cx="16.5" cy="13.5" r="2" fill="#1d1d1f"/></svg>
+        <span>Wed 22 Oct</span>
+        <span class="tail"></span>
+      </div>
+      <div id="dropdown">
+        <div class="dim">সকাল ১০:২০</div>
+        <div id="speakItem">এখনই সময় শুনুন</div>
+        <hr>
+        <div>ঘোষণা বন্ধ</div>
+        <div>কতক্ষণ পরপর</div>
+        <hr>
+        <div>সেটিংস…</div>
+        <div>কৃতজ্ঞতা</div>
+        <div>বন্ধ করুন</div>
+      </div>
+      <svg id="cursor" viewBox="0 0 24 34"><path d="M2 2v26l7-7 4.6 10.4 4-1.8L13 19.4h9.4z" fill="#111" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+    <div id="speak" class="layer">
+      <div class="dial" id="speakDial">
+        <div class="ring" data-ring="0"></div><div class="ring" data-ring="1"></div><div class="ring" data-ring="2"></div>
+        <svg viewBox="0 0 200 200" data-dial="speak" style="position:absolute;inset:0"></svg>
+      </div>
+      <div class="say" data-say="speak"></div>
+      <div class="en">“It’s twenty past ten in the morning.”</div>
+      <div class="tag"><span class="pill"><span class="dot"></span>Areeba AI · এখনই সময় শুনুন</span></div>
+    </div>
+  </section>
+
+  <!-- 3. The name. -->
+  <section id="title" class="scene">
+    <div class="tile"><svg viewBox="0 0 200 200" data-dial="title"></svg></div>
+    <div class="names">
+      <div class="en"><span class="line"><span>Bangla Voice Clock</span></span></div>
+      <div class="bn"><span class="line"><span>বাংলা ভয়েস ক্লক</span></span></div>
+      <div class="sub tagline">A talking clock for your Mac, Windows and Linux.</div>
+    </div>
+  </section>
+
+  <!-- 4. How often. -->
+  <section id="every" class="scene">
+    <div class="copy">
+      <div class="kicker">Every 15, 30 or 60 minutes</div>
+      <div class="head"><span class="line"><span>প্রতি ১৫, ৩০</span></span><span class="line"><span>বা ৬০ মিনিটে</span></span></div>
+      <div class="seg"><div class="knob"></div><span>১৫ মিনিট</span><span>৩০ মিনিট</span><span>১ ঘণ্টা</span></div>
+    </div>
+    <div class="visual persp"><div class="win"><img src="/build/promo/ui/mac-scene-1-clock.png"></div></div>
+  </section>
+
+  <!-- 5. Two ways to say it. -->
+  <section id="styles" class="scene">
+    <div class="top">
+      <div class="kicker">By the minute, or the way people say it</div>
+      <div class="head" style="margin-top:18px"><span class="line"><span>যেভাবে আপনি বলেন</span></span></div>
+    </div>
+    <div class="cards">
+      <div class="card" data-card="exact"><div class="label">মিনিট ধরে · By the minute</div><div class="say" data-say="exact"></div></div>
+      <div class="card" data-card="traditional"><div class="label">প্রচলিত · Traditional</div><div class="say" data-say="traditional"></div></div>
+    </div>
+  </section>
+
+  <!-- 6. Two voices. -->
+  <section id="voices" class="scene">
+    <div class="copy">
+      <div class="kicker">Two voices</div>
+      <div class="head"><span class="line"><span>দুটি কণ্ঠ</span></span></div>
+      <div class="sub">Areeba AI, with a Bangladeshi accent, and the classic voice from 1998.</div>
+    </div>
+    <div class="visual persp">
+      <div class="win"><img src="/build/promo/ui/mac-scene-3-voices.png"></div>
+      <div class="chip" data-chip="ai"><span class="ic">AI</span><div>Areeba AI<small>by Saiful Islam</small></div></div>
+      <div class="chip" data-chip="classic"><span class="ic coral"><span class="bars" style="color:#fff;height:28px"><i></i><i></i><i></i><i></i></span></span><div>Classic (1998)<small>by Moshfekah Ferdaus Mahita</small></div></div>
+    </div>
+    <div class="say" data-say="classic"></div>
+  </section>
+
+  <!-- 7. Quiet hours. -->
+  <section id="quiet" class="scene night">
+    <div id="moon"></div>
+    <div class="copy">
+      <div class="kicker">Quiet hours, to the minute</div>
+      <div class="head"><span class="line"><span>রাত থাকুক</span></span><span class="line"><span>নিঃশব্দ</span></span></div>
+      <div class="range">রাত ১১:০০ <i>→</i> সকাল ৭:০০</div>
+    </div>
+    <div class="visual persp"><div class="win"><img src="/build/promo/ui/mac-scene-5-quiet.png"></div></div>
+  </section>
+
+  <!-- 8. The talking timer. -->
+  <section id="timer" class="scene">
+    <div class="copy">
+      <div class="kicker">A timer that talks</div>
+      <div class="head"><span class="line"><span>কথা বলা</span></span><span class="line"><span>টাইমার</span></span></div>
+      <div class="sub">It says the time left every minute, then “সময় শেষ”.</div>
+    </div>
+    <div class="ringbox">
+      <svg viewBox="0 0 200 200" style="position:absolute;inset:0;overflow:visible">
+        <circle cx="100" cy="100" r="88" fill="rgba(255,255,255,.7)" stroke="rgba(47,116,208,.14)" stroke-width="10"/>
+        <circle id="timerArc" cx="100" cy="100" r="88" fill="none" stroke="#2F74D0" stroke-width="10" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="552.92" stroke-dashoffset="0"/>
+      </svg>
+      <div class="digits" id="timerDigits">১০:০০</div>
+    </div>
+    <div class="say" data-say="timerLeft"></div>
+    <div class="say" data-say="timerDone" style="color:var(--coral)"></div>
+  </section>
+
+  <!-- 9. Bangla or English, light or dark. -->
+  <section id="look" class="scene">
+    <div class="split"></div>
+    <div class="top">
+      <div class="kicker">Bangla or English · Light or dark</div>
+      <div class="head" style="margin-top:14px"><span class="line"><span>বাংলা বা English</span></span></div>
+    </div>
+    <div class="flip"><div class="card3d">
+      <div class="face"><img src="/build/promo/ui/mac-scene-1-clock.png"></div>
+      <div class="face back"><img src="/build/promo/ui/mac-scene-4-dark.png"></div>
+    </div></div>
+  </section>
+
+  <!-- 10. On every computer. -->
+  <section id="everywhere" class="scene">
+    <div class="top">
+      <div class="kicker">Mac · Windows · Linux</div>
+      <div class="head" style="margin-top:14px"><span class="line"><span>সব কম্পিউটারে</span></span></div>
+    </div>
+    <div class="fan">
+      <div class="w3" data-w="win"><img src="/build/promo/ui/windows-scene-1-clock.png"><div class="cap">Windows<small>সিস্টেম ট্রেতে · Microsoft Store</small></div></div>
+      <div class="w3" data-w="linux"><img src="/build/promo/ui/gnome-scene-1-clock.png"><div class="cap">Linux<small>টপ বারে · .deb, Flatpak</small></div></div>
+      <div class="w3" data-w="mac"><img src="/build/promo/ui/mac-scene-1-clock.png"><div class="cap">macOS<small>মেনু বারে · Homebrew</small></div></div>
+    </div>
+  </section>
+
+  <!-- 11. End card. -->
+  <section id="end" class="scene">
+    <div class="stack">
+      <div class="tile"><svg viewBox="0 0 200 200" data-dial="end"></svg></div>
+      <div class="bn">বাংলা ভয়েস ক্লক</div>
+      <div class="en">Bangla Voice Clock</div>
+      <div class="free"><span class="pill"><span class="dot"></span>বিনামূল্যে · Free and open source</span></div>
+      <div class="where"><span class="pill">Microsoft Store</span><span class="pill">Homebrew</span><span class="pill">GitHub</span></div>
+      <div class="url">github.com/saifulmd0/bangla-voice-clock</div>
+      <div class="by">ডেভেলপ করেছেন সাইফুল ইসলাম</div>
+    </div>
+  </section>
+
+  <div id="grain" class="layer"></div>
+</div>
+
+<script src="/tool/promo/node_modules/gsap/dist/gsap.min.js"></script>
+<script type="module">
+import { DURATION, BEAT, beat, bar, scenes, voices, clicks } from './timeline.js';
+
+const params = new URLSearchParams(location.search);
+const vertical = params.get('f') === 'vertical';
+document.documentElement.className = vertical ? 'V' : 'L';
+const W = vertical ? 1080 : 1920, H = vertical ? 1920 : 1080;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// The brand mark (lib/ui/brand.dart, DotDialPainter): twelve dots, the
+// quarters larger, twelve in coral, hands at ten o'clock.
+for (const svg of $$('[data-dial]')) {
+  const mono = svg.dataset.dial === 'template';
+  const color = mono ? '#1d1d1f' : '#2F74D0';
+  const weight = mono ? 1.2 : 1;
+  let s = '';
+  for (let i = 0; i < 12; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 6;
+    const r = (i % 3 === 0 ? 10 : 6.2) * weight;
+    const fill = i === 0 && !mono ? '#FF8A65' : color;
+    s += `<circle class="d" data-i="${i}" cx="${100 + 80 * Math.cos(a)}" cy="${100 + 80 * Math.sin(a)}" r="${r}" fill="${fill}"/>`;
+  }
+  const sw = 12 * weight;
+  s += `<line class="mh" x1="100" y1="100" x2="100" y2="50" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  s += `<line class="hh" x1="100" y1="100" x2="${100 + 36 * Math.cos(-Math.PI / 2 - Math.PI / 3)}" y2="${100 + 36 * Math.sin(-Math.PI / 2 - Math.PI / 3)}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  s += `<circle class="hub" cx="100" cy="100" r="${10 * weight}" fill="${color}"/>`;
+  svg.innerHTML = s;
+}
+
+// Night sky: the same stars every render.
+let seed = 7;
+const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+for (let i = 0; i < 140; i++) {
+  const st = document.createElement('div');
+  st.className = 'star';
+  st.style.left = `${rand() * 100}%`;
+  st.style.top = `${rand() * 100}%`;
+  st.style.opacity = (0.2 + rand() * 0.8).toFixed(2);
+  st.dataset.tw = rand().toFixed(3);
+  const s = 1 + rand() * 2.4;
+  st.style.width = st.style.height = `${s}px`;
+  $('#night').appendChild(st);
+}
+
+// Captions, a span per word.
+for (const el of $$('[data-say]')) {
+  el.innerHTML = voices[el.dataset.say].words.map(([w]) => `<span class="w">${w}</span>`).join(' ');
+}
+for (const el of $$('.bars')) el.innerHTML = '<i></i>'.repeat(4);
+
+// Each voice file's loudness, 100 values a second (render.mjs measures it).
+const env = window.ENVELOPES || {};
+const loud = (name, t) => {
+  const v = voices[name], e = env[name];
+  if (!e) return 0;
+  const i = Math.floor((t - v.at) * 100);
+  return i >= 0 && i < e.length ? e[i] : 0;
+};
+
+const tl = gsap.timeline({ paused: true, defaults: { ease: 'expo.out', duration: 0.9 } });
+const show = (id) => {
+  const [a, b] = scenes[id];
+  tl.set(`#${id}`, { visibility: 'visible' }, a);
+  if (b < DURATION) tl.set(`#${id}`, { visibility: 'hidden' }, b);
+};
+Object.keys(scenes).forEach(show);
+const lines = (sel, at, stagger = 0.08) =>
+  tl.fromTo(`${sel} .line > span`, { yPercent: 110 }, { yPercent: 0, duration: 1.0, stagger }, at);
+const rise = (sel, at, d = 0.9) =>
+  tl.fromTo(sel, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: d }, at);
+const out = (sel, at) => tl.to(sel, { autoAlpha: 0, y: -30, duration: 0.35, ease: 'power2.in' }, at - 0.35);
+
+// ---- 1. Cold open ----------------------------------------------------
+{
+  const [a, b] = scenes.intro;
+  tl.set('#black', { autoAlpha: 1 }, 0);
+  const dots = $$('#intro .d');
+  // Dots light up around the face, two to a beat; the coral twelve lands last.
+  const order = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0];
+  order.forEach((i, k) => {
+    tl.fromTo(dots[i], { scale: 0, transformOrigin: '50% 50%', opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(3)' }, beat(0) + k * BEAT / 2);
+  });
+  tl.fromTo('#intro .hub', { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, ease: 'back.out(3)' }, beat(4));
+  tl.fromTo('#intro .mh', { opacity: 0 }, { opacity: 1, duration: 0.3 }, beat(4));
+  tl.fromTo('#intro .mh', { attr: { y2: 100 } }, { attr: { y2: 50 }, duration: 0.8 }, beat(4));
+  tl.fromTo('#intro .hh', { opacity: 0, rotation: 150, svgOrigin: '100 100' }, { opacity: 1, rotation: 0, svgOrigin: '100 100', duration: 1.2, ease: 'expo.out' }, beat(4.5));
+  tl.fromTo('#intro .dial', { scale: 1.25 }, { scale: 0.9, duration: 4.5, ease: 'power2.out' }, 0);
+  lines('#intro', beat(5));
+  rise('#intro .sub', beat(5.6));
+  // Into the morning: black lifts to the sky.
+  tl.to('#black', { autoAlpha: 0, duration: 0.6, ease: 'power2.inOut' }, b - 0.45);
+  tl.to('#intro .dial, #intro .copy2', { scale: 1.5, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, b - 0.5);
+}
+
+// ---- 2. Menu bar -----------------------------------------------------
+{
+  const [a, b] = scenes.menu;
+  const item = $('#mbItem').getBoundingClientRect();
+  const sp = $('#speakItem');
+  // The camera: zoomed in, the clock in the menu bar at a fixed spot.
+  const ir = $('#mbItem').getBoundingClientRect();
+  $('#dropdown').style.left = `${ir.right - 300}px`;
+  // The menu bar stays at the top edge, as on a real screen.
+  const cam = (s, fx) => ({ scale: s, x: fx * W - s * (ir.left + ir.width / 2), y: 0 });
+  const near = vertical ? cam(2.3, 0.66) : cam(2.1, 0.7);
+  const nearer = vertical ? cam(2.8, 0.66) : cam(2.6, 0.7);
+  tl.fromTo('#desk', { ...nearer, autoAlpha: 0 }, { ...near, autoAlpha: 1, duration: 1.0, ease: 'power3.out' }, a);
+  tl.set('#dropdown', { autoAlpha: 0 }, 0);
+  // Cursor in from below, onto the clock.
+  const ix = item.left + item.width / 2, iy = 18;
+  tl.fromTo('#cursor', { x: ix - 260, y: 330 }, { x: ix - 6, y: iy, duration: 1.0, ease: 'power3.inOut' }, a + 0.1);
+  tl.to('#cursor', { scale: 0.85, duration: 0.08, yoyo: true, repeat: 1, ease: 'none' }, clicks[0]);
+  tl.set('#mbItem', { className: 'item on' }, clicks[0]);
+  tl.fromTo('#dropdown', { autoAlpha: 0, scale: 0.92, y: -8 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.25, ease: 'power2.out' }, clicks[0] + 0.05);
+  const spr = sp.getBoundingClientRect();
+  tl.to('#cursor', { x: () => $('#dropdown').offsetLeft + 150, y: 44 + 8 + 36 + 14, duration: 0.45, ease: 'power2.inOut' }, clicks[0] + 0.2);
+  tl.set('#speakItem', { className: 'hl' }, clicks[0] + 0.5);
+  tl.to('#cursor', { scale: 0.85, duration: 0.08, yoyo: true, repeat: 1, ease: 'none' }, clicks[1]);
+  tl.to('#dropdown', { autoAlpha: 0, duration: 0.2 }, clicks[1] + 0.12);
+  tl.set('#mbItem', { className: 'item' }, clicks[1] + 0.12);
+  // Pull back and blur the desktop while the clock speaks.
+  tl.to('#desk', { scale: 1, x: 0, y: 0, filter: 'blur(28px) saturate(1.2)', autoAlpha: 0.0, duration: 1.1, ease: 'power3.inOut' }, clicks[1] + 0.3);
+  tl.set('#speak', { autoAlpha: 0 }, 0);
+  tl.to('#speak', { autoAlpha: 1, duration: 0.5 }, clicks[1] + 0.5);
+  tl.fromTo('#speakDial', { scale: 0.6 }, { scale: 1, duration: 1.2, ease: 'back.out(1.6)' }, clicks[1] + 0.5);
+  rise('#speak .tag', clicks[1] + 0.9);
+  rise('#speak .en', voices.speak.at + 4.7);
+  tl.to('#speak', { autoAlpha: 0, y: -60, duration: 0.45, ease: 'power2.in' }, b - 0.45);
+}
+
+// ---- 3. Title --------------------------------------------------------
+{
+  const [a, b] = scenes.title;
+  tl.fromTo('#title .tile', { scale: 0.2, rotation: -25, autoAlpha: 0 }, { scale: 1, rotation: 0, autoAlpha: 1, duration: 1.3, ease: 'back.out(1.5)' }, a);
+  tl.fromTo('#title .d', { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, stagger: 0.03, ease: 'back.out(3)' }, a + 0.25);
+  tl.fromTo('#title .hh', { rotation: -330, svgOrigin: '100 100' }, { rotation: 0, svgOrigin: '100 100', duration: 1.6, ease: 'expo.out' }, a + 0.2);
+  lines('#title .en', beat(25));
+  lines('#title .bn', beat(26));
+  rise('#title .tagline', beat(27));
+  // The riser: push in and flash into the drop.
+  tl.to('#title .tile, #title .names', { scale: 1.08, duration: 1.6, ease: 'power1.in' }, b - 1.7);
+  tl.to('#title', { autoAlpha: 0, scale: 1.3, filter: 'blur(14px)', duration: 0.3, ease: 'power2.in' }, b - 0.3);
+}
+
+// A window flying in: tilted back, then settling flat.
+const flyIn = (sel, at, from = {}) =>
+  tl.fromTo(sel, { rotationX: 24, rotationY: -18, y: 380, z: -300, autoAlpha: 0, ...from },
+    { rotationX: 6, rotationY: -10, y: 0, z: 0, autoAlpha: 1, duration: 1.4, ease: 'expo.out' }, at);
+const drift = (sel, at, d) => tl.to(sel, { rotationX: 2, rotationY: -4, duration: d, ease: 'none' }, at);
+
+// ---- 4. Every 15, 30 or 60 minutes -----------------------------------
+{
+  const [a, b] = scenes.every;
+  tl.fromTo('#every', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 }, a);
+  rise('#every .kicker', a, 0.7);
+  lines('#every', a + 0.05);
+  rise('#every .seg', a + 0.4, 0.7);
+  flyIn('#every .win', a);
+  drift('#every .win', a + 1.4, b - a - 1.4);
+  const knobW = vertical ? 270 : 200;
+  tl.to('#every .knob', { x: knobW, duration: 0.45, ease: 'back.out(2)' }, beat(36));
+  tl.to('#every .knob', { x: knobW * 2, duration: 0.45, ease: 'back.out(2)' }, beat(38));
+  tl.to('#every .knob', { x: 0, duration: 0.45, ease: 'back.out(2)' }, beat(39.5));
+  out('#every .copy, #every .visual', b);
+}
+
+// ---- 5. Two ways to say it -------------------------------------------
+{
+  const [a, b] = scenes.styles;
+  rise('#styles .kicker', a, 0.7);
+  lines('#styles .top', a + 0.05);
+  tl.fromTo('#styles .card', { autoAlpha: 0, y: 120, scale: 0.94 }, { autoAlpha: 1, y: 0, scale: 1, duration: 1.1, stagger: 0.12 }, a + 0.15);
+  const ex = voices.exact.at, tr = voices.traditional.at;
+  tl.to('[data-card="exact"]', { scale: 1.03, boxShadow: '0 40px 90px rgba(47,116,208,.30)', duration: 0.5 }, ex);
+  tl.to('[data-card="traditional"]', { opacity: 0.55, duration: 0.5 }, ex);
+  tl.to('[data-card="exact"]', { scale: 1, opacity: 0.55, boxShadow: '0 30px 70px rgba(11,26,51,.12)', duration: 0.5 }, tr - 0.1);
+  tl.to('[data-card="traditional"]', { opacity: 1, scale: 1.03, boxShadow: '0 40px 90px rgba(255,138,101,.32)', duration: 0.5 }, tr - 0.1);
+  out('#styles .top, #styles .cards', b);
+}
+
+// ---- 6. Two voices ---------------------------------------------------
+{
+  const [a, b] = scenes.voices;
+  rise('#voices .kicker', a, 0.7);
+  lines('#voices', a + 0.05);
+  rise('#voices .sub', a + 0.35);
+  flyIn('#voices .win', a, { rotationY: 18 });
+  tl.to('#voices .win', { rotationX: 3, rotationY: 6, duration: b - a - 1.4, ease: 'none' }, a + 1.4);
+  const chipAt = vertical ? [{ left: 0, top: 70 }, { left: 430, top: 900 }] : [{ left: -120, top: 60 }, { left: 470, top: 760 }];
+  tl.set('[data-chip="ai"]', chipAt[0], 0);
+  tl.set('[data-chip="classic"]', chipAt[1], 0);
+  tl.fromTo('#voices .chip', { autoAlpha: 0, scale: 0.6, y: 40 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.9, ease: 'back.out(2)', stagger: 0.35 }, a + 0.6);
+  rise('#voices > .say', voices.classic.at - 0.3, 0.6);
+  tl.to('[data-chip="classic"]', { scale: 1.08, duration: 0.4, ease: 'back.out(3)' }, voices.classic.at);
+  tl.to('[data-chip="classic"]', { scale: 1, duration: 0.4 }, voices.classic.at + 3.9);
+  out('#voices .copy, #voices .visual, #voices > .say', b);
+}
+
+// ---- 7. Quiet hours: the sky goes dark -------------------------------
+{
+  const [a, b] = scenes.quiet;
+  tl.to('#night', { opacity: 1, duration: 0.9, ease: 'power2.inOut' }, a - 0.3);
+  tl.to('#night', { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, b - 0.3);
+  const moonPos = vertical ? { left: 760, top: 140 } : { left: 1540, top: 110 };
+  tl.set('#moon', moonPos, 0);
+  tl.fromTo('#moon', { y: 160, autoAlpha: 0, rotation: -30 }, { y: 0, autoAlpha: 1, rotation: 0, duration: 2.2, ease: 'expo.out' }, a);
+  rise('#quiet .kicker', a + 0.1, 0.7);
+  lines('#quiet', a + 0.15, 0.12);
+  rise('#quiet .range', a + 0.6);
+  flyIn('#quiet .win', a + 0.1);
+  tl.fromTo('#quiet .win img', { filter: 'brightness(1)' }, { filter: 'brightness(.82)', duration: 1.2 }, a + 0.2);
+  drift('#quiet .win', a + 1.5, b - a - 1.5);
+  out('#quiet .copy, #quiet .visual, #moon', b);
+}
+
+// ---- 8. Timer --------------------------------------------------------
+{
+  const [a, b] = scenes.timer;
+  rise('#timer .kicker', a, 0.7);
+  lines('#timer', a + 0.05);
+  rise('#timer .sub', a + 0.35);
+  tl.fromTo('#timer .ringbox', { scale: 0.5, autoAlpha: 0, rotation: -40 }, { scale: 1, autoAlpha: 1, rotation: 0, duration: 1.2, ease: 'back.out(1.4)' }, a);
+  tl.set('#timer .say', { autoAlpha: 0 }, 0);
+  tl.to('[data-say="timerLeft"]', { autoAlpha: 1, duration: 0.3 }, voices.timerLeft.at - 0.1);
+  tl.to('[data-say="timerLeft"]', { autoAlpha: 0, duration: 0.25 }, voices.timerDone.at - 0.3);
+  tl.to('[data-say="timerDone"]', { autoAlpha: 1, duration: 0.2 }, voices.timerDone.at - 0.05);
+  // Sparks burst from the ring on "সময় শেষ".
+  const box = $('#timer .ringbox');
+  for (let i = 0; i < 16; i++) {
+    const sp = document.createElement('div');
+    sp.className = 'spark';
+    sp.style.background = i % 3 ? '#2F74D0' : '#FF8A65';
+    box.appendChild(sp);
+    const ang = (i / 16) * Math.PI * 2, dist = (vertical ? 400 : 360) + (i % 4) * 30;
+    tl.fromTo(sp, { x: 0, y: 0, scale: 0, autoAlpha: 1 },
+      { x: Math.cos(ang) * dist, y: Math.sin(ang) * dist, scale: 1.3, autoAlpha: 0, duration: 1.1, ease: 'expo.out' }, voices.timerDone.at + 0.05);
+  }
+  tl.fromTo('#timer .ringbox', { scale: 1 }, { scale: 1.06, duration: 0.15, yoyo: true, repeat: 1, ease: 'power2.out' }, voices.timerDone.at);
+  out('#timer .copy, #timer .ringbox, #timer .say', b);
+}
+
+// ---- 9. Light or dark ------------------------------------------------
+{
+  const [a, b] = scenes.look;
+  tl.fromTo('#look .split', { xPercent: 100 }, { xPercent: 0, duration: 1.2, ease: 'expo.inOut' }, a);
+  rise('#look .kicker', a, 0.7);
+  lines('#look .top', a + 0.05);
+  tl.fromTo('#look .flip', { autoAlpha: 0, y: 200, scale: 0.85 }, { autoAlpha: 1, y: 0, scale: 1, duration: 1.2 }, a + 0.1);
+  tl.fromTo('#look .card3d', { rotationY: -20 }, { rotationY: 0, duration: 1.2 }, a + 0.1);
+  tl.to('#look .card3d', { rotationY: 180, duration: 0.9, ease: 'expo.inOut' }, beat(83));
+  tl.to('#look .card3d', { rotationY: 360, duration: 0.9, ease: 'expo.inOut' }, beat(86));
+  tl.to('#look .top .head', { color: '#2F74D0', duration: 0.3 }, beat(83.4));
+  out('#look .top, #look .flip', b);
+  tl.to('#look .split', { xPercent: -100, duration: 0.5, ease: 'power2.in' }, b - 0.5);
+}
+
+// ---- 10. Everywhere --------------------------------------------------
+{
+  const [a, b] = scenes.everywhere;
+  rise('#everywhere .kicker', a, 0.7);
+  lines('#everywhere .top', a + 0.05);
+  const gap = vertical ? 300 : 560;
+  const spots = { win: [-gap, -9, 40], linux: [gap, 9, 40], mac: [0, 0, 0] };
+  for (const [k, [x, r, y]] of Object.entries(spots)) {
+    tl.fromTo(`[data-w="${k}"]`, { x: 0, y: 500, rotation: 0, autoAlpha: 0, scale: 0.8 },
+      { x, y, rotation: r, autoAlpha: 1, scale: k === 'mac' ? 1.08 : 0.92, duration: 1.3, ease: 'expo.out' }, a + (k === 'mac' ? 0.1 : 0.4));
+  }
+  tl.to('#everywhere .fan', { y: -16, duration: b - a, ease: 'none' }, a);
+  out('#everywhere .top, #everywhere .fan', b);
+}
+
+// ---- 11. End card ----------------------------------------------------
+{
+  const [a] = scenes.end;
+  tl.fromTo('#end .tile', { scale: 0.3, autoAlpha: 0, rotation: 30 }, { scale: 1, autoAlpha: 1, rotation: 0, duration: 1.4, ease: 'back.out(1.6)' }, a);
+  tl.fromTo('#end .d', { scale: 0, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.5, stagger: 0.035, ease: 'back.out(3)' }, a + 0.2);
+  rise('#end .bn', a + 0.4, 1.1);
+  rise('#end .en', a + 0.6, 1.1);
+  rise('#end .free', a + 1.2);
+  tl.fromTo('#end .where .pill', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.12 }, a + 1.6);
+  rise('#end .url', a + 2.2);
+  rise('#end .by', a + 2.5);
+  tl.to('#end .stack', { scale: 1.03, duration: DURATION - a, ease: 'none' }, a);
+  tl.to('#black', { autoAlpha: 1, duration: 1.2, ease: 'power2.in' }, DURATION - 1.3);
+}
+
+// Things that follow the clock rather than a tween: the captions, the
+// voice rings, the ticking timer, the stars.
+const lit = (t, start) => Math.min(1, Math.max(0, (t - start) / 0.12));
+const drivers = [];
+drivers.push((t) => {
+  for (const el of $$('[data-say]')) {
+    const v = voices[el.dataset.say];
+    const ws = $$('.w', el);
+    v.words.forEach(([, at], i) => {
+      const k = lit(t, v.at + at);
+      ws[i].style.opacity = (0.22 + 0.78 * k).toFixed(3);
+      ws[i].style.transform = `translateY(${((1 - k) * 10).toFixed(2)}px)`;
+    });
+  }
+});
+drivers.push((t) => {
+  const a = loud('speak', t);
+  $$('#speakDial .ring').forEach((r, i) => {
+    const phase = ((t * 0.9 + i / 3) % 1);
+    const base = vertical ? 300 : 300;
+    const size = base * (1 + phase * 1.4);
+    r.style.width = r.style.height = `${size}px`;
+    r.style.margin = `${-size / 2}px 0 0 ${-size / 2}px`;
+    r.style.opacity = ((1 - phase) * Math.min(1, a * 6)).toFixed(3);
+  });
+  const s = 1 + a * 0.35;
+  const coral = $('#speakDial .d[data-i="0"]');
+  if (coral) coral.setAttribute('r', (10 * s).toFixed(2));
+  // The classic voice's level meter.
+  const c = loud('classic', t);
+  $$('[data-chip="classic"] .bars i').forEach((b, i) => {
+    const wob = 0.5 + 0.5 * Math.sin(t * 22 + i * 1.7);
+    b.style.height = `${(20 + Math.min(80, c * 260 * wob)).toFixed(1)}%`;
+  });
+});
+const bnDigits = (s) => s.replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+drivers.push((t) => {
+  const [a] = scenes.timer;
+  const run0 = a + 0.4, run1 = voices.timerDone.at;
+  const p = Math.min(1, Math.max(0, (t - run0) / (run1 - run0)));
+  const ease = p < 1 ? 1 - Math.pow(1 - p, 1.6) : 1;
+  const left = Math.round(600 * (1 - ease));
+  const mm = String(Math.floor(left / 60)).padStart(2, '0'), ss = String(left % 60).padStart(2, '0');
+  $('#timerDigits').textContent = bnDigits(`${mm}:${ss}`);
+  $('#timerArc').setAttribute('stroke-dashoffset', (552.92 * ease).toFixed(2));
+  $('#timerArc').setAttribute('stroke', p >= 1 ? '#FF8A65' : '#2F74D0');
+});
+drivers.push((t) => {
+  for (const st of $$('.star')) {
+    const tw = +st.dataset.tw;
+    st.style.transform = `scale(${(0.7 + 0.5 * Math.abs(Math.sin(t * (1 + tw * 2) + tw * 10))).toFixed(3)})`;
+  }
+  // The sky's soft lights drift.
+  $('#b1').style.transform = `translate(${Math.sin(t * 0.15) * 80}px, ${Math.cos(t * 0.12) * 60}px)`;
+  $('#b2').style.transform = `translate(${Math.cos(t * 0.11) * 90}px, ${Math.sin(t * 0.14) * 70}px)`;
+  $('#b3').style.transform = `translate(${Math.sin(t * 0.09 + 2) * 120}px, ${Math.cos(t * 0.1) * 90}px)`;
+});
+
+window.seek = (t) => {
+  tl.seek(t, false);
+  for (const d of drivers) d(t);
+};
+window.ready = document.fonts.ready.then(() =>
+  Promise.all($$('img').map((i) => i.decode().catch(() => {}))));
+window.seek(0);
+if (params.has('play')) {
+  const t0 = performance.now() - (+params.get('t') || 0) * 1000;
+  const loop = () => { window.seek(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  loop();
+}
+</script>
+</body>
+</html>
