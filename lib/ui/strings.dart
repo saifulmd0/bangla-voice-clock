@@ -209,6 +209,12 @@ class Strings {
   // Menu.
   String get settings => _t('সেটিংস…', 'Settings…');
   String get quit => _t('বন্ধ করুন', 'Quit');
+  String get quitClock => _t('ঘড়ি বন্ধ করুন', 'Quit the clock');
+  String get stillRunning => _t(
+    'ঘড়ি চলছে, সময় বলতে থাকবে। সেটিংস দেখতে অ্যাপটি আবার খুলুন।',
+    'The clock keeps running and announcing. Open the app again for its '
+        'settings.',
+  );
 
   // About.
   String get developedBy =>

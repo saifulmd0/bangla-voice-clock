@@ -1078,6 +1078,15 @@ class _Footer extends StatelessWidget {
           onPressed: () => showCredits(context, controller),
           child: Text(t.credits),
         ),
+        // With no menu-bar, tray or panel icon, Quit has nowhere else to be.
+        if (!controller.hasStatusIcon) ...[
+          const Text('·'),
+          TextButton(
+            style: link,
+            onPressed: controller.quit,
+            child: Text(t.quitClock),
+          ),
+        ],
       ],
     );
   }

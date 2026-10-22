@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
@@ -63,6 +64,15 @@ abstract interface class AppPlatform {
   /// Fires after the computer wakes or the clock or time zone changes.
   Stream<void> get clockDisturbed;
 
+  /// Fires when the window closes on a desktop that shows no icon for the
+  /// app (GNOME without its AppIndicator extension), so the clock runs on
+  /// out of sight.
+  Stream<void> get closedWithoutIcon;
+
+  /// False where the desktop shows no menu-bar, tray or panel icon for the
+  /// app, so the window has to offer Quit itself.
+  Future<bool> hasStatusIcon();
+
   /// Plays [wav] through [device] (an [AudioDevice.id]), or through the
   /// system's default output when it is empty or not connected.
   Future<void> play(Uint8List wav, {double volume = 1, String device = ''});
@@ -91,7 +101,7 @@ abstract interface class AppPlatform {
 
 /// [AppPlatform] for the desktop, backed by native code: Swift in
 /// `macos/Runner/MainFlutterWindow.swift` and C++ in
-/// `windows/runner/native_bridge.cpp`.
+/// `windows/runner/native_bridge.cpp` and `linux/runner/native_bridge.cc`.
 class NativePlatform implements AppPlatform {
   NativePlatform() {
     _channel.setMethodCallHandler((call) async {
@@ -100,6 +110,8 @@ class NativePlatform implements AppPlatform {
           _menu.add(call.arguments as String);
         case 'clockDisturbed':
           _clock.add(null);
+        case 'closedWithoutIcon':
+          _closed.add(null);
       }
     });
   }
@@ -107,12 +119,22 @@ class NativePlatform implements AppPlatform {
   static const _channel = MethodChannel('bangla_voice_clock/platform');
   final _menu = StreamController<String>.broadcast();
   final _clock = StreamController<void>.broadcast();
+  final _closed = StreamController<void>.broadcast();
 
   @override
   Stream<String> get menuSelections => _menu.stream;
 
   @override
   Stream<void> get clockDisturbed => _clock.stream;
+
+  @override
+  Stream<void> get closedWithoutIcon => _closed.stream;
+
+  // macOS and Windows always show one.
+  @override
+  Future<bool> hasStatusIcon() async =>
+      !Platform.isLinux ||
+      (await _channel.invokeMethod<bool>('hasStatusIcon') ?? true);
 
   @override
   Future<void> play(Uint8List wav, {double volume = 1, String device = ''}) =>

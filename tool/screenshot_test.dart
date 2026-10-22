@@ -29,6 +29,10 @@ class _QuietPlatform implements AppPlatform {
   @override
   Stream<void> get clockDisturbed => const Stream.empty();
   @override
+  Stream<void> get closedWithoutIcon => const Stream.empty();
+  @override
+  Future<bool> hasStatusIcon() async => true;
+  @override
   Future<void> play(
     Uint8List wav, {
     double volume = 1,

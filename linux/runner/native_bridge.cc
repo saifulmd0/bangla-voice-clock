@@ -262,6 +262,7 @@ NativeBridge::NativeBridge(GtkApplication* app, GtkWindow* window,
         G_DBUS_SIGNAL_FLAGS_NONE, OnPrepareForSleep, this, nullptr);
   }
   WatchClock();
+  UpdateLaunchAtLogin();
 }
 
 NativeBridge::~NativeBridge() {
@@ -333,6 +334,8 @@ void NativeBridge::HandleCall(FlMethodCall* call) {
     app_indicator_set_menu(indicator_, GTK_MENU(BuildMenu(args)));
   } else if (strcmp(method, "showWindow") == 0) {
     ShowWindow();
+  } else if (strcmp(method, "hasStatusIcon") == 0) {
+    result = fl_value_new_bool(has_tray_);
   } else if (strcmp(method, "notify") == 0) {
     g_autoptr(GNotification) notification =
         g_notification_new(StringArg(map, "title").c_str());
@@ -436,7 +439,7 @@ void NativeBridge::SetLaunchAtLogin(bool enabled) {
         "[Desktop Entry]\n"
         "Type=Application\n"
         "Name=%s\n"
-        "Exec=\"%s\"\n"
+        "Exec=\"%s\" --background\n"
         "Icon=" APPLICATION_ID "\n"
         "X-GNOME-Autostart-enabled=true\n",
         kAppName, exe ? exe : "bangla-voice-clock");
@@ -451,7 +454,7 @@ void NativeBridge::SetLaunchAtLogin(bool enabled) {
                         g_variant_new_string("Announce the time from login"));
   g_variant_builder_add(&options, "{sv}", "autostart",
                         g_variant_new_boolean(enabled));
-  const gchar* command[] = {"bangla-voice-clock", nullptr};
+  const gchar* command[] = {"bangla-voice-clock", "--background", nullptr};
   g_variant_builder_add(&options, "{sv}", "commandline",
                         g_variant_new_strv(command, -1));
   g_autoptr(GDBusConnection) bus =
@@ -469,7 +472,8 @@ void NativeBridge::SetLaunchAtLogin(bool enabled) {
   std::string flag = FlatpakAutostartFlag();
   g_autofree gchar* folder = g_path_get_dirname(flag.c_str());
   g_mkdir_with_parents(folder, 0755);
-  g_file_set_contents(flag.c_str(), enabled ? "1" : "0", -1, nullptr);
+  g_file_set_contents(flag.c_str(), enabled ? "1 --background" : "0", -1,
+                      nullptr);
 }
 
 // A timer set far ahead that the kernel cancels whenever the clock is set.
@@ -502,6 +506,21 @@ void NativeBridge::OnPrepareForSleep(GDBusConnection*, const gchar*,
   gboolean going_to_sleep = FALSE;
   g_variant_get(parameters, "(b)", &going_to_sleep);
   if (!going_to_sleep) static_cast<NativeBridge*>(self)->ClockDisturbed();
+}
+
+// Entries made by 0.4.0 opened the window at login; this adds --background.
+void NativeBridge::UpdateLaunchAtLogin() {
+  g_autofree gchar* entry = nullptr;
+  std::string path = InFlatpak() ? FlatpakAutostartFlag() : AutostartFile();
+  if (g_file_get_contents(path.c_str(), &entry, nullptr, nullptr) &&
+      !strstr(entry, "--background") && LaunchAtLogin()) {
+    SetLaunchAtLogin(true);
+  }
+}
+
+void NativeBridge::ClosedWithoutIcon() {
+  fl_method_channel_invoke_method(channel_, "closedWithoutIcon", nullptr,
+                                  nullptr, nullptr, nullptr);
 }
 
 void NativeBridge::ClockDisturbed() {

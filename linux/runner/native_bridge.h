@@ -23,8 +23,11 @@ class NativeBridge {
   void ShowWindow();
 
   // Whether the desktop's panel shows tray icons. Without one (GNOME with
-  // no AppIndicator extension) the window stays open, as the only way in.
+  // no AppIndicator extension) opening the app is the only way in.
   bool has_tray() const { return has_tray_; }
+
+  // Tells Dart the window closed with no panel icon to reopen it by.
+  void ClosedWithoutIcon();
 
  private:
   static void OnMethodCall(FlMethodChannel* channel, FlMethodCall* call,
@@ -41,6 +44,7 @@ class NativeBridge {
   GtkWidget* BuildMenu(FlValue* entries);
   void SetLaunchAtLogin(bool enabled);
   bool LaunchAtLogin() const;
+  void UpdateLaunchAtLogin();
   void WatchClock();
   void ClockDisturbed();
 

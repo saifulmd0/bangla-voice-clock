@@ -22,6 +22,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 class FakePlatform implements AppPlatform {
   final menu = StreamController<String>.broadcast();
+  final closed = StreamController<void>.broadcast();
+  var statusIcon = true;
+  var quits = 0;
   final played = <Uint8List>[];
   final playedOn = <String>[];
   var outputs = const [AudioDevice('buds', 'CMF Buds Pro 2')];
@@ -37,6 +40,10 @@ class FakePlatform implements AppPlatform {
   Stream<String> get menuSelections => menu.stream;
   @override
   Stream<void> get clockDisturbed => const Stream.empty();
+  @override
+  Stream<void> get closedWithoutIcon => closed.stream;
+  @override
+  Future<bool> hasStatusIcon() async => statusIcon;
   @override
   Future<void> play(
     Uint8List wav, {
@@ -75,7 +82,7 @@ class FakePlatform implements AppPlatform {
   }
 
   @override
-  Future<void> quit() async {}
+  Future<void> quit() async => quits++;
 }
 
 /// Stands in for GitHub, offering whatever [latestVersion] says.
@@ -157,6 +164,21 @@ void main() {
     expect(platform.loginEnabled, [true], reason: 'only on first launch');
     c.dispose();
     again.dispose();
+  });
+
+  test('closing with no panel icon says the clock still runs, once', () async {
+    platform.statusIcon = false;
+    final c = await controller();
+    await c.start();
+    expect(c.hasStatusIcon, isFalse);
+    platform.notifications.clear();
+    platform.closed
+      ..add(null)
+      ..add(null);
+    await pumpEventQueue();
+    expect(platform.notifications, hasLength(1));
+    expect(platform.notifications.single, contains('ঘড়ি চলছে'));
+    c.dispose();
   });
 
   test('announcements play through the chosen output', () async {
@@ -300,6 +322,17 @@ void main() {
       expect(find.text(system), findsOneWidget);
       expect(find.text('মেনু বারে দেখান'), menuBar);
     }
+  });
+
+  testWidgets('with no panel icon the window offers Quit', (tester) async {
+    tallWindow(tester);
+    platform.statusIcon = false;
+    final c = await tester.runAsync(controller);
+    await tester.runAsync(c!.start);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c));
+    await tester.scrollUntilVisible(find.text('ঘড়ি বন্ধ করুন'), 200);
+    await tester.tap(find.text('ঘড়ি বন্ধ করুন'));
+    expect(platform.quits, 1);
   });
 
   testWidgets('voice labels, footer and credits', (tester) async {

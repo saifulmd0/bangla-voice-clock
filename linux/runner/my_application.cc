@@ -12,24 +12,27 @@ struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
   NativeBridge* bridge;
+  // Started at login, so no window until asked for.
+  gboolean background;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // The app lives in the panel, so its window starts hidden; Dart shows it on
-// first launch. Without a panel icon there is no other way in, so it shows.
+// first launch. Without a panel icon, opening the app is the only way in, so
+// it shows then, though not when it starts at login.
 static void first_frame_cb(MyApplication* self, FlView* view) {
-  if (!self->bridge->has_tray()) self->bridge->ShowWindow();
+  if (!self->bridge->has_tray() && !self->background) {
+    self->bridge->ShowWindow();
+  }
 }
 
-// Closing the window only hides it (or, with no panel icon, minimises it).
+// Closing the window only hides it; the clock keeps running. Without a panel
+// icon, opening the app again brings the window back.
 static gboolean delete_event_cb(GtkWidget* window, GdkEvent* event,
                                 MyApplication* self) {
-  if (self->bridge->has_tray()) {
-    gtk_widget_hide(window);
-  } else {
-    gtk_window_iconify(GTK_WINDOW(window));
-  }
+  gtk_widget_hide(window);
+  if (!self->bridge->has_tray()) self->bridge->ClosedWithoutIcon();
   return TRUE;
 }
 
@@ -112,6 +115,8 @@ static gboolean my_application_local_command_line(GApplication* application,
   MyApplication* self = MY_APPLICATION(application);
   // Strip out the first argument as it is the binary name.
   self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
+  self->background =
+      g_strv_contains(self->dart_entrypoint_arguments, "--background");
 
   g_autoptr(GError) error = nullptr;
   if (!g_application_register(application, nullptr, &error)) {
@@ -120,8 +125,11 @@ static gboolean my_application_local_command_line(GApplication* application,
     return TRUE;
   }
 
-  // When the clock already runs, this asks that copy to show its window.
-  g_application_activate(application);
+  // When the clock already runs, this asks that copy to show its window,
+  // unless this is the login start finding it running.
+  if (!(self->background && g_application_get_is_remote(application))) {
+    g_application_activate(application);
+  }
   *exit_status = 0;
 
   return TRUE;

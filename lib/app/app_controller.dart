@@ -151,6 +151,14 @@ class AppController extends ChangeNotifier {
   /// Null when the system can't launch the app at login.
   bool? get launchAtLogin => _launchAtLogin;
 
+  bool _hasStatusIcon = true;
+
+  /// False where the desktop shows no icon for the app, so the window
+  /// offers Quit.
+  bool get hasStatusIcon => _hasStatusIcon;
+
+  bool _toldStillRunning = false;
+
   /// The selected voice, or the first bundled one if it's gone.
   VoicePack get voice => voices[_settings.voiceId] ?? voices.values.first;
 
@@ -160,8 +168,10 @@ class AppController extends ChangeNotifier {
   Future<void> start() async {
     _subscriptions
       ..add(_platform.menuSelections.listen(_onMenu))
-      ..add(_platform.clockDisturbed.listen((_) => _ticker.restart()));
+      ..add(_platform.clockDisturbed.listen((_) => _ticker.restart()))
+      ..add(_platform.closedWithoutIcon.listen((_) => _tellStillRunning()));
     _launchAtLogin = await _platform.launchAtLogin();
+    _hasStatusIcon = await _platform.hasStatusIcon();
     await _platform.setAppearance(_settings.appearance);
     _ticker.start();
     await _refreshMenuBar();
@@ -242,6 +252,16 @@ class AppController extends ChangeNotifier {
     await _refreshMenuBar();
     await _store.save(settings);
   }
+
+  /// The first time the window closes with no icon left on screen, says
+  /// the clock still runs and how to get back to it.
+  Future<void> _tellStillRunning() async {
+    if (_toldStillRunning) return;
+    _toldStillRunning = true;
+    await _platform.notify(strings.appName, strings.stillRunning);
+  }
+
+  Future<void> quit() => _platform.quit();
 
   Future<void> setLaunchAtLogin(bool enabled) async {
     if (await _platform.setLaunchAtLogin(enabled)) {
