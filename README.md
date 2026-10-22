@@ -240,9 +240,10 @@ Not yet. A mobile app for blind and low-literacy users is planned.
 ## Privacy
 
 The app has no accounts, ads, analytics or tracking. Your settings stay on your computer. The
-Flatpak has no network access at all. The
-update check asks GitHub for the list of releases; GitHub sees the app's version and your IP
-address, as with any web request, and nothing else is sent.
+Flatpak has no network access at all, and the Microsoft Store copy makes no requests of its own.
+The update check asks GitHub for the list of releases; GitHub sees the app's version and your IP
+address, as with any web request, and nothing else is sent. See the
+[privacy policy](PRIVACY.md).
 
 ## Credits
 

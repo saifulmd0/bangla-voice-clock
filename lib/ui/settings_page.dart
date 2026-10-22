@@ -142,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: _Segmented<int>(
               segments: [
                 for (final m in AppSettings.intervals)
-                  _Segment(value: m, label: Text(t.interval(m))),
+                  _Segment(value: m, label: Text(t.intervalChoice(m))),
               ],
               selected: s.intervalMinutes,
               onChanged: (v) => _set(s.copyWith(intervalMinutes: v)),

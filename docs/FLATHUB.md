@@ -36,7 +36,7 @@ In short:
 2. Add the manifest for the release, written by:
 
    ```sh
-   tool/linux/flathub_manifest.sh v0.5.0 > io.github.saifulmd0.BanglaVoiceClock.yml
+   tool/linux/flathub_manifest.sh v1.0.0 > io.github.saifulmd0.BanglaVoiceClock.yml
    ```
 
 3. Add Flathub's shared modules, which the manifest uses:
@@ -55,7 +55,7 @@ In short:
 Flathub's bot watches nothing here by default, so after each release:
 
 ```sh
-tool/linux/flathub_manifest.sh v0.5.0 > io.github.saifulmd0.BanglaVoiceClock.yml
+tool/linux/flathub_manifest.sh v1.0.0 > io.github.saifulmd0.BanglaVoiceClock.yml
 ```
 
 then commit that to the Flathub repository (a pull request builds it first). Remember to add the

@@ -166,6 +166,14 @@ void main() {
         PanelHelp.none,
       ),
       (
+        'en-windows',
+        const AppSettings(language: AppLanguage.en),
+        Brightness.light,
+        const Size(760, 620),
+        HostOs.windows,
+        PanelHelp.none,
+      ),
+      (
         'bn-gnome',
         const AppSettings(),
         Brightness.light,
@@ -229,7 +237,7 @@ void main() {
             tester.element(find.byType(SettingsPage)),
             c,
             Release(
-              version: Version.tryParse('0.5.0')!,
+              version: Version.tryParse('1.1.0')!,
               page: Uri.parse('https://example.com'),
               notes:
                   '## New\n\n- **Homebrew** on macOS.\n- Quiet hours to '

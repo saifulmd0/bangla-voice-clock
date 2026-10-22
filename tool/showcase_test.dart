@@ -7,7 +7,8 @@
 //
 // Writes the scenes and their sounds to build/showcase/ for
 // tool/make_demo.sh, which makes the demo video, GIF and screenshots, and
-// the social preview to docs/media/.
+// the social preview to docs/media/. The scenes again in a Windows 11
+// window go to build/store/ for the Microsoft Store listing.
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -84,14 +85,23 @@ Future<void> _loadFont(String family, List<String> files) async {
 const _width = 1280.0;
 const _height = 800.0;
 
-/// A macOS window around the app, as it sits on the desktop, or a GNOME
-/// one for the Linux store screenshots.
+/// Whose window frames the app.
+enum _Frame { mac, gnome, windows }
+
+/// A macOS window around the app, as it sits on the desktop, or a GNOME or
+/// Windows one for the store screenshots.
 class _Window extends StatelessWidget {
-  const _Window({required this.dark, required this.child, this.gnome = false});
+  const _Window({
+    required this.dark,
+    required this.child,
+    this.frame = _Frame.mac,
+  });
 
   final bool dark;
-  final bool gnome;
+  final _Frame frame;
   final Widget child;
+
+  bool get gnome => frame == _Frame.gnome;
 
   @override
   Widget build(BuildContext context) =>
@@ -100,11 +110,13 @@ class _Window extends StatelessWidget {
   Widget _frame() => Container(
     // The app's first size, under its title bar.
     width: 760,
-    height: (gnome ? 46 : 30) + 620,
+    height:
+        const {_Frame.mac: 30, _Frame.gnome: 46, _Frame.windows: 32}[frame]! +
+        620,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       color: dark ? Sky.groundNight : Sky.ground,
-      borderRadius: BorderRadius.circular(gnome ? 8 : 12),
+      borderRadius: BorderRadius.circular(frame == _Frame.mac ? 12 : 8),
       border: Border.all(
         color: dark ? const Color(0xFF34435C) : const Color(0x1F172338),
       ),
@@ -121,6 +133,8 @@ class _Window extends StatelessWidget {
       children: [
         if (gnome)
           _gnomeBar()
+        else if (frame == _Frame.windows)
+          _windowsBar()
         else
           Container(
             height: 30,
@@ -192,6 +206,39 @@ class _Window extends StatelessWidget {
             ),
             child: Icon(Icons.close, size: 14, color: ink),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Windows 11's title bar: icon and title on the left, then minimise,
+  /// maximise and close.
+  Widget _windowsBar() {
+    final ink = dark ? const Color(0xFFFFFFFF) : const Color(0xFF1B1B1B);
+    return Container(
+      height: 32,
+      color: dark ? const Color(0xFF202020) : const Color(0xFFF3F3F3),
+      padding: const EdgeInsets.only(left: 12),
+      child: Row(
+        children: [
+          _logo(16),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Bangla Voice Clock',
+              style: TextStyle(
+                fontFamily: 'NotoSansBengali',
+                fontSize: 12,
+                color: ink,
+              ),
+            ),
+          ),
+          for (final icon in const [
+            Icons.remove,
+            Icons.crop_square,
+            Icons.close,
+          ])
+            SizedBox(width: 46, child: Icon(icon, size: 14, color: ink)),
         ],
       ),
     );
@@ -379,6 +426,7 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('showcase');
     final media = Directory('docs/media')..createSync(recursive: true);
     final sounds = Directory('build/showcase')..createSync(recursive: true);
+    final store = Directory('build/store')..createSync(recursive: true);
 
     Future<void> capture(String key, String path) => tester.runAsync(() async {
       final boundary = tester.renderObject<RenderRepaintBoundary>(
@@ -427,12 +475,25 @@ void main() {
       required String headline,
       required String line,
       String? windowShot,
+      String? windowsLine,
       Future<void> Function(AppController, _RecordingPlatform)? then,
     }) async {
       // Once as on a Mac for the README, then as the Linux app looks in a
-      // GNOME window for the software centre's screenshot.
-      for (final linux in [false, if (windowShot != null) true]) {
-        hostOs = linux ? HostOs.linux : HostOs.macos;
+      // GNOME window for the software centre's screenshot, then in a
+      // Windows window for the Microsoft Store.
+      for (final frame in [
+        _Frame.mac,
+        if (windowShot != null) _Frame.gnome,
+        _Frame.windows,
+      ]) {
+        hostOs = const {
+          _Frame.mac: HostOs.macos,
+          _Frame.gnome: HostOs.linux,
+          _Frame.windows: HostOs.windows,
+        }[frame]!;
+        debugDefaultTargetPlatformOverride = frame == _Frame.windows
+            ? TargetPlatform.windows
+            : TargetPlatform.macOS;
         final (c, platform) = await app(settings);
         final dark = settings.appearance == Appearance.dark;
         tester.platformDispatcher.platformBrightnessTestValue = dark
@@ -442,23 +503,27 @@ void main() {
           _scene(
             dark: dark,
             headline: headline,
-            line: line,
+            line: frame == _Frame.windows ? windowsLine ?? line : line,
             window: _Window(
               dark: dark,
-              gnome: linux,
+              frame: frame,
               child: BanglaVoiceClockApp(controller: c),
             ),
           ),
         );
         await then?.call(c, platform);
-        if (linux) {
-          await capture('window', '${media.path}/window-$windowShot.png');
-        } else {
-          await save(name);
+        switch (frame) {
+          case _Frame.mac:
+            await save(name);
+          case _Frame.gnome:
+            await capture('window', '${media.path}/window-$windowShot.png');
+          case _Frame.windows:
+            await capture('canvas', '${store.path}/windows-$name.png');
         }
         c.dispose();
       }
       hostOs = HostOs.macos;
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     }
 
     Future<void> open(String pane) async {
@@ -471,6 +536,8 @@ void main() {
       windowShot: 'clock',
       headline: 'সময় বলে দেয়,\nবাংলায়',
       line: 'A menu bar clock that tells\nthe time aloud, in Bangla.',
+      windowsLine:
+          'A clock in the system tray that\ntells the time aloud, in Bangla.',
     );
     await scene(
       'scene-2-speak',

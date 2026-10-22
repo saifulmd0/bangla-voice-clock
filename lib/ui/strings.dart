@@ -67,6 +67,11 @@ class Strings {
   String interval(int minutes) => minutes % 60 == 0
       ? _t('${banglaDigits(minutes ~/ 60)} ঘণ্টা', '${minutes ~/ 60} hour')
       : _t('${banglaDigits(minutes)} মিনিট', '$minutes minutes');
+
+  /// [interval] short enough for its segment.
+  String intervalChoice(int minutes) => minutes % 60 == 0
+      ? interval(minutes)
+      : _t(interval(minutes), '$minutes min');
   String get traditional => _t('প্রচলিত', 'Traditional');
   String get exact => _t('মিনিট ধরে', 'By the minute');
   String get sayBeje => _t('"বেজে" বলুন', 'Say "বেজে"');
@@ -131,9 +136,9 @@ class Strings {
   String get menuBar => _t('মেনু বার', 'Menu bar');
   String get appearance => _t('রং', 'Appearance');
   String get appearanceSystem => switch (hostOs) {
-    HostOs.windows => _t('উইন্ডোজের মতো', 'Match Windows'),
-    HostOs.macos => _t('ম্যাকের মতো', 'Match Mac'),
-    HostOs.linux => _t('সিস্টেমের মতো', 'Match system'),
+    HostOs.windows => _t('উইন্ডোজের মতো', 'System'),
+    HostOs.macos => _t('ম্যাকের মতো', 'System'),
+    HostOs.linux => _t('সিস্টেমের মতো', 'System'),
   };
   String get appearanceLight => _t('হালকা', 'Light');
   String get appearanceDark => _t('গাঢ়', 'Dark');

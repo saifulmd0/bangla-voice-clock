@@ -3,7 +3,7 @@
 # release: the same as linux/flatpak/, but with the tarball fetched from
 # the GitHub release by URL and checksum.
 #
-#   tool/linux/flathub_manifest.sh v0.5.0 > io.github.saifulmd0.BanglaVoiceClock.yml
+#   tool/linux/flathub_manifest.sh v1.0.0 > io.github.saifulmd0.BanglaVoiceClock.yml
 set -eu
 cd "$(dirname "$0")/../.."
 tag=$1
