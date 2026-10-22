@@ -26,6 +26,10 @@ class NativeBridge {
   // no AppIndicator extension) opening the app is the only way in.
   bool has_tray() const { return has_tray_; }
 
+  // What GNOME needs before it shows the panel icon: "" (nothing, or not
+  // GNOME), "enable", "install", "relogin" or "flatpak".
+  std::string PanelHelp() const;
+
   // Tells Dart the window closed with no panel icon to reopen it by.
   void ClosedWithoutIcon();
 
@@ -39,6 +43,10 @@ class NativeBridge {
                                 gpointer self);
   static gboolean OnClockChanged(gint fd, GIOCondition condition,
                                  gpointer self);
+  static void OnTrayAppeared(GDBusConnection* bus, const gchar* name,
+                             const gchar* owner, gpointer self);
+  static void OnTrayVanished(GDBusConnection* bus, const gchar* name,
+                             gpointer self);
 
   void HandleCall(FlMethodCall* call);
   GtkWidget* BuildMenu(FlValue* entries);
@@ -47,12 +55,15 @@ class NativeBridge {
   void UpdateLaunchAtLogin();
   void WatchClock();
   void ClockDisturbed();
+  void SetHasTray(bool has_tray);
+  void TurnOnPanelExtension();
 
   GtkApplication* app_;
   GtkWindow* window_;
   FlMethodChannel* channel_ = nullptr;
   AppIndicator* indicator_ = nullptr;
   bool has_tray_ = false;
+  guint tray_watch_ = 0;
   GDBusConnection* system_bus_ = nullptr;
   guint sleep_watch_ = 0;
   int clock_fd_ = -1;

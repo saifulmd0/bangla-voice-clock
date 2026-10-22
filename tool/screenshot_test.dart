@@ -9,10 +9,10 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bangla_voice_clock/app/app_controller.dart';
+import 'package:bangla_voice_clock/app/host_os.dart';
 import 'package:bangla_voice_clock/app/platform.dart';
 import 'package:bangla_voice_clock/core/settings/app_settings.dart';
 import 'package:bangla_voice_clock/core/settings/settings_store.dart';
-import 'package:bangla_voice_clock/core/speech/bangla_phrase_builder.dart';
 import 'package:bangla_voice_clock/core/update/release.dart';
 import 'package:bangla_voice_clock/main.dart';
 import 'package:bangla_voice_clock/ui/settings_page.dart';
@@ -24,6 +24,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _QuietPlatform implements AppPlatform {
+  _QuietPlatform({this.help = PanelHelp.none});
+
+  final PanelHelp help;
+
   @override
   Stream<String> get menuSelections => const Stream.empty();
   @override
@@ -31,7 +35,13 @@ class _QuietPlatform implements AppPlatform {
   @override
   Stream<void> get closedWithoutIcon => const Stream.empty();
   @override
-  Future<bool> hasStatusIcon() async => true;
+  Future<bool> hasStatusIcon() async => help == PanelHelp.none;
+  @override
+  Stream<bool> get statusIconChanges => const Stream.empty();
+  @override
+  Future<PanelHelp> panelHelp() async => help;
+  @override
+  Future<PanelHelp> turnOnPanelIcon() async => PanelHelp.none;
   @override
   Future<void> play(
     Uint8List wav, {
@@ -71,6 +81,17 @@ Future<void> _loadFont(String family, List<String> files) async {
   await loader.load();
 }
 
+const _panes = {
+  AppLanguage.bn: ['ঘোষণা', 'কণ্ঠ ও শব্দ', 'নীরব সময়', 'টাইমার', 'সাধারণ'],
+  AppLanguage.en: [
+    'Announcements',
+    'Voice & sound',
+    'Quiet hours',
+    'Timer',
+    'General',
+  ],
+};
+
 void main() {
   testWidgets('screenshots', (tester) async {
     await tester.runAsync(() async {
@@ -85,17 +106,41 @@ void main() {
     });
     // Render macOS controls (adaptive switches, sliders), as the app shows.
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-    tester.view
-      ..physicalSize = const Size(960, 4400)
-      ..devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     final dir = Directory.systemTemp.createTempSync('shots');
+    Directory('.impeccable/review').createSync(recursive: true);
 
-    for (final (name, settings, brightness) in [
+    // The running clock keeps asking for frames, so settle by time.
+    Future<void> settle() async {
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    Future<void> capture(String file) async {
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byKey(const ValueKey('shot')),
+      );
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 2);
+        final png = await image.toByteData(format: ui.ImageByteFormat.png);
+        await File('.impeccable/review/$file.png')
+            .writeAsBytes(png!.buffer.asUint8List());
+      });
+    }
+
+    Future<void> open(String pane) async {
+      await tester.tap(find.widgetWithText(InkWell, pane).first);
+      await settle();
+    }
+
+    for (final (name, settings, brightness, size, host, help) in [
       (
         'bn-light',
         const AppSettings(quietHoursEnabled: true, quietStart: 23 * 60 + 30),
         Brightness.light,
+        const Size(760, 620),
+        HostOs.macos,
+        PanelHelp.none,
       ),
       (
         'en-dark',
@@ -104,32 +149,55 @@ void main() {
           quietHoursEnabled: true,
           quietEnd: 6 * 60 + 45,
           appearance: Appearance.dark,
-          style: AnnouncementStyle.exact,
+          outputDeviceId: 'buds',
+          outputDeviceName: 'CMF Buds Pro 2',
         ),
         Brightness.dark,
-      ),
-      (
-        'bn-muted',
-        const AppSettings(muted: true, intervalMinutes: 60),
-        Brightness.light,
+        const Size(760, 620),
+        HostOs.macos,
+        PanelHelp.none,
       ),
       (
         'bn-classic',
         const AppSettings(voiceId: 'bn_classic'),
         Brightness.light,
+        const Size(760, 620),
+        HostOs.windows,
+        PanelHelp.none,
+      ),
+      (
+        'bn-gnome',
+        const AppSettings(),
+        Brightness.light,
+        const Size(760, 620),
+        HostOs.linux,
+        PanelHelp.enable,
+      ),
+      (
+        'bn-narrow',
+        const AppSettings(muted: true, intervalMinutes: 60),
+        Brightness.light,
+        const Size(460, 700),
+        HostOs.macos,
+        PanelHelp.none,
       ),
     ]) {
+      hostOs = host;
+      tester.view
+        ..physicalSize = size * 2
+        ..devicePixelRatio = 2;
       final store = SettingsStore(File('${dir.path}/$name.json'));
       await tester.runAsync(
         () => store.save(settings.copyWith(welcomed: true)),
       );
       final c = (await tester.runAsync(
         () => AppController.create(
-          platform: _QuietPlatform(),
+          platform: _QuietPlatform(help: help),
           store: store,
           now: () => DateTime(2026, 10, 18, 10, 20),
         ),
       ))!;
+      await tester.runAsync(c.refreshStatusIcon);
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       // A fresh app for each capture, so no page carries over.
       await tester.pumpWidget(const SizedBox());
@@ -139,50 +207,21 @@ void main() {
           child: BanglaVoiceClockApp(controller: c),
         ),
       );
-      await tester.pumpAndSettle();
-      if (name == 'en-dark') {
-        // Show the halo the now dot wears while the clock speaks.
-        await tester.runAsync(c.speakNow);
-        await tester.pump();
+      await settle();
+      for (final (i, pane) in _panes[settings.language]!.indexed) {
+        await open(pane);
+        await capture('$name-${i + 1}');
       }
-      final boundary = tester.renderObject<RenderRepaintBoundary>(
-        find.byKey(const ValueKey('shot')),
-      );
-      await tester.runAsync(() async {
-        final image = await boundary.toImage(pixelRatio: 2);
-        final png = await image.toByteData(format: ui.ImageByteFormat.png);
-        await Directory('.impeccable/review').create(recursive: true);
-        await File('.impeccable/review/$name.png')
-            .writeAsBytes(png!.buffer.asUint8List());
-      });
       // The quiet-hours time picker, open.
       if (name == 'bn-light' || name == 'en-dark') {
-        final picker = find.text(name == 'bn-light' ? 'রাত ১১:৩০' : '6:45 AM');
-        await tester.ensureVisible(picker);
-        await tester.tap(picker);
-        await tester.pumpAndSettle();
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('.impeccable/review/$name-quiet.png')
-              .writeAsBytes(png!.buffer.asUint8List());
-        });
+        await open(_panes[settings.language]![2]);
+        await tester.tap(
+          find.text(name == 'bn-light' ? 'রাত ১১:৩০' : '6:45 AM'),
+        );
+        await settle();
+        await capture('$name-quiet-open');
         await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-        await tester.pumpAndSettle();
-      }
-      // The sound output picker, open.
-      if (name == 'en-dark') {
-        await tester.tap(find.text('System default'));
-        await tester.runAsync(() => pumpEventQueue());
-        await tester.pumpAndSettle();
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('.impeccable/review/en-dark-output.png')
-              .writeAsBytes(png!.buffer.asUint8List());
-        });
-        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-        await tester.pumpAndSettle();
+        await settle();
       }
       if (name == 'bn-light') {
         unawaited(
@@ -190,7 +229,7 @@ void main() {
             tester.element(find.byType(SettingsPage)),
             c,
             Release(
-              version: Version.tryParse('0.4.0')!,
+              version: Version.tryParse('0.5.0')!,
               page: Uri.parse('https://example.com'),
               notes:
                   '## New\n\n- **Homebrew** on macOS.\n- Quiet hours to '
@@ -199,35 +238,17 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('.impeccable/review/bn-update.png')
-              .writeAsBytes(png!.buffer.asUint8List());
-        });
+        await settle();
+        await capture('bn-update');
         await tester.tap(find.text('পরে'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('টাইমার'));
-        await tester.pumpAndSettle();
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('.impeccable/review/bn-timer.png')
-              .writeAsBytes(png!.buffer.asUint8List());
-        });
-        await tester.tap(find.text('ঘড়ি'));
-        await tester.pumpAndSettle();
+        await settle();
         await tester.tap(find.text('কৃতজ্ঞতা'));
-        await tester.pumpAndSettle();
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('.impeccable/review/bn-credits.png')
-              .writeAsBytes(png!.buffer.asUint8List());
-        });
+        await settle();
+        await capture('bn-credits');
       }
+      c.dispose();
     }
+    hostOs = HostOs.macos;
     tester.platformDispatcher.clearPlatformBrightnessTestValue();
     debugDefaultTargetPlatformOverride = null;
   });

@@ -5,6 +5,25 @@ import 'package:flutter/services.dart';
 
 import '../core/settings/app_settings.dart';
 
+/// What GNOME needs before it shows the app's icon and time in its top bar,
+/// which it does only through the AppIndicator extension.
+enum PanelHelp {
+  /// Nothing: the icon shows, or the desktop isn't GNOME.
+  none,
+
+  /// The extension is installed but off; the app can turn it on.
+  enable,
+
+  /// The extension isn't installed.
+  install,
+
+  /// The extension is on and starts at the next login.
+  relogin,
+
+  /// The Flatpak can't see the host's extensions, so the user installs it.
+  flatpak,
+}
+
 /// An item in the menu-bar menu.
 class MenuEntry {
   const MenuEntry(
@@ -73,6 +92,14 @@ abstract interface class AppPlatform {
   /// app, so the window has to offer Quit itself.
   Future<bool> hasStatusIcon();
 
+  /// Fires when the panel starts or stops showing the app's icon.
+  Stream<bool> get statusIconChanges;
+
+  Future<PanelHelp> panelHelp();
+
+  /// Turns on GNOME's AppIndicator extension; returns what's still needed.
+  Future<PanelHelp> turnOnPanelIcon();
+
   /// Plays [wav] through [device] (an [AudioDevice.id]), or through the
   /// system's default output when it is empty or not connected.
   Future<void> play(Uint8List wav, {double volume = 1, String device = ''});
@@ -112,6 +139,8 @@ class NativePlatform implements AppPlatform {
           _clock.add(null);
         case 'closedWithoutIcon':
           _closed.add(null);
+        case 'statusIconChanged':
+          _icon.add(call.arguments as bool);
       }
     });
   }
@@ -120,6 +149,7 @@ class NativePlatform implements AppPlatform {
   final _menu = StreamController<String>.broadcast();
   final _clock = StreamController<void>.broadcast();
   final _closed = StreamController<void>.broadcast();
+  final _icon = StreamController<bool>.broadcast();
 
   @override
   Stream<String> get menuSelections => _menu.stream;
@@ -135,6 +165,21 @@ class NativePlatform implements AppPlatform {
   Future<bool> hasStatusIcon() async =>
       !Platform.isLinux ||
       (await _channel.invokeMethod<bool>('hasStatusIcon') ?? true);
+
+  @override
+  Stream<bool> get statusIconChanges => _icon.stream;
+
+  @override
+  Future<PanelHelp> panelHelp() => _panelHelp('panelHelp');
+
+  @override
+  Future<PanelHelp> turnOnPanelIcon() => _panelHelp('turnOnPanelIcon');
+
+  Future<PanelHelp> _panelHelp(String method) async {
+    if (!Platform.isLinux) return PanelHelp.none;
+    final name = await _channel.invokeMethod<String>(method) ?? '';
+    return PanelHelp.values.asNameMap()[name] ?? PanelHelp.none;
+  }
 
   @override
   Future<void> play(Uint8List wav, {double volume = 1, String device = ''}) =>

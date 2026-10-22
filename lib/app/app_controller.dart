@@ -159,6 +159,11 @@ class AppController extends ChangeNotifier {
 
   bool _toldStillRunning = false;
 
+  PanelHelp _panelHelp = PanelHelp.none;
+
+  /// What GNOME needs before the clock shows in its top bar.
+  PanelHelp get panelHelp => _panelHelp;
+
   /// The selected voice, or the first bundled one if it's gone.
   VoicePack get voice => voices[_settings.voiceId] ?? voices.values.first;
 
@@ -169,9 +174,10 @@ class AppController extends ChangeNotifier {
     _subscriptions
       ..add(_platform.menuSelections.listen(_onMenu))
       ..add(_platform.clockDisturbed.listen((_) => _ticker.restart()))
-      ..add(_platform.closedWithoutIcon.listen((_) => _tellStillRunning()));
+      ..add(_platform.closedWithoutIcon.listen((_) => _tellStillRunning()))
+      ..add(_platform.statusIconChanges.listen(_onStatusIcon));
     _launchAtLogin = await _platform.launchAtLogin();
-    _hasStatusIcon = await _platform.hasStatusIcon();
+    await refreshStatusIcon();
     await _platform.setAppearance(_settings.appearance);
     _ticker.start();
     await _refreshMenuBar();
@@ -262,6 +268,27 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> quit() => _platform.quit();
+
+  /// Turns on GNOME's AppIndicator extension, so the icon and time show in
+  /// the top bar as they do in the Mac menu bar.
+  Future<void> showInTopBar() async {
+    _panelHelp = await _platform.turnOnPanelIcon();
+    notifyListeners();
+  }
+
+  /// Asks whether the desktop shows the app's icon, and if not, what it
+  /// needs to.
+  Future<void> refreshStatusIcon() async {
+    _hasStatusIcon = await _platform.hasStatusIcon();
+    _panelHelp = await _platform.panelHelp();
+    notifyListeners();
+  }
+
+  Future<void> _onStatusIcon(bool shown) async {
+    _hasStatusIcon = shown;
+    _panelHelp = await _platform.panelHelp();
+    notifyListeners();
+  }
 
   Future<void> setLaunchAtLogin(bool enabled) async {
     if (await _platform.setLaunchAtLogin(enabled)) {

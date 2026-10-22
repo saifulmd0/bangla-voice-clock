@@ -42,6 +42,7 @@ Priority: optional
 Architecture: amd64
 Installed-Size: $size
 Depends: libgtk-3-0t64 | libgtk-3-0, libayatana-appindicator3-1, libpulse0
+Recommends: gnome-shell-extension-appindicator
 Maintainer: Saiful Islam <mr.saiful.islam.saif@gmail.com>
 Homepage: https://github.com/saifulmd0/bangla-voice-clock
 Description: Talking clock that tells the time aloud in Bangla

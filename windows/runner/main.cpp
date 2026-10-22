@@ -37,7 +37,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
-  Win32Window::Size size(480, 800);
+  Win32Window::Size size(760, 660);
   if (!window.Create(L"Bangla Voice Clock", origin, size)) {
     return EXIT_FAILURE;
   }

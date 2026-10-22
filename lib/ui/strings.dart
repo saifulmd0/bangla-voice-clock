@@ -124,10 +124,11 @@ class Strings {
   );
 
   // Other settings.
-  String get other => _t('অন্যান্য', 'General');
+  String get other => _t('সাধারণ', 'General');
+  String get voiceAndSound => _t('কণ্ঠ ও শব্দ', 'Voice & sound');
+  String get settingsLabel => _t('সেটিংস', 'Settings');
   String get languageLabel => _t('ভাষা', 'Language');
   String get menuBar => _t('মেনু বার', 'Menu bar');
-  String get look => _t('চেহারা', 'Look');
   String get appearance => _t('রং', 'Appearance');
   String get appearanceSystem => switch (hostOs) {
     HostOs.windows => _t('উইন্ডোজের মতো', 'Match Windows'),
@@ -137,6 +138,38 @@ class Strings {
   String get appearanceLight => _t('হালকা', 'Light');
   String get appearanceDark => _t('গাঢ়', 'Dark');
   String get menuBarShows => _t('মেনু বারে দেখান', 'Menu bar shows');
+  String get panelShows => _t('প্যানেলে দেখান', 'Panel shows');
+  String get topBarTitle =>
+      _t('ঘড়িটি ওপরের বারে দেখান', 'Show the clock in the top bar');
+  String get topBarEnable => _t(
+    'Mac-এর মেনু বারের মতো GNOME-এর ওপরের বারেও আইকন আর সময় দেখা যাবে। '
+        'এর জন্য GNOME-এর AppIndicator এক্সটেনশনটি চালু করতে হবে।',
+    "Like the Mac menu bar, GNOME's top bar can show the icon and the time. "
+        "This needs GNOME's AppIndicator extension turned on.",
+  );
+  String get turnOn => _t('চালু করুন', 'Turn on');
+  String get topBarInstall => _t(
+    'এর জন্য GNOME-এর AppIndicator এক্সটেনশন লাগবে। Debian বা Ubuntu-তে '
+        'টার্মিনালে এটি লিখুন, তারপর লগ আউট করে আবার লগ ইন করুন:',
+    "This needs GNOME's AppIndicator extension. On Debian or Ubuntu, run "
+        'this in Terminal, then log out and back in:',
+  );
+  static const topBarCommand =
+      'sudo apt install gnome-shell-extension-appindicator';
+  String get topBarRelogin => _t(
+    'এক্সটেনশন চালু হয়েছে। লগ আউট করে আবার লগ ইন করলে ওপরের বারে আইকন '
+        'আর সময় দেখা যাবে।',
+    'The extension is on. Log out and back in, and the icon and time will '
+        'show in the top bar.',
+  );
+  String get topBarFlatpak => _t(
+    '"Extension Manager" অ্যাপ দিয়ে "AppIndicator and KStatusNotifierItem '
+        'Support" এক্সটেনশনটি ইনস্টল করুন, তাহলে ওপরের বারে আইকন আর সময় '
+        'দেখা যাবে।',
+    'Install the "AppIndicator and KStatusNotifierItem Support" extension '
+        'with the Extension Manager app, and the icon and time will show in '
+        'the top bar.',
+  );
   String get menuBarTime => _t('সময়', 'Time');
   String get menuBarLogo => _t('আইকন', 'Icon');
   String get menuBarBoth => _t('আইকন + সময়', 'Icon + Time');
@@ -177,7 +210,6 @@ class Strings {
   );
 
   // Tabs and timer.
-  String get clockTab => _t('ঘড়ি', 'Clock');
   String get timerTab => _t('টাইমার', 'Timer');
   String minutes(int n) => _t('${banglaDigits(n)} মিনিট', '$n min');
   String get startTimer => _t('শুরু করুন', 'Start');

@@ -40,6 +40,12 @@ class _RecordingPlatform implements AppPlatform {
   @override
   Future<bool> hasStatusIcon() async => true;
   @override
+  Stream<bool> get statusIconChanges => const Stream.empty();
+  @override
+  Future<PanelHelp> panelHelp() async => PanelHelp.none;
+  @override
+  Future<PanelHelp> turnOnPanelIcon() async => PanelHelp.none;
+  @override
   Future<void> play(
     Uint8List wav, {
     double volume = 1,
@@ -92,8 +98,9 @@ class _Window extends StatelessWidget {
       RepaintBoundary(key: const ValueKey('window'), child: _frame());
 
   Widget _frame() => Container(
-    width: 480,
-    height: 680,
+    // The app's first size, under its title bar.
+    width: 760,
+    height: (gnome ? 46 : 30) + 620,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       color: dark ? Sky.groundNight : Sky.ground,
@@ -236,7 +243,7 @@ Widget _scene({
   width: _width,
   height: _height,
   decoration: _sky(dark),
-  padding: const EdgeInsets.symmetric(horizontal: 96),
+  padding: const EdgeInsets.symmetric(horizontal: 56),
   child: Row(
     children: [
       Expanded(
@@ -261,13 +268,13 @@ Widget _scene({
             const SizedBox(height: 40),
             Text(
               headline,
-              style: _text(50, FontWeight.w700, dark ? Sky.inkNight : Sky.ink),
+              style: _text(40, FontWeight.w700, dark ? Sky.inkNight : Sky.ink),
             ),
             const SizedBox(height: 16),
             Text(
               line,
               style: _text(
-                24,
+                20,
                 FontWeight.w500,
                 dark ? const Color(0xFFA9B7CC) : const Color(0xFF4A5A73),
               ),
@@ -275,7 +282,7 @@ Widget _scene({
           ],
         ),
       ),
-      const SizedBox(width: 64),
+      const SizedBox(width: 48),
       window,
     ],
   ),
@@ -327,7 +334,7 @@ Widget _socialPreview(Widget window) => Container(
             const SizedBox(height: 28),
             Text(
               'Bangla Voice Clock',
-              style: _text(58, FontWeight.w700, Sky.ink),
+              style: _text(50, FontWeight.w700, Sky.ink),
             ),
             Text(
               'বাংলা ভয়েস ক্লক',
@@ -335,27 +342,16 @@ Widget _socialPreview(Widget window) => Container(
             ),
             const SizedBox(height: 18),
             Text(
-              'A free talking clock that tells the time aloud in Bangla.\n'
+              'A free talking clock that tells\nthe time aloud in Bangla.\n'
               'macOS, Windows and Linux.',
-              style: _text(24, FontWeight.w500, const Color(0xFF4A5A73)),
+              style: _text(22, FontWeight.w500, const Color(0xFF4A5A73)),
             ),
           ],
         ),
       ),
-      const SizedBox(width: 48),
-      // Only the top of the window fits the preview's height.
-      SizedBox(
-        width: 480,
-        height: 640,
-        child: OverflowBox(
-          alignment: Alignment.topCenter,
-          maxHeight: 680,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 72),
-            child: window,
-          ),
-        ),
-      ),
+      const SizedBox(width: 40),
+      // The whole window, scaled to sit beside the name.
+      SizedBox(width: 560, child: FittedBox(child: window)),
     ],
   ),
 );
@@ -465,8 +461,8 @@ void main() {
       hostOs = HostOs.macos;
     }
 
-    Future<void> scrollTo(String text) async {
-      await tester.ensureVisible(find.text(text));
+    Future<void> open(String pane) async {
+      await tester.tap(find.widgetWithText(InkWell, pane).first);
       await tester.pumpAndSettle();
     }
 
@@ -499,7 +495,7 @@ void main() {
           'Areeba AI, with a Bangladeshi accent,\n'
           'and the original voice from 1998.',
       then: (c, platform) async {
-        await scrollTo('কণ্ঠ');
+        await open('কণ্ঠ ও শব্দ');
         await tester.runAsync(c.speakNow);
         await tester.runAsync(
           () =>
@@ -524,7 +520,7 @@ void main() {
       headline: 'নীরব সময়,\nমিনিট ধরে',
       line: 'Quiet hours to the minute,\nso nights stay silent.',
       then: (c, _) async {
-        await scrollTo('নীরব সময়');
+        await open('নীরব সময়');
         await tester.tap(find.text('রাত ১১:০০'));
         await tester.pumpAndSettle();
       },
@@ -535,8 +531,7 @@ void main() {
       headline: 'কথা বলা টাইমার',
       line: 'A timer that says the time left\nevery minute, then "সময় শেষ".',
       then: (c, _) async {
-        await tester.tap(find.text('টাইমার'));
-        await tester.pumpAndSettle();
+        await open('টাইমার');
         await tester.runAsync(() => c.startTimer(10));
         await tester.pump();
         final speech = await tester.runAsync(

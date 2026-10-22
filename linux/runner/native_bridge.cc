@@ -216,6 +216,61 @@ bool SystemPrefersDark() {
          g_variant_get_uint32(value) == 1;
 }
 
+// GNOME shows panel icons only through an extension: Debian packages the
+// first, and Ubuntu ships the second, turned on.
+constexpr const char* kIndicatorExtensions[] = {
+    "appindicatorsupport@rgcjonas.gmail.com",
+    "ubuntu-appindicators@ubuntu.com"};
+
+bool OnGnome() {
+  const gchar* desktop = g_getenv("XDG_CURRENT_DESKTOP");
+  return desktop && strstr(desktop, "GNOME");
+}
+
+// The first panel-icon extension installed, for this user or system-wide.
+std::string InstalledIndicatorExtension() {
+  for (const char* uuid : kIndicatorExtensions) {
+    g_autofree gchar* mine = g_build_filename(
+        g_get_user_data_dir(), "gnome-shell", "extensions", uuid, nullptr);
+    if (g_file_test(mine, G_FILE_TEST_IS_DIR)) return uuid;
+    for (const gchar* const* dir = g_get_system_data_dirs(); *dir; ++dir) {
+      g_autofree gchar* path = g_build_filename(*dir, "gnome-shell",
+                                                "extensions", uuid, nullptr);
+      if (g_file_test(path, G_FILE_TEST_IS_DIR)) return uuid;
+    }
+  }
+  return std::string();
+}
+
+// GNOME Shell's settings, which list the extensions turned on. Null when
+// GNOME Shell isn't installed.
+GSettings* ShellSettings() {
+  GSettingsSchemaSource* source = g_settings_schema_source_get_default();
+  g_autoptr(GSettingsSchema) schema =
+      source ? g_settings_schema_source_lookup(source, "org.gnome.shell", TRUE)
+             : nullptr;
+  return schema && g_settings_schema_has_key(schema, "enabled-extensions")
+             ? g_settings_new("org.gnome.shell")
+             : nullptr;
+}
+
+bool HasKey(GSettings* settings, const char* key) {
+  g_autoptr(GSettingsSchema) schema = nullptr;
+  g_object_get(settings, "settings-schema", &schema, nullptr);
+  return schema && g_settings_schema_has_key(schema, key);
+}
+
+bool ExtensionTurnedOn(GSettings* shell, const std::string& uuid) {
+  g_auto(GStrv) on = g_settings_get_strv(shell, "enabled-extensions");
+  if (!g_strv_contains(on, uuid.c_str())) return false;
+  if (HasKey(shell, "disabled-extensions")) {
+    g_auto(GStrv) off = g_settings_get_strv(shell, "disabled-extensions");
+    if (g_strv_contains(off, uuid.c_str())) return false;
+  }
+  return !HasKey(shell, "disable-user-extensions") ||
+         !g_settings_get_boolean(shell, "disable-user-extensions");
+}
+
 // The XDG autostart entry used outside Flatpak.
 std::string AutostartFile() {
   g_autofree gchar* path = g_build_filename(
@@ -243,6 +298,12 @@ NativeBridge::NativeBridge(GtkApplication* app, GtkWindow* window,
                                             nullptr);
 
   has_tray_ = HasTrayHost();
+  // The panel can start showing icons later, as when its extension is
+  // turned on, or stop.
+  tray_watch_ = g_bus_watch_name(G_BUS_TYPE_SESSION,
+                                 "org.kde.StatusNotifierWatcher",
+                                 G_BUS_NAME_WATCHER_FLAGS_NONE, OnTrayAppeared,
+                                 OnTrayVanished, this, nullptr);
   indicator_ = app_indicator_new("bangla-voice-clock", kTrayIcon,
                                  APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
   app_indicator_set_title(indicator_, kAppName);
@@ -267,6 +328,7 @@ NativeBridge::NativeBridge(GtkApplication* app, GtkWindow* window,
 
 NativeBridge::~NativeBridge() {
   ++g_playing;
+  if (tray_watch_) g_bus_unwatch_name(tray_watch_);
   if (sleep_watch_) g_dbus_connection_signal_unsubscribe(system_bus_, sleep_watch_);
   g_clear_object(&system_bus_);
   if (clock_watch_) g_source_remove(clock_watch_);
@@ -336,6 +398,11 @@ void NativeBridge::HandleCall(FlMethodCall* call) {
     ShowWindow();
   } else if (strcmp(method, "hasStatusIcon") == 0) {
     result = fl_value_new_bool(has_tray_);
+  } else if (strcmp(method, "panelHelp") == 0) {
+    result = fl_value_new_string(PanelHelp().c_str());
+  } else if (strcmp(method, "turnOnPanelIcon") == 0) {
+    TurnOnPanelExtension();
+    result = fl_value_new_string(PanelHelp().c_str());
   } else if (strcmp(method, "notify") == 0) {
     g_autoptr(GNotification) notification =
         g_notification_new(StringArg(map, "title").c_str());
@@ -516,6 +583,64 @@ void NativeBridge::UpdateLaunchAtLogin() {
       !strstr(entry, "--background") && LaunchAtLogin()) {
     SetLaunchAtLogin(true);
   }
+}
+
+std::string NativeBridge::PanelHelp() const {
+  if (has_tray_ || !OnGnome()) return "";
+  // The sandbox can't see or change the host's extensions.
+  if (InFlatpak()) return "flatpak";
+  g_autoptr(GSettings) shell = ShellSettings();
+  if (!shell) return "";
+  std::string uuid = InstalledIndicatorExtension();
+  if (uuid.empty()) return "install";
+  return ExtensionTurnedOn(shell, uuid) ? "relogin" : "enable";
+}
+
+// Turns the extension on as the Extensions app does. GNOME Shell starts it
+// at once if it was installed before this login, else at the next one.
+void NativeBridge::TurnOnPanelExtension() {
+  g_autoptr(GSettings) shell = ShellSettings();
+  std::string uuid = InstalledIndicatorExtension();
+  if (!shell || uuid.empty()) return;
+  if (HasKey(shell, "disabled-extensions")) {
+    g_auto(GStrv) off = g_settings_get_strv(shell, "disabled-extensions");
+    g_autoptr(GStrvBuilder) rest = g_strv_builder_new();
+    for (gchar** id = off; *id; ++id) {
+      if (uuid != *id) g_strv_builder_add(rest, *id);
+    }
+    g_auto(GStrv) kept = g_strv_builder_end(rest);
+    g_settings_set_strv(shell, "disabled-extensions", kept);
+  }
+  g_auto(GStrv) on = g_settings_get_strv(shell, "enabled-extensions");
+  if (!g_strv_contains(on, uuid.c_str())) {
+    g_autoptr(GStrvBuilder) all = g_strv_builder_new();
+    g_strv_builder_addv(all, const_cast<const char**>(on));
+    g_strv_builder_add(all, uuid.c_str());
+    g_auto(GStrv) next = g_strv_builder_end(all);
+    g_settings_set_strv(shell, "enabled-extensions", next);
+  }
+  if (HasKey(shell, "disable-user-extensions")) {
+    g_settings_set_boolean(shell, "disable-user-extensions", FALSE);
+  }
+  g_settings_sync();
+}
+
+void NativeBridge::OnTrayAppeared(GDBusConnection*, const gchar*,
+                                  const gchar*, gpointer self) {
+  static_cast<NativeBridge*>(self)->SetHasTray(true);
+}
+
+void NativeBridge::OnTrayVanished(GDBusConnection*, const gchar*,
+                                  gpointer self) {
+  static_cast<NativeBridge*>(self)->SetHasTray(false);
+}
+
+void NativeBridge::SetHasTray(bool has_tray) {
+  if (has_tray == has_tray_) return;
+  has_tray_ = has_tray;
+  g_autoptr(FlValue) value = fl_value_new_bool(has_tray);
+  fl_method_channel_invoke_method(channel_, "statusIconChanged", value,
+                                  nullptr, nullptr, nullptr);
 }
 
 void NativeBridge::ClosedWithoutIcon() {

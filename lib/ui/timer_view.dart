@@ -1,6 +1,6 @@
 part of 'settings_page.dart';
 
-/// The timer tab: choose a length, start, and hear the time left every
+/// The timer section: choose a length, start, and hear the time left every
 /// minute.
 class _TimerView extends StatefulWidget {
   const _TimerView({required this.controller});
@@ -31,130 +31,120 @@ class _TimerViewState extends State<_TimerView> {
     final left = running ? countdown.remaining : total;
     final minutesLeft = (left.inSeconds / 60).ceil();
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ColoredBox(
-          color: theme.brightness == Brightness.dark ? Sky.bandNight : Sky.band,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: SizedBox.square(
-                dimension: 260,
-                child: CustomPaint(
-                  painter: _CountdownPainter(
-                    total: total,
-                    left: left,
-                    color: theme.colorScheme.primary,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          t.countdownFace(left),
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                        Text(
-                          running && minutesLeft > 0
-                              ? timeLeftTokens(minutesLeft).text
-                              : t.timerReady,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+        Center(
+          child: SizedBox.square(
+            dimension: 200,
+            child: CustomPaint(
+              painter: _CountdownPainter(
+                total: total,
+                left: left,
+                color: theme.colorScheme.primary,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      t.countdownFace(left),
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
-                  ),
+                    Text(
+                      running && minutesLeft > 0
+                          ? timeLeftTokens(minutesLeft).text
+                          : t.timerReady,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        const SizedBox(height: 12),
+        Center(
+          child: running
+              ? OutlinedButton.icon(
+                  onPressed: controller.stopTimer,
+                  icon: const Icon(Icons.stop_rounded),
+                  label: Text(t.stopTimer),
+                )
+              : FilledButton.icon(
+                  onPressed: () => controller.startTimer(_minutes),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(t.startTimer),
+                ),
+        ),
+        if (!running) ...[
+          const SizedBox(height: 12),
+          _Card(
             children: [
-              Center(
-                child: running
-                    ? OutlinedButton.icon(
-                        onPressed: controller.stopTimer,
-                        icon: const Icon(Icons.stop_rounded),
-                        label: Text(t.stopTimer),
-                      )
-                    : FilledButton.icon(
-                        onPressed: () => controller.startTimer(_minutes),
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: Text(t.startTimer),
-                      ),
-              ),
-              if (!running)
-                _Section(
-                  title: t.timerTab,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton.outlined(
-                            tooltip: '−1',
-                            onPressed: _minutes > 1
-                                ? () => _setMinutes(_minutes - 1)
-                                : null,
-                            icon: const Icon(Icons.remove),
-                          ),
-                          SizedBox(
-                            width: 150,
-                            child: Text(
-                              t.minutes(_minutes),
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          IconButton.outlined(
-                            tooltip: '+1',
-                            onPressed: _minutes < maxTimerMinutes
-                                ? () => _setMinutes(_minutes + 1)
-                                : null,
-                            icon: const Icon(Icons.add),
-                          ),
-                        ],
+                    IconButton.outlined(
+                      tooltip: '−1',
+                      onPressed: _minutes > 1
+                          ? () => _setMinutes(_minutes - 1)
+                          : null,
+                      icon: const Icon(Icons.remove),
+                    ),
+                    SizedBox(
+                      width: 150,
+                      child: Text(
+                        t.minutes(_minutes),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final m in _presets)
-                            ChoiceChip(
-                              label: Text(t.minutes(m)),
-                              selected: m == _minutes,
-                              showCheckmark: false,
-                              onSelected: (_) => _setMinutes(m),
-                            ),
-                        ],
-                      ),
+                    IconButton.outlined(
+                      tooltip: '+1',
+                      onPressed: _minutes < maxTimerMinutes
+                          ? () => _setMinutes(_minutes + 1)
+                          : null,
+                      icon: const Icon(Icons.add),
                     ),
                   ],
                 ),
-              const SizedBox(height: 12),
-              _Note(
-                controller.voiceCountsDown
-                    ? t.timerHint
-                    : t.timerClassic(controller.voice.manifest.name),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final m in _presets)
+                      ChoiceChip(
+                        label: Text(t.minutes(m)),
+                        selected: m == _minutes,
+                        showCheckmark: false,
+                        visualDensity: VisualDensity.compact,
+                        onSelected: (_) => _setMinutes(m),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
+        ],
+        const SizedBox(height: 12),
+        _Note(
+          controller.voiceCountsDown
+              ? t.timerHint
+              : t.timerClassic(controller.voice.manifest.name),
         ),
       ],
     );

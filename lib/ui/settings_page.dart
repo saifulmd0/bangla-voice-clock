@@ -27,320 +27,383 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-enum _Tab { clock, timer }
+/// The window's sections, picked in the sidebar (or, in a narrow window,
+/// the tabs along the top).
+enum _Pane { announce, voice, quiet, timer, general }
 
 class _SettingsPageState extends State<SettingsPage> {
-  var _tab = _Tab.clock;
+  var _pane = _Pane.announce;
 
   AppController get controller => widget.controller;
+
+  /// Narrower than this, the sidebar gives way to tabs along the top.
+  static const _sidebarFrom = 640.0;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: controller,
-    builder: (context, _) {
-      final t = controller.strings;
-      return Scaffold(
-        body: Column(
-          children: [
-            ColoredBox(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Sky.bandNight
-                  : Sky.band,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(80, 14, 80, 0),
-                child: _Segmented<_Tab>(
-                  segments: [
-                    _Segment(value: _Tab.clock, label: Text(t.clockTab)),
-                    _Segment(value: _Tab.timer, label: Text(t.timerTab)),
-                  ],
-                  selected: _tab,
-                  onChanged: (tab) => setState(() => _tab = tab),
-                ),
-              ),
-            ),
-            Expanded(
-              child: switch (_tab) {
-                _Tab.clock => _clockTab(context),
-                _Tab.timer => _TimerView(controller: controller),
-              },
-            ),
-          ],
-        ),
-      );
-    },
+    builder: (context, _) => Scaffold(
+      body: LayoutBuilder(
+        builder: (context, box) {
+          void pick(_Pane pane) => setState(() => _pane = pane);
+          if (box.maxWidth >= _sidebarFrom) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Sidebar(controller: controller, pane: _pane, onPick: pick),
+                Expanded(child: _paneView(context, wide: true)),
+              ],
+            );
+          }
+          return Column(
+            children: [
+              _ClockStrip(controller: controller),
+              _PaneTabs(controller: controller, pane: _pane, onPick: pick),
+              Expanded(child: _paneView(context, wide: false)),
+            ],
+          );
+        },
+      ),
+    ),
   );
 
-  Widget _clockTab(BuildContext context) {
-    final s = controller.settings;
+  /// The chosen section, under its title beside the sidebar. In a narrow
+  /// window, where there's no sidebar, the credits follow it.
+  Widget _paneView(BuildContext context, {required bool wide}) {
     final t = controller.strings;
-    void set(AppSettings next) => controller.update(next);
+    final parts = switch (_pane) {
+      _Pane.announce => _announce(context),
+      _Pane.voice => _voice(context),
+      _Pane.quiet => _quiet(context),
+      _Pane.timer => [_TimerView(controller: controller)],
+      _Pane.general => _general(context),
+    };
     return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
+      key: PageStorageKey(_pane),
+      padding: EdgeInsets.fromLTRB(24, wide ? 20 : 16, 24, 20),
       children: [
-        _DialHeader(controller: controller),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: FilledButton.icon(
-                  onPressed: controller.speakNow,
-                  icon: const Icon(Icons.record_voice_over_outlined),
-                  label: Text(t.speakNow),
-                ),
+        if (wide)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Semantics(
+              header: true,
+              child: Text(
+                _pane.title(t),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
-              _Section(
-                title: t.look,
-                children: [
-                  _ChoiceRow(
-                    title: t.appearance,
-                    child: _Segmented<Appearance>(
-                      segments: [
-                        _Segment(
-                          value: Appearance.light,
-                          label: Text(t.appearanceLight),
-                        ),
-                        _Segment(
-                          value: Appearance.dark,
-                          label: Text(t.appearanceDark),
-                        ),
-                        _Segment(
-                          value: Appearance.system,
-                          label: Text(t.appearanceSystem),
-                        ),
-                      ],
-                      selected: s.appearance,
-                      onChanged: (v) => set(s.copyWith(appearance: v)),
-                    ),
-                  ),
-                  // A Windows tray icon can't show text, so the time goes in
-                  // its tooltip; a Linux panel always shows the icon, with
-                  // the time beside it where the panel supports that.
-                  if (hostOs == HostOs.macos)
-                    _ChoiceRow(
-                      title: t.menuBarShows,
-                      child: _Segmented<MenuBarShows>(
-                        segments: [
-                          _Segment(
-                            value: MenuBarShows.time,
-                            label: Text(t.menuBarTime),
-                          ),
-                          _Segment(
-                            value: MenuBarShows.logo,
-                            label: Text(t.menuBarLogo),
-                            icon: SizedBox.square(
-                              dimension: 18,
-                              child: CustomPaint(
-                                painter: DotDialPainter.template(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface,
-                                ),
-                              ),
-                            ),
-                          ),
-                          _Segment(
-                            value: MenuBarShows.both,
-                            label: Text(t.menuBarBoth),
-                          ),
-                        ],
-                        selected: s.menuBarShows,
-                        onChanged: (v) => set(s.copyWith(menuBarShows: v)),
-                      ),
-                    ),
-                ],
-              ),
-              _Section(
-                title: t.announcements,
-                children: [
-                  SwitchListTile.adaptive(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                    title: Text(t.announceOn),
-                    value: !s.muted,
-                    onChanged: (on) => set(s.copyWith(muted: !on)),
-                  ),
-                  _ChoiceRow(
-                    title: t.every,
-                    child: _Segmented<int>(
-                      segments: [
-                        for (final m in AppSettings.intervals)
-                          _Segment(value: m, label: Text(t.interval(m))),
-                      ],
-                      selected: s.intervalMinutes,
-                      onChanged: (v) => set(s.copyWith(intervalMinutes: v)),
-                    ),
-                  ),
-                  RadioGroup<AnnouncementStyle>(
-                    // A quarter-hour voice always speaks traditionally.
-                    groupValue: controller.voiceSaysEveryMinute
-                        ? s.style
-                        : AnnouncementStyle.traditional,
-                    onChanged: (v) => set(s.copyWith(style: v)),
-                    child: _OptionGroup(
-                      children: [
-                        _styleTile(
-                          AnnouncementStyle.exact,
-                          t.exact,
-                          enabled: controller.voiceSaysEveryMinute,
-                        ),
-                        _styleTile(
-                          AnnouncementStyle.traditional,
-                          t.traditional,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!controller.voiceSaysEveryMinute)
-                    _Note(t.quarterOnlyVoice(controller.voice.manifest.name))
-                  else if (s.style == AnnouncementStyle.exact)
-                    SwitchListTile.adaptive(
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
-                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                      title: Text(t.sayBeje),
-                      subtitle: Text(t.sayBejeHint),
-                      value: s.sayBeje,
-                      onChanged: (v) => set(s.copyWith(sayBeje: v)),
-                    ),
-                ],
-              ),
-              _Section(
-                title: t.voice,
-                children: [
-                  RadioGroup<String>(
-                    groupValue: controller.voice.id,
-                    onChanged: (id) => set(s.copyWith(voiceId: id)),
-                    child: _OptionGroup(
-                      children: [
-                        for (final MapEntry(key: id, value: pack)
-                            in controller.voices.entries)
-                          _OptionTile(
-                            value: id,
-                            title: Text(
-                              t.voiceLabel(
-                                pack.manifest.name,
-                                pack.manifest.author,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  ListTile(
-                    leading: Tooltip(
-                      message: t.volume,
-                      child: const Icon(Icons.volume_up_outlined),
-                    ),
-                    title: Slider.adaptive(
-                      value: s.volume,
-                      semanticFormatterCallback: (v) =>
-                          '${t.volume} ${(v * 100).round()}%',
-                      onChanged: (v) => set(s.copyWith(volume: v)),
-                    ),
-                  ),
-                  SwitchListTile.adaptive(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                    title: Text(t.chime),
-                    value: s.chime,
-                    onChanged: (v) => set(s.copyWith(chime: v)),
-                  ),
-                  _ChoiceRow(
-                    title: t.output,
-                    child: _OutputPicker(controller: controller),
-                  ),
-                  if (s.outputDeviceId.isNotEmpty) _Note(t.outputHint),
-                ],
-              ),
-              _Section(
-                title: t.quietHours,
-                children: [
-                  SwitchListTile.adaptive(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                    title: Text(t.quietHoursOn),
-                    value: s.quietHoursEnabled,
-                    onChanged: (v) => set(s.copyWith(quietHoursEnabled: v)),
-                  ),
-                  if (s.quietHoursEnabled)
-                    ListTile(
-                      title: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 12,
-                        children: [
-                          if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
-                          _TimePicker(
-                            strings: t,
-                            minutes: s.quietStart,
-                            onChanged: (m) => set(s.copyWith(quietStart: m)),
-                          ),
-                          Text(t.quietTo),
-                          _TimePicker(
-                            strings: t,
-                            minutes: s.quietEnd,
-                            onChanged: (m) => set(s.copyWith(quietEnd: m)),
-                          ),
-                          if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              _Section(
-                title: t.other,
-                children: [
-                  _ChoiceRow(
-                    title: t.languageLabel,
-                    child: _Segmented<AppLanguage>(
-                      segments: [
-                        for (final l in AppLanguage.values)
-                          _Segment(value: l, label: Text(l.label)),
-                      ],
-                      selected: s.language,
-                      onChanged: (v) => set(s.copyWith(language: v)),
-                    ),
-                  ),
-                  SwitchListTile.adaptive(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                    title: Text(t.notify),
-                    value: s.notify,
-                    onChanged: (v) => set(s.copyWith(notify: v)),
-                  ),
-                  if (controller.launchAtLogin case final enabled?)
-                    SwitchListTile.adaptive(
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
-                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                      title: Text(t.launchAtLogin),
-                      value: enabled,
-                      onChanged: controller.setLaunchAtLogin,
-                    ),
-                  // Flathub updates its apps itself.
-                  if (controller.checksForUpdates)
-                    SwitchListTile.adaptive(
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
-                      inactiveTrackColor: Theme.of(context).colorScheme.outline,
-                      title: Text(t.checkUpdates),
-                      value: s.checkUpdates,
-                      onChanged: (v) => set(s.copyWith(checkUpdates: v)),
-                    ),
-                  ListTile(
-                    title: Text(t.version(appVersion)),
-                    trailing: controller.checksForUpdates
-                        ? _CheckNowButton(controller: controller)
-                        : null,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _Footer(controller: controller),
-            ],
+            ),
           ),
-        ),
+        for (final (i, part) in parts.indexed) ...[
+          if (i > 0) const SizedBox(height: 12),
+          part,
+        ],
+        if (!wide) ...[
+          const SizedBox(height: 12),
+          _Footer(controller: controller),
+        ],
       ],
     );
   }
+
+  Widget _switch({
+    required String title,
+    String? subtitle,
+    required bool value,
+    required ValueChanged<bool>? onChanged,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return SwitchListTile.adaptive(
+      activeTrackColor: scheme.primary,
+      inactiveTrackColor: scheme.outline,
+      title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
+      value: value,
+      onChanged: onChanged,
+    );
+  }
+
+  void _set(AppSettings next) => controller.update(next);
+
+  List<Widget> _announce(BuildContext context) {
+    final s = controller.settings;
+    final t = controller.strings;
+    return [
+      _Card(
+        children: [
+          _switch(
+            title: t.announceOn,
+            value: !s.muted,
+            onChanged: (on) => _set(s.copyWith(muted: !on)),
+          ),
+          _ChoiceRow(
+            title: t.every,
+            width: 280,
+            child: _Segmented<int>(
+              segments: [
+                for (final m in AppSettings.intervals)
+                  _Segment(value: m, label: Text(t.interval(m))),
+              ],
+              selected: s.intervalMinutes,
+              onChanged: (v) => _set(s.copyWith(intervalMinutes: v)),
+            ),
+          ),
+        ],
+      ),
+      RadioGroup<AnnouncementStyle>(
+        // A quarter-hour voice always speaks traditionally.
+        groupValue: controller.voiceSaysEveryMinute
+            ? s.style
+            : AnnouncementStyle.traditional,
+        onChanged: (v) => _set(s.copyWith(style: v)),
+        child: _OptionGroup(
+          children: [
+            _styleTile(
+              AnnouncementStyle.exact,
+              t.exact,
+              enabled: controller.voiceSaysEveryMinute,
+            ),
+            _styleTile(AnnouncementStyle.traditional, t.traditional),
+          ],
+        ),
+      ),
+      if (!controller.voiceSaysEveryMinute)
+        _Note(t.quarterOnlyVoice(controller.voice.manifest.name))
+      else if (s.style == AnnouncementStyle.exact)
+        _Card(
+          children: [
+            _switch(
+              title: t.sayBeje,
+              subtitle: t.sayBejeHint,
+              value: s.sayBeje,
+              onChanged: (v) => _set(s.copyWith(sayBeje: v)),
+            ),
+          ],
+        ),
+    ];
+  }
+
+  List<Widget> _voice(BuildContext context) {
+    final s = controller.settings;
+    final t = controller.strings;
+    return [
+      RadioGroup<String>(
+        groupValue: controller.voice.id,
+        onChanged: (id) => _set(s.copyWith(voiceId: id)),
+        child: _OptionGroup(
+          children: [
+            for (final MapEntry(key: id, value: pack)
+                in controller.voices.entries)
+              _OptionTile(
+                value: id,
+                title: Text(
+                  t.voiceLabel(pack.manifest.name, pack.manifest.author),
+                ),
+              ),
+          ],
+        ),
+      ),
+      _Card(
+        children: [
+          ListTile(
+            title: Row(
+              children: [
+                Text(t.volume),
+                Expanded(
+                  child: Slider.adaptive(
+                    value: s.volume,
+                    semanticFormatterCallback: (v) =>
+                        '${t.volume} ${(v * 100).round()}%',
+                    onChanged: (v) => _set(s.copyWith(volume: v)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _switch(
+            title: t.chime,
+            value: s.chime,
+            onChanged: (v) => _set(s.copyWith(chime: v)),
+          ),
+          _ChoiceRow(
+            title: t.output,
+            width: 260,
+            child: _OutputPicker(controller: controller),
+          ),
+        ],
+      ),
+      if (s.outputDeviceId.isNotEmpty) _Note(t.outputHint),
+    ];
+  }
+
+  List<Widget> _quiet(BuildContext context) {
+    final s = controller.settings;
+    final t = controller.strings;
+    return [
+      _Card(
+        children: [
+          _switch(
+            title: t.quietHoursOn,
+            value: s.quietHoursEnabled,
+            onChanged: (v) => _set(s.copyWith(quietHoursEnabled: v)),
+          ),
+          if (s.quietHoursEnabled)
+            ListTile(
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  if (t.quietFrom.isNotEmpty) Text(t.quietFrom),
+                  _TimePicker(
+                    strings: t,
+                    minutes: s.quietStart,
+                    onChanged: (m) => _set(s.copyWith(quietStart: m)),
+                  ),
+                  Text(t.quietTo),
+                  _TimePicker(
+                    strings: t,
+                    minutes: s.quietEnd,
+                    onChanged: (m) => _set(s.copyWith(quietEnd: m)),
+                  ),
+                  if (t.quietUntil.isNotEmpty) Text(t.quietUntil),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _general(BuildContext context) {
+    final s = controller.settings;
+    final t = controller.strings;
+    return [
+      if (controller.panelHelp != PanelHelp.none)
+        _TopBarCard(controller: controller),
+      _Card(
+        children: [
+          _ChoiceRow(
+            title: t.languageLabel,
+            width: 220,
+            child: _Segmented<AppLanguage>(
+              segments: [
+                for (final l in AppLanguage.values)
+                  _Segment(value: l, label: Text(l.label)),
+              ],
+              selected: s.language,
+              onChanged: (v) => _set(s.copyWith(language: v)),
+            ),
+          ),
+          _ChoiceRow(
+            title: t.appearance,
+            width: 300,
+            child: _Segmented<Appearance>(
+              segments: [
+                _Segment(
+                  value: Appearance.light,
+                  label: Text(t.appearanceLight),
+                ),
+                _Segment(value: Appearance.dark, label: Text(t.appearanceDark)),
+                _Segment(
+                  value: Appearance.system,
+                  label: Text(t.appearanceSystem),
+                ),
+              ],
+              selected: s.appearance,
+              onChanged: (v) => _set(s.copyWith(appearance: v)),
+            ),
+          ),
+          // A Windows tray icon can't show text, so the time goes in its
+          // tooltip. A Linux panel always shows the icon, with the time
+          // beside it if chosen (KDE puts it in the tooltip instead).
+          if (hostOs == HostOs.macos)
+            _ChoiceRow(
+              title: t.menuBarShows,
+              width: 300,
+              child: _Segmented<MenuBarShows>(
+                segments: [
+                  _Segment(
+                    value: MenuBarShows.time,
+                    label: Text(t.menuBarTime),
+                  ),
+                  _Segment(
+                    value: MenuBarShows.logo,
+                    label: Text(t.menuBarLogo),
+                    icon: _logoMark(context),
+                  ),
+                  _Segment(
+                    value: MenuBarShows.both,
+                    label: Text(t.menuBarBoth),
+                  ),
+                ],
+                selected: s.menuBarShows,
+                onChanged: (v) => _set(s.copyWith(menuBarShows: v)),
+              ),
+            )
+          else if (hostOs == HostOs.linux && controller.hasStatusIcon)
+            _ChoiceRow(
+              title: t.panelShows,
+              width: 260,
+              child: _Segmented<MenuBarShows>(
+                segments: [
+                  _Segment(
+                    value: MenuBarShows.logo,
+                    label: Text(t.menuBarLogo),
+                    icon: _logoMark(context),
+                  ),
+                  _Segment(
+                    value: MenuBarShows.both,
+                    label: Text(t.menuBarBoth),
+                  ),
+                ],
+                selected: s.menuBarShows == MenuBarShows.logo
+                    ? MenuBarShows.logo
+                    : MenuBarShows.both,
+                onChanged: (v) => _set(s.copyWith(menuBarShows: v)),
+              ),
+            ),
+        ],
+      ),
+      _Card(
+        children: [
+          _switch(
+            title: t.notify,
+            value: s.notify,
+            onChanged: (v) => _set(s.copyWith(notify: v)),
+          ),
+          if (controller.launchAtLogin case final enabled?)
+            _switch(
+              title: t.launchAtLogin,
+              value: enabled,
+              onChanged: controller.setLaunchAtLogin,
+            ),
+          // Flathub updates its apps itself.
+          if (controller.checksForUpdates)
+            _switch(
+              title: t.checkUpdates,
+              value: s.checkUpdates,
+              onChanged: (v) => _set(s.copyWith(checkUpdates: v)),
+            ),
+          ListTile(
+            title: Text(t.version(appVersion)),
+            trailing: controller.checksForUpdates
+                ? _CheckNowButton(controller: controller)
+                : null,
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _logoMark(BuildContext context) => SizedBox.square(
+    dimension: 18,
+    child: CustomPaint(
+      painter: DotDialPainter.template(
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+    ),
+  );
 
   Widget _styleTile(
     AnnouncementStyle style,
@@ -363,12 +426,43 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-/// The sky band holding today's dial, with the time and the
-/// next announcement at its centre.
-class _DialHeader extends StatelessWidget {
-  const _DialHeader({required this.controller});
+extension on _Pane {
+  String title(Strings t) => switch (this) {
+    _Pane.announce => t.announcements,
+    _Pane.voice => t.voiceAndSound,
+    _Pane.quiet => t.quietHours,
+    _Pane.timer => t.timerTab,
+    _Pane.general => t.other,
+  };
+
+  IconData get icon => switch (this) {
+    _Pane.announce => Icons.campaign_outlined,
+    _Pane.voice => Icons.record_voice_over_outlined,
+    _Pane.quiet => Icons.bedtime_outlined,
+    _Pane.timer => Icons.timer_outlined,
+    _Pane.general => Icons.tune,
+  };
+
+  /// Marks General while GNOME needs a step to show the clock in its top
+  /// bar.
+  bool needsLook(AppController c) =>
+      this == _Pane.general && c.panelHelp != PanelHelp.none;
+}
+
+/// The day dial: the time on a 12-hour ring of dots, the parts of the day
+/// around it and the coming announcements lit.
+class _Dial extends StatelessWidget {
+  const _Dial({
+    required this.controller,
+    required this.size,
+    this.showTime = true,
+    this.showZones = true,
+  });
 
   final AppController controller;
+  final double size;
+  final bool showTime;
+  final bool showZones;
 
   @override
   Widget build(BuildContext context) {
@@ -376,57 +470,186 @@ class _DialHeader extends StatelessWidget {
     final t = controller.strings;
     final s = controller.settings;
     final dark = theme.brightness == Brightness.dark;
-    return ColoredBox(
-      color: dark ? Sky.bandNight : Sky.band,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: Semantics(
-            label: t.dialSummary(s),
-            child: SizedBox.square(
-              dimension: 280,
-              child: CustomPaint(
-                painter: DayDialPainter(
-                  now: controller.now,
-                  schedule: s.schedule,
-                  muted: s.muted,
-                  speaking: controller.speaking,
-                  zoneLabels: t.zone,
-                  color: theme.colorScheme.primary,
-                  background: dark ? Sky.bandNight : Sky.band,
-                  labelStyle: theme.textTheme.labelMedium!.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                child: Center(
+    return Semantics(
+      label: t.dialSummary(s),
+      child: SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: DayDialPainter(
+            now: controller.now,
+            schedule: s.schedule,
+            muted: s.muted,
+            speaking: controller.speaking,
+            zoneLabels: showZones ? t.zone : (_) => '',
+            color: theme.colorScheme.primary,
+            background: dark ? Sky.bandNight : Sky.band,
+            labelStyle: theme.textTheme.labelMedium!.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+          child: showTime
+              ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 64),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FittedBox(
-                          child: Text(
-                            t.clock(controller.now),
-                            style: theme.textTheme.displaySmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
+                    padding: EdgeInsets.symmetric(horizontal: size * 0.22),
+                    child: FittedBox(
+                      child: Text(
+                        t.clock(controller.now),
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          t.nextAnnouncement(controller.nextAnnouncement),
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+}
+
+/// The left of a wide window: the clock, Speak now, the sections and the
+/// credits.
+class _Sidebar extends StatelessWidget {
+  const _Sidebar({
+    required this.controller,
+    required this.pane,
+    required this.onPick,
+  });
+
+  final AppController controller;
+  final _Pane pane;
+  final ValueChanged<_Pane> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = controller.strings;
+    return Container(
+      width: 264,
+      color: theme.brightness == Brightness.dark ? Sky.bandNight : Sky.band,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // The dial takes the height the rest leaves, up to a size that
+          // leaves room beside it for the longest part-of-day label.
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, box) => Center(
+                child: _Dial(
+                  controller: controller,
+                  size: math.min(176, box.biggest.shortestSide),
                 ),
+              ),
+            ),
+          ),
+          Text(
+            t.nextAnnouncement(controller.nextAnnouncement),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            onPressed: controller.speakNow,
+            icon: const Icon(Icons.record_voice_over_outlined),
+            label: Text(t.speakNow),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            label: t.settingsLabel,
+            container: true,
+            explicitChildNodes: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final p in _Pane.values)
+                  _NavItem(
+                    icon: p.icon,
+                    label: p.title(t),
+                    selected: p == pane,
+                    dot: p.needsLook(controller),
+                    onTap: () => onPick(p),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          _Footer(controller: controller, dense: true),
+        ],
+      ),
+    );
+  }
+}
+
+/// A section in the sidebar: white and bold when chosen.
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.dot = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool dot;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final light = scheme.brightness == Brightness.light;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected
+            ? (light ? scheme.surfaceContainerLowest : const Color(0xFF3B5078))
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: SizedBox(
+            height: 40,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: scheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurface,
+                        fontSize: 15,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  if (dot)
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: scheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -436,7 +659,232 @@ class _DialHeader extends StatelessWidget {
   }
 }
 
-/// A short explanation inside a settings group, with an info icon.
+/// The top of a narrow window: a small dial, the time, the next
+/// announcement and Speak now.
+class _ClockStrip extends StatelessWidget {
+  const _ClockStrip({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = controller.strings;
+    return ColoredBox(
+      color: theme.brightness == Brightness.dark ? Sky.bandNight : Sky.band,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Row(
+          children: [
+            _Dial(
+              controller: controller,
+              size: 72,
+              showTime: false,
+              showZones: false,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FittedBox(
+                    child: Text(
+                      t.clock(controller.now),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    t.nextAnnouncement(controller.nextAnnouncement),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              tooltip: t.speakNow,
+              onPressed: controller.speakNow,
+              icon: const Icon(Icons.record_voice_over_outlined),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The sections as tabs, for a window too narrow for the sidebar.
+class _PaneTabs extends StatelessWidget {
+  const _PaneTabs({
+    required this.controller,
+    required this.pane,
+    required this.onPick,
+  });
+
+  final AppController controller;
+  final _Pane pane;
+  final ValueChanged<_Pane> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final t = controller.strings;
+    return ColoredBox(
+      color: theme.brightness == Brightness.dark ? Sky.bandNight : Sky.band,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            for (final p in _Pane.values)
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  selected: p == pane,
+                  child: InkWell(
+                    onTap: () => onPick(p),
+                    child: Container(
+                      height: 42,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: p == pane
+                                ? scheme.primary
+                                : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          p.title(t),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 14,
+                            color: p == pane
+                                ? scheme.onSurface
+                                : scheme.onSurfaceVariant,
+                            fontWeight: p == pane
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// On GNOME without its AppIndicator extension: how to get the icon and
+/// time into the top bar, or a button that does it.
+class _TopBarCard extends StatelessWidget {
+  const _TopBarCard({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final t = controller.strings;
+    final help = controller.panelHelp;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: scheme.primary.withValues(
+        alpha: scheme.brightness == Brightness.light ? 0.08 : 0.16,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: scheme.primary.withValues(alpha: 0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.vertical_align_top, color: scheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    t.topBarTitle,
+                    style: theme.listTileTheme.titleTextStyle?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(switch (help) {
+              PanelHelp.enable => t.topBarEnable,
+              PanelHelp.install => t.topBarInstall,
+              PanelHelp.relogin => t.topBarRelogin,
+              PanelHelp.flatpak || PanelHelp.none => t.topBarFlatpak,
+            }, style: theme.textTheme.bodyMedium),
+            if (help == PanelHelp.install) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+                child: const SelectableText(
+                  Strings.topBarCommand,
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 14),
+                ),
+              ),
+            ],
+            if (help == PanelHelp.enable) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: controller.showInTopBar,
+                  child: Text(t.turnOn),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Settings on one white card, divided only by their own spacing.
+class _Card extends StatelessWidget {
+  const _Card({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Card.outlined(
+    margin: EdgeInsets.zero,
+    child: Column(children: children),
+  );
+}
+
 class _Note extends StatelessWidget {
   const _Note(this.text);
 
@@ -446,7 +894,7 @@ class _Note extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -473,17 +921,14 @@ class _OptionGroup extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (i, child) in children.indexed) ...[
-          if (i > 0) const SizedBox(height: 8),
-          child,
-        ],
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final (i, child) in children.indexed) ...[
+        if (i > 0) const SizedBox(height: 8),
+        child,
       ],
-    ),
+    ],
   );
 }
 
@@ -824,51 +1269,43 @@ class _Segmented<T extends Object> extends StatelessWidget {
   }
 }
 
-/// A setting chosen from a few options: its label, then the options at
-/// full width underneath.
+/// A setting chosen from a few options: its label with the options beside
+/// it, [width] wide, or under it where the row is too narrow for both.
 class _ChoiceRow extends StatelessWidget {
-  const _ChoiceRow({required this.title, required this.child});
+  const _ChoiceRow({
+    required this.title,
+    required this.child,
+    required this.width,
+  });
 
   final String title;
   final Widget child;
+  final double width;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(title, style: Theme.of(context).listTileTheme.titleTextStyle),
-        const SizedBox(height: 8),
-        child,
-      ],
-    ),
-  );
-}
-
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 4),
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-        ),
-        Card.outlined(
-          margin: EdgeInsets.zero,
-          child: Column(children: children),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final label = Text(
+      title,
+      style: Theme.of(context).listTileTheme.titleTextStyle,
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: LayoutBuilder(
+        builder: (context, box) => box.maxWidth >= width + 110
+            ? Row(
+                children: [
+                  Expanded(child: label),
+                  const SizedBox(width: 12),
+                  SizedBox(width: width, child: child),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [label, const SizedBox(height: 8), child],
+              ),
+      ),
+    );
+  }
 }
 
 /// A bordered pop-up button showing a time of day, like a macOS pop-up
@@ -1051,9 +1488,12 @@ class _PickerChoice extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.controller});
+  const _Footer({required this.controller, this.dense = false});
 
   final AppController controller;
+
+  /// Smaller, for the sidebar.
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -1061,34 +1501,43 @@ class _Footer extends StatelessWidget {
     // The deeper section blue, so 15pt link text clears 4.5:1.
     final link = TextButton.styleFrom(
       foregroundColor: Theme.of(context).colorScheme.secondary,
+      visualDensity: dense ? VisualDensity.compact : null,
+      textStyle: dense
+          ? Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14)
+          : null,
+      padding: dense ? const EdgeInsets.symmetric(horizontal: 6) : null,
     );
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      children: [
-        TextButton(
-          style: link,
-          onPressed: () => controller.openLink(developerUrl),
-          child: Text(t.developedBy),
-        ),
+    final developer = TextButton(
+      style: link,
+      onPressed: () => controller.openLink(developerUrl),
+      child: Text(t.developedBy),
+    );
+    final rest = [
+      TextButton(
+        style: link,
+        onPressed: () => showCredits(context, controller),
+        child: Text(t.credits),
+      ),
+      // With no menu-bar, tray or panel icon, Quit has nowhere else to be.
+      if (!controller.hasStatusIcon) ...[
         const Text('·'),
         TextButton(
           style: link,
-          onPressed: () => showCredits(context, controller),
-          child: Text(t.credits),
+          onPressed: controller.quit,
+          child: Text(t.quitClock),
         ),
-        // With no menu-bar, tray or panel icon, Quit has nowhere else to be.
-        if (!controller.hasStatusIcon) ...[
-          const Text('·'),
-          TextButton(
-            style: link,
-            onPressed: controller.quit,
-            child: Text(t.quitClock),
-          ),
-        ],
       ],
+    ];
+    Widget row(List<Widget> children) => Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
+      children: children,
     );
+    // The sidebar is too narrow for one line, so the developer gets one.
+    return dense
+        ? Column(children: [developer, row(rest)])
+        : row([developer, const Text('·'), ...rest]);
   }
 }
 

@@ -75,7 +75,7 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "বাংলা ভয়েস ক্লক");
   }
 
-  gtk_window_set_default_size(window, 480, 760);
+  gtk_window_set_default_size(window, 760, 620);
   GdkGeometry smallest = {};
   smallest.min_width = 420;
   smallest.min_height = 480;

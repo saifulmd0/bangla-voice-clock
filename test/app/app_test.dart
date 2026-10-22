@@ -24,6 +24,9 @@ class FakePlatform implements AppPlatform {
   final menu = StreamController<String>.broadcast();
   final closed = StreamController<void>.broadcast();
   var statusIcon = true;
+  final iconChanges = StreamController<bool>.broadcast();
+  var help = PanelHelp.none;
+  var turnedOn = 0;
   var quits = 0;
   final played = <Uint8List>[];
   final playedOn = <String>[];
@@ -44,6 +47,16 @@ class FakePlatform implements AppPlatform {
   Stream<void> get closedWithoutIcon => closed.stream;
   @override
   Future<bool> hasStatusIcon() async => statusIcon;
+  @override
+  Stream<bool> get statusIconChanges => iconChanges.stream;
+  @override
+  Future<PanelHelp> panelHelp() async => help;
+  @override
+  Future<PanelHelp> turnOnPanelIcon() async {
+    turnedOn++;
+    return help = PanelHelp.relogin;
+  }
+
   @override
   Future<void> play(
     Uint8List wav, {
@@ -299,28 +312,37 @@ void main() {
     c.dispose();
   });
 
-  void tallWindow(WidgetTester tester) {
+  /// The window at its first size, wide enough for the sidebar.
+  void tallWindow(WidgetTester tester, {Size size = const Size(760, 620)}) {
     tester.view
-      ..physicalSize = const Size(960, 4800)
+      ..physicalSize = size * 2
       ..devicePixelRatio = 2;
     addTearDown(tester.view.reset);
+  }
+
+  Future<void> openPane(WidgetTester tester, String name) async {
+    await tester.tap(find.widgetWithText(InkWell, name));
+    await tester.pump();
   }
 
   testWidgets('each desktop gets its own wording', (tester) async {
     tallWindow(tester);
     addTearDown(() => hostOs = HostOs.macos);
     final c = await tester.runAsync(controller);
-    for (final (host, system, menuBar) in [
-      (HostOs.macos, 'ম্যাকের মতো', findsOneWidget),
-      (HostOs.windows, 'উইন্ডোজের মতো', findsNothing),
-      // A Linux panel always shows the icon, so there is nothing to choose.
-      (HostOs.linux, 'সিস্টেমের মতো', findsNothing),
+    for (final (host, system, menuBar, panel) in [
+      (HostOs.macos, 'ম্যাকের মতো', findsOneWidget, findsNothing),
+      // A tray icon can't show text, so there is nothing to choose.
+      (HostOs.windows, 'উইন্ডোজের মতো', findsNothing, findsNothing),
+      // A Linux panel always shows the icon; the time beside it is optional.
+      (HostOs.linux, 'সিস্টেমের মতো', findsNothing, findsOneWidget),
     ]) {
       hostOs = host;
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+      await openPane(tester, 'সাধারণ');
       expect(find.text(system), findsOneWidget);
       expect(find.text('মেনু বারে দেখান'), menuBar);
+      expect(find.text('প্যানেলে দেখান'), panel);
     }
   });
 
@@ -330,15 +352,59 @@ void main() {
     final c = await tester.runAsync(controller);
     await tester.runAsync(c!.start);
     await tester.pumpWidget(BanglaVoiceClockApp(controller: c));
-    await tester.scrollUntilVisible(find.text('ঘড়ি বন্ধ করুন'), 200);
     await tester.tap(find.text('ঘড়ি বন্ধ করুন'));
     expect(platform.quits, 1);
+  });
+
+  testWidgets('on GNOME the clock can be put in the top bar', (tester) async {
+    tallWindow(tester);
+    hostOs = HostOs.linux;
+    addTearDown(() => hostOs = HostOs.macos);
+    platform
+      ..statusIcon = false
+      ..help = PanelHelp.enable;
+    final c = await tester.runAsync(controller);
+    await tester.runAsync(c!.start);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c));
+    await openPane(tester, 'সাধারণ');
+    expect(find.text('ঘড়িটি ওপরের বারে দেখান'), findsOneWidget);
+    await tester.tap(find.text('চালু করুন'));
+    await tester.runAsync(() => pumpEventQueue());
+    await tester.pump();
+    expect(platform.turnedOn, 1);
+    expect(find.textContaining('লগ আউট করে আবার লগ ইন'), findsOneWidget);
+
+    // Once the extension runs, the panel shows the icon and the card goes.
+    platform.help = PanelHelp.none;
+    platform.iconChanges.add(true);
+    await tester.runAsync(() => pumpEventQueue());
+    await tester.pump();
+    expect(c.hasStatusIcon, isTrue);
+    expect(find.text('ঘড়িটি ওপরের বারে দেখান'), findsNothing);
+    expect(find.text('ঘড়ি বন্ধ করুন'), findsNothing);
+    expect(find.text('প্যানেলে দেখান'), findsOneWidget);
+    c.dispose();
+  });
+
+  testWidgets('a narrow window puts the sections in tabs', (tester) async {
+    tallWindow(tester, size: const Size(460, 700));
+    final c = await tester.runAsync(controller);
+    await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+    expect(find.text('এখনই সময় শুনুন'), findsNothing);
+    expect(find.byTooltip('এখনই সময় শুনুন'), findsOneWidget);
+    await openPane(tester, 'নীরব সময়');
+    expect(find.text('এই সময়ে ঘোষণা হবে না'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('ডেভেলপ করেছেন সাইফুল ইসলাম'),
+      200,
+    );
   });
 
   testWidgets('voice labels, footer and credits', (tester) async {
     tallWindow(tester);
     final c = await tester.runAsync(controller);
     await tester.pumpWidget(BanglaVoiceClockApp(controller: c!));
+    await openPane(tester, 'কণ্ঠ ও শব্দ');
     expect(
       find.text('Areeba AI (ElevenLabs) - by Saiful Islam'),
       findsOneWidget,
