@@ -20,7 +20,7 @@
 
 <p align="center">
   <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS-2F74D0?style=for-the-badge&logo=apple&logoColor=white"></a>
-  <a href="https://github.com/saifulmd0/bangla-voice-clock/releases"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-2F74D0?style=for-the-badge&logo=windows&logoColor=white"></a>
+  <a href="https://apps.microsoft.com/detail/9NZQBX280ZBR"><img alt="Get it from the Microsoft Store" src="https://img.shields.io/badge/Microsoft%20Store-Windows-2F74D0?style=for-the-badge&logo=windows&logoColor=white"></a>
   <a href="#linux"><img alt="Get it for Linux" src="https://img.shields.io/badge/Get%20it-Linux-2F74D0?style=for-the-badge&logo=linux&logoColor=white"></a>
 </p>
 
@@ -76,8 +76,10 @@
 
 ## Install
 
-Get the latest version from **[Releases](https://github.com/saifulmd0/bangla-voice-clock/releases)**.
-Each release has a file for each system:
+On Windows, the easiest way is the
+**[Microsoft Store](https://apps.microsoft.com/detail/9NZQBX280ZBR)**. Everything else is on
+**[Releases](https://github.com/saifulmd0/bangla-voice-clock/releases)**, with a file for each
+system:
 
 | File | For |
 |---|---|
@@ -85,11 +87,11 @@ Each release has a file for each system:
 | `BanglaVoiceClock-…-windows-setup.exe` | Windows 10 or 11, 64-bit (recommended) |
 | `BanglaVoiceClock-…-windows-portable.zip` | Windows, without installing |
 | `BanglaVoiceClock-…-linux-amd64.deb` | Ubuntu 22.04 or later, Debian 12 or later, Linux Mint 21 or later (64-bit) |
-| `BanglaVoiceClock-…-linux.flatpak` | Any Linux with Flatpak, until it is on Flathub |
+| `BanglaVoiceClock-…-linux.flatpak` | Any Linux with Flatpak |
 | `BanglaVoiceClock-…-linux-x64.tar.gz` | Any 64-bit Linux, without installing |
 
-The apps are not code-signed yet, so macOS and Windows warn the first time. The steps below get
-past that.
+These downloads are not code-signed yet, so macOS and Windows warn the first time. The steps below
+get past that. The Microsoft Store copy is signed by Microsoft and installs without a warning.
 
 ### macOS
 
@@ -109,6 +111,11 @@ brew install --cask saifulmd0/tap/bangla-voice-clock
 4. The time appears in the menu bar, and the settings window opens.
 
 ### Windows
+
+**From the [Microsoft Store](https://apps.microsoft.com/detail/9NZQBX280ZBR)** (recommended):
+choose **Get** or **Install**. It opens at sign-in, and the Store keeps it up to date.
+
+**Or with the setup:**
 
 1. Download `BanglaVoiceClock-…-windows-setup.exe` and run it.
 2. If SmartScreen says "Windows protected your PC", choose **More info → Run anyway**.
@@ -137,8 +144,6 @@ flatpak install --user ./BanglaVoiceClock-*-linux.flatpak
 
 It needs the Flathub remote for its runtime, which most distributions have (if not:
 `flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo`).
-The app is on its way to [Flathub](https://flathub.org), after which it installs from GNOME
-Software or Discover with one click and updates on its own.
 
 **Without installing:** extract `BanglaVoiceClock-…-linux-x64.tar.gz` and run
 `bangla-voice-clock/bangla-voice-clock`. It needs `libayatana-appindicator3-1` and `libpulse0`,
@@ -155,13 +160,14 @@ the clock running out of sight; open the app again to bring the window back.
 
 Once a day the clock looks for a new version and, when there is one, shows what changed.
 
+- **Windows (Microsoft Store):** the Store updates it, as it does other apps.
 - **Windows (installed with the setup):** choose **Update now**. It downloads the new version,
   checks it, installs it and reopens the clock, keeping your settings.
 - **macOS:** run `brew update && brew upgrade --cask bangla-voice-clock`, or choose **Open download page** and
   install the new disk image over the old app.
 - **Windows portable:** download the new zip and replace the old folder.
 - **Linux:** the `.deb` copy offers the new version's download page; install the new `.deb` over
-  the old one. The Flatpak leaves updates to Flathub (`flatpak update`) and doesn't check itself.
+  the old one. The Flatpak doesn't check; install the new `.flatpak` over it.
 
 You can also choose **Check for update now** under **General** (সাধারণ) in the window.
 
@@ -169,7 +175,8 @@ You can also choose **Check for update now** under **General** (সাধার�
 
 - **macOS:** quit it from its menu, then move the app from Applications to the Trash, or run
   `brew uninstall --cask bangla-voice-clock` (add `--zap` to remove its settings too).
-- **Windows:** **Settings → Apps → Installed apps → Bangla Voice Clock → Uninstall**. For the
+- **Windows:** **Settings → Apps → Installed apps → Bangla Voice Clock → Uninstall** (the same
+  for the Store copy, or right-click it in the Start menu → **Uninstall**). For the
   portable copy, quit it from the tray and delete the folder.
 - **Linux:** turn off opening at login first, then quit it and run
   `sudo apt remove bangla-voice-clock` or `flatpak uninstall io.github.saifulmd0.BanglaVoiceClock`,
@@ -286,8 +293,8 @@ sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev \
 flutter build linux --release && tool/linux/package.sh   # tarball and .deb
 ```
 
-Without them, push to GitHub and let CI build them all, including the Flatpak. Publishing on
-Flathub is described in [docs/FLATHUB.md](docs/FLATHUB.md).
+Without them, push to GitHub and let CI build them all, including the Flatpak and the
+Microsoft Store package (`tool/windows/make_msix.ps1`).
 
 ### Hearing the announcement engine
 
