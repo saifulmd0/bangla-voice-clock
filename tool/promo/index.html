@@ -36,6 +36,7 @@ html, body { background: #000; overflow: hidden; }
 }
 .L #stage { width: 1920px; height: 1080px; }
 .V #stage { width: 1080px; height: 1920px; }
+.F #stage { height: 1350px; }
 .layer, .scene { position: absolute; inset: 0; }
 .scene { visibility: hidden; }
 
@@ -243,6 +244,22 @@ html, body { background: #000; overflow: hidden; }
 .L #end .url { font-size: 30px; } .V #end .url { font-size: 34px; }
 #end .by { margin-top: 14px; font-family: 'Noto Sans Bengali'; font-weight: 600; color: var(--ink-soft); }
 .L #end .by { font-size: 24px; } .V #end .by { font-size: 30px; }
+/* The Facebook feed's 4:5 frame: the portrait layout, shorter. */
+.F .kicker { font-size: 26px; } .F .head { font-size: 90px; } .F .sub { font-size: 34px; }
+.F .copy { top: 100px; }
+.F .visual { bottom: 50px; height: 760px; }
+.F .win { width: 760px; margin-left: -380px; margin-top: -325px; }
+.F #speak .dial { top: 170px; } .F #speak .say { top: 560px; } .F #speak .en { top: 830px; } .F #speak .tag { top: 930px; }
+.F #title .tile { top: 250px; width: 260px; height: 260px; margin-left: -130px; } .F #title .names { top: 600px; }
+.F #title .en { font-size: 104px; } .F #title .bn { font-size: 76px; }
+.F #styles .top { top: 100px; } .F #styles .cards { top: 400px; gap: 30px; } .F .card { padding: 36px 44px; } .F .card .say { font-size: 60px; }
+.F #voices .say { top: 420px; font-size: 48px; }
+.F #timer .ringbox { top: 540px; width: 540px; height: 540px; margin-left: -270px; } .F #timer .digits { font-size: 124px; } .F #timer .say { top: 1150px; font-size: 58px; }
+.F #look .top { top: 80px; } .F #look .flip { top: 330px; width: 760px; height: 650px; margin-left: -380px; }
+.F #look .split { clip-path: polygon(100% 30%, 100% 100%, 0 100%, 0 58%); }
+.F #everywhere .top { top: 80px; } .F #everywhere .fan { top: 380px; }
+.F #everywhere .w3 { width: 480px; margin-left: -240px; }
+.F #end .stack { top: 140px; } .F #end .tile { width: 200px; height: 200px; } .F #end .bn { font-size: 96px; } .F #end .en { font-size: 52px; }
 </style>
 </head>
 <body>
@@ -423,9 +440,10 @@ html, body { background: #000; overflow: hidden; }
 import { DURATION, BEAT, beat, bar, scenes, voices, clicks } from './timeline.js';
 
 const params = new URLSearchParams(location.search);
-const vertical = params.get('f') === 'vertical';
-document.documentElement.className = vertical ? 'V' : 'L';
-const W = vertical ? 1080 : 1920, H = vertical ? 1920 : 1080;
+const feed = params.get('f') === 'feed';
+const vertical = feed || params.get('f') === 'vertical';
+document.documentElement.className = feed ? 'V F' : vertical ? 'V' : 'L';
+const W = vertical ? 1080 : 1920, H = feed ? 1350 : vertical ? 1920 : 1080;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -609,7 +627,7 @@ const drift = (sel, at, d) => tl.to(sel, { rotationX: 2, rotationY: -4, duration
   rise('#voices .sub', a + 0.35);
   flyIn('#voices .win', a, { rotationY: 18 });
   tl.to('#voices .win', { rotationX: 3, rotationY: 6, duration: b - a - 1.4, ease: 'none' }, a + 1.4);
-  const chipAt = vertical ? [{ left: 0, top: 70 }, { left: 430, top: 900 }] : [{ left: -120, top: 60 }, { left: 470, top: 760 }];
+  const chipAt = feed ? [{ left: 0, top: 90 }, { left: 400, top: 640 }] : vertical ? [{ left: 0, top: 70 }, { left: 430, top: 900 }] : [{ left: -120, top: 60 }, { left: 470, top: 760 }];
   tl.set('[data-chip="ai"]', chipAt[0], 0);
   tl.set('[data-chip="classic"]', chipAt[1], 0);
   tl.fromTo('#voices .chip', { autoAlpha: 0, scale: 0.6, y: 40 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.9, ease: 'back.out(2)', stagger: 0.35 }, a + 0.6);
@@ -624,7 +642,7 @@ const drift = (sel, at, d) => tl.to(sel, { rotationX: 2, rotationY: -4, duration
   const [a, b] = scenes.quiet;
   tl.to('#night', { opacity: 1, duration: 0.9, ease: 'power2.inOut' }, a - 0.3);
   tl.to('#night', { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, b - 0.3);
-  const moonPos = vertical ? { left: 760, top: 140 } : { left: 1540, top: 110 };
+  const moonPos = feed ? { left: 800, top: 70 } : vertical ? { left: 760, top: 140 } : { left: 1540, top: 110 };
   tl.set('#moon', moonPos, 0);
   tl.fromTo('#moon', { y: 160, autoAlpha: 0, rotation: -30 }, { y: 0, autoAlpha: 1, rotation: 0, duration: 2.2, ease: 'expo.out' }, a);
   rise('#quiet .kicker', a + 0.1, 0.7);
@@ -682,7 +700,7 @@ const drift = (sel, at, d) => tl.to(sel, { rotationX: 2, rotationY: -4, duration
   const [a, b] = scenes.everywhere;
   rise('#everywhere .kicker', a, 0.7);
   lines('#everywhere .top', a + 0.05);
-  const gap = vertical ? 300 : 560;
+  const gap = feed ? 270 : vertical ? 300 : 560;
   const spots = { win: [-gap, -9, 40], linux: [gap, 9, 40], mac: [0, 0, 0] };
   for (const [k, [x, r, y]] of Object.entries(spots)) {
     tl.fromTo(`[data-w="${k}"]`, { x: 0, y: 500, rotation: 0, autoAlpha: 0, scale: 0.8 },

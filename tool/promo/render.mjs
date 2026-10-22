@@ -1,8 +1,8 @@
 // Renders the launch video: every frame of index.html through Chrome, the
 // app's voices and the music mixed under it, into build/promo/out/.
 //
-//   node tool/promo/render.mjs                 # landscape and vertical
-//   node tool/promo/render.mjs vertical        # one format
+//   node tool/promo/render.mjs                 # every format
+//   node tool/promo/render.mjs feed            # one: landscape, vertical or feed (4:5)
 //   node tool/promo/render.mjs stills 6.5 20   # PNGs of single moments
 //
 // Needs Google Chrome and ffmpeg, the window renders and sounds from
@@ -19,7 +19,7 @@ const root = resolve(import.meta.dirname, '../..');
 const outDir = join(root, 'build/promo/out');
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const music = join(root, 'build/promo/music/launch.mp3');
-const formats = { landscape: [1920, 1080], vertical: [1080, 1920] };
+const formats = { landscape: [1920, 1080], vertical: [1080, 1920], feed: [1080, 1350] };
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.ttf': 'font/ttf', '.woff2': 'font/woff2' };
 function serve() {
@@ -130,7 +130,7 @@ try {
   const env = envelopes();
   if (mode === 'stills') {
     const times = process.argv.slice(3).map(Number);
-    for (const format of Object.keys(formats)) {
+    for (const format of process.env.FORMAT ? [process.env.FORMAT] : Object.keys(formats)) {
       const page = await open(browser, url, format, env);
       for (const t of times) {
         await page.evaluate((x) => window.seek(x), t);
